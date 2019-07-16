@@ -1,0 +1,30 @@
+{
+  "first_init": false,
+  "setting_sets": [
+    {
+      "notetype_name": "test",
+      "enabled": true,
+      "settings": {
+        "css_query": "div#thecard",
+        "css_colors": [
+          "orange",
+          "olive",
+          "maroon",
+          "aqua",
+          "fuchsia"
+        ],
+        "field_padding": 4,
+        "syntax": {
+          "open_delim": "(^",
+          "close_delim": "^)",
+          "field_separator": "::"
+        },
+        "output": {
+          "open_delim": "〔",
+          "close_delim": "〕",
+          "field_separator": ""
+        }
+      }
+    }
+  ]
+}

@@ -1,9 +1,36 @@
 import sys
+import dataclass
 
 from aqt.qt import *
 from aqt import mw
 
 from .gui import multiple_choice_option_ui
+
+
+@dataclass(frozen=True)
+class MultipleChoiceSettings:
+    css_query: str
+    css_query_auto_generate: bool
+    css_colors: [str]
+    field_padding: int
+    syntax_open_delim: str
+    syntax_close_delim: str
+    syntax_field_separator: str
+    output_open_delim: str
+    output_close_delim: str
+    output_field_separator: str
+
+default_settings = MultipleChoiceSettings(
+    'div#thecard',
+    True,
+    ['orange', 'olive', 'maroon', 'aqua', 'fuchsia'],
+    4,
+    '(^', '^)', '::',
+    '〔', '〕', '',
+)
+
+
+
 
 class MultipleChoiceOptions(QDialog):
     """Global options dialog"""
@@ -26,9 +53,9 @@ class MultipleChoiceOptions(QDialog):
         #               self.f.cb_incr, self.f.cb_gfc)
         # self.setupValues(config["synced"])
 
-#     def setupUI(self):
-#         self.f.buttonBox.accepted.connect(self.onAccept)
-#         self.f.buttonBox.rejected.connect(self.onReject)
+    def setupUI(self):
+        self.f.buttonBox.accepted.connect(self.onAccept)
+        self.f.buttonBox.rejected.connect(self.onReject)
 #         self.f.buttonBox.button(
 #             QDialogButtonBox.RestoreDefaults).clicked.connect(self.onRestore)
 #         about_string = get_about_string()
@@ -50,7 +77,7 @@ class MultipleChoiceOptions(QDialog):
 #         for key, fnedit in self.fndict:
 #             fnedit.setText(values["flds"][key])
 
-#     def onAccept(self):
+    def onAccept(self):
 #         reset_req = False
 #         try:
 #             reset_req = self.renameFields()
@@ -66,15 +93,15 @@ class MultipleChoiceOptions(QDialog):
 #         config["synced"]["dflto"] = [i.isChecked() for i in self.fopts]
 #         config["synced"]["olmdls"] = self.f.le_model.text().split(",")
 #         config.save(reset=reset_req)
-#         self.close()
+        self.close()
 
 #     def onRestore(self):
 #         self.setupValues(config.defaults["synced"])
 #         for key, lnedit in self.fndict:
 #             lnedit.setModified(True)
 
-#     def onReject(self):
-#         self.close()
+    def onReject(self):
+        self.close()
 
 #     def renameFields(self):
 #         """Check for modified names and rename fields accordingly"""

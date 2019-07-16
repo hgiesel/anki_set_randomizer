@@ -1,0 +1,234 @@
+<script>
+// MULTIPLE CHOICE FRONT TEMPLATE v1.3 {{{
+// https://gist.github.com/hgiesel/2e8361afccca5713414a6a4ee66b7ece
+var query = 'div#clozed'
+var colors = ['orange', 'olive', 'maroon', 'aqua', 'fuchsia', 'navy', 'lime']
+var fieldPadding = '4px'
+
+var syntax = {
+    openDelim: '(^',
+    closeDelim: '^)',
+    fieldSeparator: '::',
+}
+var output = {
+    openDelim: '〔',
+    closeDelim: '〕',
+    fieldSeparator: '',
+}
+
+////
+var multipleChoiceSettings = {
+    query: query,
+    colors: colors,
+    fieldPadding: fieldPadding,
+    syntax: syntax,
+    output: output,
+}
+
+function escapeString(str) {
+    return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
+var exprRegex = RegExp(`(?:${escapeString(syntax.openDelim)})(.*?)(?:${escapeString(syntax.closeDelim)})`, 'gm')
+var refRegex  = /^\^\d+$/
+var drawRegex = /^\^\d+\+\d+/
+
+    function shuffle(array) {
+        var currentIndex = array.length, temporaryValue, randomIndex
+        // While there remain elements to shuffle...
+            while (0 !== currentIndex) {
+                // Pick a remaining element...
+                randomIndex   = Math.floor(Math.random() * currentIndex)
+                currentIndex -= 1
+                // And swap it with the current element.
+                temporaryValue      = array[currentIndex]
+                array[currentIndex] = array[randomIndex]
+                array[randomIndex]  = temporaryValue
+            }
+        return array;
+    }
+
+var theBody = document.querySelector(query).innerHTML
+
+var results = []
+var m = exprRegex.exec(theBody)
+
+while (m) {
+    results.push(m[1])
+    m = exprRegex.exec(theBody)
+}
+
+if (results.length > 0) {
+
+    var alteredResults = []
+
+    //// PROCESSING ON FRONT CARD
+    var splitResults = []
+    for ([i, group] of results.entries()) {
+        splitResults.push(group.split(syntax.fieldSeparator).map((v, j) => [i, j, v, true]))
+    }
+
+    var clozeHints = document.querySelectorAll(`${query} .cloze`)
+    var clozeHintGroups = []
+    for (ch of clozeHints) {
+        var clozeHintMultChoices = []
+        var m = exprRegex.exec(ch.innerHTML)
+
+        while (m) {
+            clozeHintMultChoices.push(m[1])
+            m = exprRegex.exec(ch.innerHTML)
+        }
+
+        if (clozeHintMultChoices.length > 0) {
+
+            var clozeHintSplitResults = []
+            for ([i, group] of clozeHintMultChoices.entries()) {
+                clozeHintSplitResults = group.split(syntax.fieldSeparator)
+            }
+
+            for ([i, group] of splitResults.entries()) {
+                if (JSON.stringify(group.map(v => v[2])) === JSON.stringify(clozeHintSplitResults)) {
+                    clozeHintGroups.push(i)
+                }
+            }
+        }
+    }
+
+    var shuffledResults = []
+    for (group of splitResults) {
+        var doShuffle = true
+
+        for (field of group) {
+            if (drawRegex.test(field[2])) {
+                doShuffle = false
+            }
+        }
+
+        if (doShuffle) {
+            shuffle(group)
+        }
+
+        shuffledResults.push(group)
+    }
+
+    for ([i, group] of shuffledResults.entries()) {
+        for ([j, field] of group.entries()) {
+
+            if (refRegex.test(field[2])) {
+                var referredGroup = [...shuffledResults[field[2].match(/\d+/)[0]]]
+                var newGroup = []
+
+                // make a deepcopy
+                for (oldGroupField of referredGroup) {
+                    newGroup.push([...oldGroupField])
+                }
+                group.splice(j, 1, ...newGroup)
+            }
+
+            if (drawRegex.test(field[2])) {
+
+                var drawnFields = []
+
+                var match      = field[2].match(/^\^(\d+)\+(\d+)$/)
+                var drawGroup  = match[1]
+                var drawAmount = match[2]
+
+                for (i = 0; i < drawAmount; i++) {
+                    var lastElemIndex = [...shuffledResults[drawGroup]].reverse().findIndex(v => v[3])
+                    if (lastElemIndex != -1) {
+                        var actualIndex = shuffledResults[drawGroup].length - lastElemIndex - 1
+                        drawnFields.push([...shuffledResults[drawGroup][actualIndex]])
+
+                        // set visibility to false
+                        shuffledResults[drawGroup][actualIndex][3] = false
+                    }
+                }
+
+                var replacedFields = shuffle(group.splice(0, j).concat(drawnFields))
+                group.splice(0, 1, ...replacedFields)
+            }
+
+        }
+
+        alteredResults.push(group)
+    }
+
+    var stylizedResults = []
+    for (group of alteredResults) {
+
+        var actualvalues = []
+        for ([i, field] of group.entries()) {
+            if (field[3]) {
+                var theIndex = i % colors.length
+                actualvalues.push(`<span style="color: ${colors[theIndex]}; padding: 0px ${fieldPadding};">${field[2]}</span>`)
+            }
+        }
+
+        stylizedResults.push(actualvalues.join(output.fieldSeparator))
+    }
+
+    for ([i, v] of results.entries()) {
+        var replacement = document.querySelector(query).innerHTML
+            .replace(`${syntax.openDelim}${v}${syntax.closeDelim}`, `${output.openDelim}${stylizedResults[i]}${output.closeDelim}`)
+        document.querySelector(query).innerHTML = replacement
+    }
+
+    var saveResults = []
+    for ([i, group] of alteredResults.entries()) {
+
+        if (!clozeHintGroups.includes(i)) {
+            var newGroup = []
+            for ([j, field] of group.entries()) {
+                var groupIndex = field[0]
+                var content    = field[2]
+
+                var currentRefGroup = null
+                if (refRegex.test(content)) {
+                    var currentRefGroup = content.match(/\d+/)[0]
+                }
+
+                var currentDrawGroup  = null
+                var currentDrawAmount = null
+                if (drawRegex.test(content)) {
+                    var theMatch    = content.match(/^\^(\d+)\+(\d+)$/)
+                    currentDrawGroup  = theMatch[1]
+                    currentDrawAmount = theMatch[2]
+                }
+
+                for (elem of clozeHintGroups) {
+                    if (groupIndex > elem) {
+                        groupIndex -= 1
+                    }
+
+                    if (currentRefGroup && currentRefGroup > elem) {
+                        currentRefGroup -= 1
+                    }
+
+                    if (currentDrawGroup && currentDrawGroup > elem) {
+                        currentDrawGroup -= 1
+                    }
+                }
+
+                if (refRegex.test(content)) {
+                    content = `^${currentRefGroup}`
+                }
+
+                if (drawRegex.test(content)) {
+                    content = `^${currentDrawGroup}+${currentDrawAmount}`
+                }
+
+                newGroup.push([groupIndex, field[1], content, field[3]])
+            }
+            saveResults.push(newGroup)
+        }
+
+    }
+
+    // Saving in Persistence
+    if (window.Persistence && Persistence.isAvailable()) {
+        Persistence.setItem("multipleChoiceData", saveResults)
+        Persistence.setItem("multipleChoiceSettings", multipleChoiceSettings)
+    }
+}
+// MULTIPLE CHOICE FRONT TEMPLATE v1.3 }}}
+</script>
