@@ -1,0 +1,1 @@
+{"config": {"first_init": true, "setting_sets": [{"enabled": true, "notetype_name": "test", "settings": {"css_colors": ["orange", "olive", "maroon", "aqua", "fuchsia"], "css_query": "div#thecard", "field_padding": 4, "output": {"close_delim": "\u3015", "field_separator": "", "open_delim": "\u3014"}, "syntax": {"close_delim": "^)", "field_separator": "::", "open_delim": "(^"}}}]}}

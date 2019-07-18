@@ -1,36 +1,9 @@
-import sys
-import dataclass
-
 from aqt.qt import *
 from aqt import mw
+from aqt.utils import showInfo
 
+from .config import config
 from .gui import multiple_choice_option_ui
-
-
-@dataclass(frozen=True)
-class MultipleChoiceSettings:
-    css_query: str
-    css_query_auto_generate: bool
-    css_colors: [str]
-    field_padding: int
-    syntax_open_delim: str
-    syntax_close_delim: str
-    syntax_field_separator: str
-    output_open_delim: str
-    output_close_delim: str
-    output_field_separator: str
-
-default_settings = MultipleChoiceSettings(
-    'div#thecard',
-    True,
-    ['orange', 'olive', 'maroon', 'aqua', 'fuchsia'],
-    4,
-    '(^', '^)', '::',
-    '〔', '〕', '',
-)
-
-
-
 
 class MultipleChoiceOptions(QDialog):
     """Global options dialog"""
@@ -40,22 +13,47 @@ class MultipleChoiceOptions(QDialog):
 
         self.f = multiple_choice_option_ui.Ui_MultipleChoiceOptionDialog()
         self.f.setupUi(self)
-        # self.setupUI()
+        self.setupUI()
 
-        # # load qt-designer form:
-        # self.f = settings_global.Ui_Dialog()
-        # self.f.setupUi(self)
-        # self.setupUI()
-        # self.fndict = list(zip((i for i in OLC_FIDS_PRIV if i != "tx"),
-        #     [self.f.le_og, self.f.le_st, self.f.le_fl]))
-        # self.fsched = (self.f.cb_ns_new, self.f.cb_ns_rev, self.f.cb_sfc)
-        # self.fopts = (self.f.cb_ncf, self.f.cb_ncl,
-        #               self.f.cb_incr, self.f.cb_gfc)
-        # self.setupValues(config["synced"])
+        self.setFixedSize(self.size())
+        self.stateChanged()
 
     def setupUI(self):
         self.f.buttonBox.accepted.connect(self.onAccept)
         self.f.buttonBox.rejected.connect(self.onReject)
+        self.f.enableCheckBox.stateChanged.connect(self.stateChanged)
+
+    def stateChanged(self):
+        if self.f.enableCheckBox.isChecked():
+            self.f.cssQueryLineEdit.setReadOnly(False)
+            self.f.cssQueryLineEdit.setEnabled(True)
+            self.f.cssColorsLineEdit.setReadOnly(False)
+            self.f.cssColorsLineEdit.setEnabled(True)
+            self.f.autoGenerateCheckBox.setEnabled(True)
+
+            self.f.openDelimLineEdit.setReadOnly(False)
+            self.f.openDelimLineEdit.setEnabled(True)
+            self.f.closeDelimLineEdit.setReadOnly(False)
+            self.f.closeDelimLineEdit.setEnabled(True)
+            self.f.fieldPaddingSpinBox.setEnabled(True)
+            self.f.fieldSeparatorLineEdit.setReadOnly(False)
+            self.f.fieldSeparatorLineEdit.setEnabled(True)
+
+        else:
+            self.f.cssQueryLineEdit.setReadOnly(True)
+            self.f.cssQueryLineEdit.setEnabled(False)
+            self.f.cssColorsLineEdit.setReadOnly(True)
+            self.f.cssColorsLineEdit.setEnabled(False)
+            self.f.autoGenerateCheckBox.setEnabled(False)
+
+            self.f.openDelimLineEdit.setReadOnly(True)
+            self.f.openDelimLineEdit.setEnabled(False)
+            self.f.closeDelimLineEdit.setReadOnly(True)
+            self.f.closeDelimLineEdit.setEnabled(False)
+            self.f.fieldPaddingSpinBox.setEnabled(False)
+            self.f.fieldSeparatorLineEdit.setReadOnly(True)
+            self.f.fieldSeparatorLineEdit.setEnabled(False)
+
 #         self.f.buttonBox.button(
 #             QDialogButtonBox.RestoreDefaults).clicked.connect(self.onRestore)
 #         about_string = get_about_string()

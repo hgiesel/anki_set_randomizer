@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>584</width>
-    <height>399</height>
+    <width>607</width>
+    <height>407</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>160</x>
+     <x>350</x>
      <y>350</y>
      <width>221</width>
      <height>41</height>
@@ -71,7 +71,7 @@
   <widget class="QLabel" name="closeDelimLabel">
    <property name="geometry">
     <rect>
-     <x>360</x>
+     <x>380</x>
      <y>230</y>
      <width>101</width>
      <height>21</height>
@@ -97,7 +97,7 @@
   <widget class="QLineEdit" name="closeDelimLineEdit">
    <property name="geometry">
     <rect>
-     <x>470</x>
+     <x>490</x>
      <y>230</y>
      <width>71</width>
      <height>21</height>
@@ -110,7 +110,7 @@
   <widget class="QLineEdit" name="fieldSeparatorLineEdit">
    <property name="geometry">
     <rect>
-     <x>470</x>
+     <x>490</x>
      <y>270</y>
      <width>71</width>
      <height>21</height>
@@ -123,7 +123,7 @@
   <widget class="QLabel" name="fieldSeparatorLabel">
    <property name="geometry">
     <rect>
-     <x>360</x>
+     <x>380</x>
      <y>270</y>
      <width>101</width>
      <height>21</height>
@@ -168,11 +168,14 @@
    </property>
   </widget>
   <widget class="QLineEdit" name="cssQueryLineEdit">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>170</x>
      <y>150</y>
-     <width>231</width>
+     <width>241</width>
      <height>21</height>
     </rect>
    </property>
@@ -198,7 +201,7 @@
     <rect>
      <x>170</x>
      <y>190</y>
-     <width>371</width>
+     <width>391</width>
      <height>21</height>
     </rect>
    </property>
@@ -206,7 +209,7 @@
     <string>[]</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="multiple_choice_enable">
+  <widget class="QCheckBox" name="enableCheckBox">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -235,9 +238,9 @@
    <property name="geometry">
     <rect>
      <x>-10</x>
-     <y>80</y>
+     <y>101</y>
      <width>761</width>
-     <height>61</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="orientation">
@@ -248,9 +251,9 @@
    <property name="geometry">
     <rect>
      <x>-70</x>
-     <y>300</y>
+     <y>311</y>
      <width>821</width>
-     <height>61</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="orientation">
@@ -260,7 +263,7 @@
   <widget class="QCheckBox" name="autoGenerateCheckBox">
    <property name="geometry">
     <rect>
-     <x>420</x>
+     <x>440</x>
      <y>150</y>
      <width>121</width>
      <height>20</height>
@@ -268,6 +271,24 @@
    </property>
    <property name="text">
     <string>Auto Generate</string>
+   </property>
+  </widget>
+  <widget class="QTextBrowser" name="textBrowser">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>340</y>
+     <width>341</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="html">
+    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.SF NS Text'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;anki-persistence was developed by Simon Lammer&lt;/span&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;anki-multiple-choice was developed by Henrik Giesel&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
  </widget>
