@@ -53,7 +53,7 @@ A copy group has the syntax `^x`, where `x` indicates the group
 they copy from. You can choose between *absolute* and *relative*
 indices.
 
-.Absolute indices
+==== Absolute indices
 *Absolute indices* are simply a number. Keep in mind that _multiple
 choice groups of the whole card_ are considered here. So "group 0" might
 not necessarily mean what you think. That is why *relative* groups should
@@ -71,7 +71,7 @@ Capitals: (^Bangkok::Rome::Berlin^)
 
 image::TODO[]
 
-.Relative indices
+==== Relative indices
 *Relative indices* refer to a relatively defined group in relation to the
 copy group itself. The syntax is `+x` for going forward, and `-x` for
 going backwards.
