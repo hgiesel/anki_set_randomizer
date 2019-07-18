@@ -1,9 +1,31 @@
 = Anki Multiple Choice
 
+Anki Multiple Choice is an add-on that allows you
+to define Multiple Choices on your cards. Maybe,
+to be more precise, it allows you to define randomized
+sets of items. Its usage exceeds that of Multiple Choices.
 
+It is not a new note type, but rather a general syntax, that
+can be used on *all note types*. It works on platforms, that
+anki-persistence works on, which includes Web, Android, iOS,
+Mac, Linux, and Windows.
+
+== Multiple Choice in Cloze Cards
+
+Multiple Choice group will work with Cloze Cards as well.
+They can be used to randomize set of items. And avoid learning things
+only in a specific sequence.
+
+=== Cloze hint Multiple Choice
+
+Normally nested Multiple Choices are not allowed.
+But they can't interfere with other multiple choice groups.
 
 
 == Special fields
+
+There exists several kinds of special values for fields,
+which govern how they behave.
 
 === Copy groups
 
