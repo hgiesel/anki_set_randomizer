@@ -1,10 +1,11 @@
 {
   "setting_sets": [
     {
-      "notetype_name": "test",
       "enabled": true,
+      "inject_anki_persistence": true,
+      "notetype_name": "test",
       "settings": {
-        "css_query": "div#thecard",
+        "css_query": "div#main",
         "css_colors": [
           "orange",
           "olive",
