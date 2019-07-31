@@ -12,14 +12,14 @@ const colors = $$colors
 const fieldPadding = $$field_padding
 
 const inputSyntax = {
-    openDelim: unescape($$input_syntax_open_delim.replace(/\\\\/g, '\\')),
-    closeDelim: unescape($$input_syntax_close_delim.replace(/\\\\/g, '\\')),
-    fieldSeparator: unescape($$input_syntax_field_separator.replace(/\\\\/g, '\\')),
+    openDelim: $$input_syntax_open_delim,
+    closeDelim: $$input_syntax_close_delim,
+    fieldSeparator: $$input_syntax_field_separator,
 }
 const outputSyntax = {
-    openDelim: unescape($$output_syntax_open_delim.replace(/\\\\/g, '\\')),
-    closeDelim: unescape($$output_syntax_close_delim.replace(/\\\\/g, '\\')),
-    fieldSeparator: unescape($$output_syntax_field_separator.replace(/\\\\/g, '\\')),
+    openDelim: $$output_syntax_open_delim,
+    closeDelim: $$output_syntax_close_delim,
+    fieldSeparator: $$output_syntax_field_separator,
 }
 
 const form = formatter({
@@ -41,7 +41,7 @@ const form = formatter({
 
 try {
   const originalStructure = form.getOriginalStructure()
-  console.log(originalStructure)
+  alert(originalStructure)
 }
 catch (e) {
   alert(`anki-set-randomizer: ${e}.`)
