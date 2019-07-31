@@ -9,5 +9,4 @@ Copyright: (c) 2019 Henrik Giesel <https://github.com/hgiesel>
 License: GNU AGPLv3 <https://www.gnu.org/licenses/agpl.html>
 """
 
-from .lib import main
-
+from .src import main
