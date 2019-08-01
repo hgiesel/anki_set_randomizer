@@ -1,4 +1,5 @@
 import formatter from './lib/formatter'
+import { applyCommand } from './lib/sort'
 
 import {
   processNumberedSets,
@@ -7,25 +8,12 @@ import {
   processCommands,
 } from './lib/processor'
 
-import {
-  applySetReorder,
-  applyCommand,
-} from './lib/sort'
-
-import {
-  escapeString,
-} from './lib/util'
-
-import {
-  reorderNumberedSets,
-  reorderElementSharingSets,
-  applySharedOrder
-} from './lib/reorder'
+import generateRandomization from './lib/randomize'
 
 if (window.Persistence && Persistence.isAvailable()) {
   Persistence.removeItem("AnkiSetRandomizerOptions")
-  Persistence.removeItem("AnkiSetRandomizerFirstRandomization")
-  Persistence.removeItem("AnkiSetRandomizerSecondRandomization")
+  Persistence.removeItem("AnkiSetRandomizerNewRandomization")
+  Persistence.removeItem("AnkiSetRandomizerLastMinuteRandomization")
   // and everything else
 }
 
@@ -53,24 +41,12 @@ if (originalStructure) {
   const elementSharingSets = processElementSharingSets(originalStructure)
   const orderSharingSets = processElementSharingSets(originalStructure)
 
-  const elementsOrig = numberedSets
-    .map(v => v.elements)
-    .map(v => v.map(u => [...u, 'n'])
+  const [newElements, newReorders] = generateRandomization(
+    numberedSets,
+    elementSharingSets,
+    orderSharingSets,
+    false,
   )
-
-  const elements = JSON.parse(JSON.stringify(elementsOrig))
-
-  const setReorders = [
-    reorderNumberedSets(numberedSets),
-    reorderElementSharingSets(elementSharingSets, numberedSets),
-  ].flat()
-
-  // modifies setReorders (!)
-  orderSharingSets.forEach(oss => applySharedOrder(oss, setReorders))
-
-  // modifies elements (!)
-  // are applied numbered 0 -> n, then named in order of appearance
-  setReorders.forEach(sr => applySetReorder(sr, elements, elementsOrig))
 
   //////////////////////////////////////////////////////////////////////////////
   // are applied last to first
@@ -81,36 +57,24 @@ if (originalStructure) {
     reversedCommands.filter(v => v[2] === 'm'),
     reversedCommands.filter(v => v[2] === 'c'),
     reversedCommands.filter(v => v[2] === 'd')
-    ].flat()
+  ].flat()
 
   sortedReversedCommands
-    .forEach(cmd => applyCommand(cmd, elements))
+    .forEach(cmd => applyCommand(cmd, newElements))
 
   //////////////////////////////////////////////////////////////////////////////
-  const lastMinuteStructure = elements
+  const lastMinuteStructure = newElements
     .map(set => set.filter(elem => elem[3] !== 'd'))
 
   const lastMinuteNumberedSets = processNumberedSets(lastMinuteStructure)
-  lastMinuteNumberedSets.forEach((v, i) => v.lastMinute = numberedSets[i].lastMinute)
+    .map((v, i) => ({name: v.name, elements: v.elements, lastMinute: numberedSets[i].lastMinute}))
 
-  const lastMinuteElementsOrig = lastMinuteNumberedSets
-    .map(v => v.elements)
-    .map(v => v.map(u => [u[0], u[1], u[2], 'n']))
-
-  const lastMinuteElements = JSON.parse(JSON.stringify(lastMinuteElementsOrig))
-
-  const lastMinuteSetReorders = [
-    reorderNumberedSets(lastMinuteNumberedSets),
-    reorderElementSharingSets(elementSharingSets, lastMinuteNumberedSets),
-  ].flat()
-
-  console.log(lastMinuteSetReorders)
-  // modifies setReorders (!)
-  orderSharingSets.filter(v => v.lastMinute).forEach(oss => applySharedOrder(oss, lastMinuteSetReorders))
-
-  // modifies elements (!)
-  // are applied numbered 0 -> n, then named in order of appearance
-  lastMinuteSetReorders.filter(v => v.lastMinute).forEach(sr => applySetReorder(sr, lastMinuteElements, lastMinuteElementsOrig))
+  const [lastMinuteElements, lastMinuteSetReorders] = generateRandomization(
+    lastMinuteNumberedSets,
+    elementSharingSets,
+    orderSharingSets.filter(v => v.lastMinute),
+    true,
+  )
 
   //////////////////////////////////////////////////////////////////////////////
   form.renderSets(lastMinuteElements)
