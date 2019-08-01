@@ -52,6 +52,8 @@ def update_model_template(model, settings):
         js_front = BetterTemplate(template_front.read()).substitute(
             query= json.dumps(settings.css_query) if not settings.css_query_auto_generate else json.dumps("div#set-randomizer-container"),
             colors=json.dumps(settings.css_colors),
+            colors_collective_indexing=json.dumps(settings.css_colors_collective_indexing),
+            colors_random_start_index=json.dumps(settings.css_colors_random_start_index),
             field_padding=json.dumps(settings.field_padding),
             input_syntax_open_delim=json.dumps(settings.input_syntax_open_delim),
             input_syntax_close_delim=json.dumps(settings.input_syntax_close_delim),

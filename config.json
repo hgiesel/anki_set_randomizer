@@ -13,6 +13,8 @@
           "aqua",
           "fuchsia"
         ],
+        "css_colors_random_start_index": false,
+        "css_colors_collective_indexing": false,
         "field_padding": 4,
         "input_syntax": {
           "open_delim": "(^",

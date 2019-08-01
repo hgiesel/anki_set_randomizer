@@ -49,6 +49,8 @@ class SetRandomizerOptions(QDialog):
             self.f.cssQueryLineEdit.text(),
             self.f.autoGenerateCheckBox.isChecked(),
             list(map(lambda v: v.strip(), self.f.cssColorsLineEdit.text().split(','))),
+            self.f.collectiveIndexingCheckBox.isChecked(),
+            self.f.randomStartIndexCheckBox.isChecked(),
             self.f.fieldPaddingSpinBox.value(),
             current_settings.input_syntax_open_delim,
             current_settings.input_syntax_close_delim,
@@ -68,6 +70,8 @@ class SetRandomizerOptions(QDialog):
         self.f.enableCheckBox.setChecked(current_settings.enabled)
         self.f.cssQueryLineEdit.setText(current_settings.css_query)
         self.f.autoGenerateCheckBox.setChecked(current_settings.css_query_auto_generate)
+        self.f.collectiveIndexingCheckBox.setChecked(current_settings.css_colors_collective_indexing)
+        self.f.randomStartIndexCheckBox.setChecked(current_settings.css_colors_random_start_index)
         self.f.cssColorsLineEdit.setText(', '.join(current_settings.css_colors))
         self.f.fieldPaddingSpinBox.setValue(current_settings.field_padding)
         self.f.openDelimLineEdit.setText(current_settings.output_syntax_open_delim)
@@ -80,7 +84,10 @@ class SetRandomizerOptions(QDialog):
             self.f.cssQueryLineEdit.setEnabled(True)
             self.f.cssColorsLineEdit.setReadOnly(False)
             self.f.cssColorsLineEdit.setEnabled(True)
+
             self.f.autoGenerateCheckBox.setEnabled(True)
+            self.f.randomStartIndexCheckBox.setEnabled(True)
+            self.f.collectiveIndexingCheckBox.setEnabled(True)
 
             self.f.openDelimLineEdit.setReadOnly(False)
             self.f.openDelimLineEdit.setEnabled(True)
@@ -95,7 +102,10 @@ class SetRandomizerOptions(QDialog):
             self.f.cssQueryLineEdit.setEnabled(False)
             self.f.cssColorsLineEdit.setReadOnly(True)
             self.f.cssColorsLineEdit.setEnabled(False)
+
             self.f.autoGenerateCheckBox.setEnabled(False)
+            self.f.randomStartIndexCheckBox.setEnabled(False)
+            self.f.collectiveIndexingCheckBox.setEnabled(False)
 
             self.f.openDelimLineEdit.setReadOnly(True)
             self.f.openDelimLineEdit.setEnabled(False)

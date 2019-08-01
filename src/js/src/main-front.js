@@ -20,6 +20,8 @@ if (window.Persistence && Persistence.isAvailable()) {
 const options = {
   query: $$query,
   colors: $$colors,
+  colors_collective_indexing: $$colors_collective_indexing,
+  colors_random_start_index: $$colors_random_start_index,
   fieldPadding: $$field_padding,
   inputSyntax: {
     openDelim: $$input_syntax_open_delim,
@@ -77,7 +79,10 @@ if (originalStructure) {
   )
 
   //////////////////////////////////////////////////////////////////////////////
-  form.renderSets(lastMinuteElements)
+  form.renderSets(lastMinuteElements
+    // import for collective color indexing
+    .map((v, i) => ({rendering: v, order: i}))
+  )
 }
 
 if (options) {

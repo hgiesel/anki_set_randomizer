@@ -1,3 +1,6 @@
+/**
+ * For all funtions that concerns accessing the html content
+ */
 import { escapeString } from './util'
 
 export default function formatter(options) {
@@ -46,22 +49,29 @@ export default function formatter(options) {
 
   const renderSets = function(reordering) {
 
-    const stylizedResults = []
+    let absoluteIndex = 0 + (options.colors_random_start_index ? Math.floor(Math.random() * options.colors.length) : 0)
+
+    const stylizedResults = Array(reordering.length)
     for (const set of reordering) {
 
       const actualValues = []
-      // const randomStartIndex = Math.floor(Math.random() * options.colors.length)
-      const randomStartIndex = 0
 
-      for (const [i, element] of set.entries()) {
+      const randomStartIndex = (options.colors_random_start_index ? Math.floor(Math.random() * options.colors.length) : 0)
+
+      for (const [i, element] of set.rendering.entries()) {
         if (element[3] !== 'd') {
-          const theIndex = (randomStartIndex + i) % options.colors.length
-          const style = `style="color: ${options.colors[theIndex]}; padding: 0px ${options.fieldPadding};"`
-          actualValues.push(`<span ${style}> ${element[2]}</span>`)
+          const theIndex    = ((options.colors_collective_indexing ? absoluteIndex++ : randomStartIndex + i) % options.colors.length)
+
+          const className   = `class="set-randomizer--element set-randomizer--element-index-${element[0]}-${element[1]}"`
+
+          const colorChoice = options.colors[theIndex] ? ` color: ${options.colors[theIndex]};` : ''
+          const style       = `style="padding: 0px ${options.fieldPadding}px;${colorChoice}"`
+
+          actualValues.push(`<span ${className} ${style}>${element[2]}</span>`)
         }
       }
 
-      stylizedResults.push(actualValues.join(options.outputSyntax.fieldSeparator))
+      stylizedResults[set.order] = (actualValues.join(options.outputSyntax.fieldSeparator))
     }
 
     const theElement = document.querySelector(options.query)
