@@ -9,12 +9,13 @@
 body {
   font-family: 'Helvetica Neue', Arial, sans-serif;
   color: #333;
+  background-color: #666;
   font-weight: 300;
 }
     </style>
     <script>
     $$query = 'div#set-randomizer-container'
-    $$colors = 'orange, olive, maroon, aqua, fuchsia'
+    $$colors = ['orange', 'olive', 'maroon', 'aqua', 'fuchsia']
     $$field_padding = '4px'
     $$input_syntax_open_delim = '(^'
     $$input_syntax_close_delim = '^)'
@@ -28,10 +29,11 @@ body {
   <body>
     <h1>anki-set-randomizer FRONT</h1>
     <div id="set-randomizer-container">
-      (^abc::def::ghi::jkl^)<br/>
-      (^^0^)<br/>
-      <div>(^^0+1^)</div>
-      (^^0+1^)<br/>
+      (^^a!::abc::def::ghi^)<br/>
+
+      (^^a!!::abc::def::ghi::^+1~2^)<br/>
+
+      (^123::456^)
     </div>
     <script src='anki-persistence.js'></script>
     <script src='front.js'></script>
