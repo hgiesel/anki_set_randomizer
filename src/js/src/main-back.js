@@ -12,15 +12,14 @@ import generateRandomization from './lib/randomize'
 
 if (window.Persistence && Persistence.isAvailable() && Persistence.getItem("AnkiSetRandomizerOptions")) {
   const options = Persistence.getItem("AnkiSetRandomizerOptions")
-  console.log(options)
 
   const form = formatter(options)
   const originalStructure = form.getOriginalStructure()
 
   if (originalStructure) {
-    const numberedSets = processNumberedSets(originalStructure)
+    const numberedSets       = processNumberedSets(originalStructure)
     const elementSharingSets = processElementSharingSets(originalStructure)
-    const orderSharingSets = processElementSharingSets(originalStructure)
+    const orderSharingSets   = processElementSharingSets(originalStructure)
 
     const [newElements, newReorders] = generateRandomization(
       numberedSets,

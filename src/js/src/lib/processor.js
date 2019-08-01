@@ -142,7 +142,7 @@ export function processCommands(originalStructure) {
   const moveSymbol    = '\\~'
   const movePattern   = `^\\^${idxPattern}${positionPattern}${moveSymbol}${amountPattern}$`
 
-  const deleteSymbol  = '%'
+  const deleteSymbol  = '\\%'
   const deletePattern = `^\\^${idxPattern}${positionPattern}${deleteSymbol}${amountPattern}$`
 
   for (const set of originalStructure) {

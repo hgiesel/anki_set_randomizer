@@ -17,7 +17,6 @@ def setup_models(config):
         model = mw.col.models.byName(entry['name'])
 
         remove_model_template(model)
-
         if entry['settings'].enabled:
             update_model_template(model, entry['settings'])
 
@@ -65,6 +64,9 @@ def update_model_template(model, settings):
     with io.open(f'{dir_path}/../js/dist/back.js', mode='r', encoding='utf-8') as template_back:
         js_back = template_back.read()
 
+    with io.open(f'{dir_path}/../js/dist/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:
+        anki_persistence = template_anki_persistence.read() + '\n'
+
     for template in model['tmpls']:
-        template['qfmt'] = f'{template["qfmt"]}\n<script>\n// SET RANDOMIZER FRONT TEMPLATE {util.versionString}\n{js_front}</script>'
-        template['afmt'] = f'{template["afmt"]}\n<script>\n// SET RANDOMIZER BACK TEMPLATE {util.versionString}\n{js_back}</script>'
+        template['qfmt'] = f'{template["qfmt"]}\n\n<script>\n// SET RANDOMIZER FRONT TEMPLATE {util.versionString}\n{anki_persistence if settings.inject_anki_persistence else ""}{js_front}</script>'
+        template['afmt'] = f'{template["afmt"]}\n\n<script>\n// SET RANDOMIZER BACK TEMPLATE {util.versionString}\n{anki_persistence if settings.inject_anki_persistence else ""}{js_back}</script>'

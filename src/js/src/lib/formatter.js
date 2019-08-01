@@ -10,11 +10,15 @@ export default function formatter(options) {
     }
 
     else {
-      const exprRegex = RegExp(`(?:${escapeString(options.inputSyntax.openDelim)})(.*?)(?:${escapeString(options.inputSyntax.closeDelim)})`, 'gm')
       const theElement = document.querySelector(options.query)
       const theBody = theElement ? theElement.innerHTML : ''
 
       const rawStructure = []
+
+      const exprRegex = RegExp(
+        `${escapeString(options.inputSyntax.openDelim)}(?:::)?(.*?)(?:::)?${escapeString(options.inputSyntax.closeDelim)}`,
+        'gm'
+      )
 
       let m = exprRegex.exec(theBody)
       while (m) {
@@ -30,7 +34,11 @@ export default function formatter(options) {
     const splitResults = []
 
     for (const [i, group] of getRawStructure().entries()) {
-      splitResults.push(group.split(options.inputSyntax.fieldSeparator).map((v, j) => [i, j, v]))
+      const splitGroup = group
+        .split(options.inputSyntax.fieldSeparator)
+        .map((v, j) => [i, j, v])
+
+      splitResults.push(splitGroup)
     }
 
     return splitResults
