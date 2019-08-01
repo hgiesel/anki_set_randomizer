@@ -1,5 +1,6 @@
 from aqt.qt import *
 from aqt import mw
+from anki.hooks import addHook
 from aqt.utils import showInfo
 
 from .lib import config
@@ -28,12 +29,12 @@ class SetRandomizerOptions(QDialog):
         self.f.cardTypeSelector.addItems(list(map(lambda v: v['name'], self.configs_data)))
 
         self.f.cardTypeSelector.currentIndexChanged.connect(self.cardTypeSelectorChanged)
-        self.f.enableCheckBox.stateChanged.connect(self.enableStateChanged)
         self.f.autoGenerateCheckBox.stateChanged.connect(self.autoGenerateStateChanged)
+        self.f.enableCheckBox.stateChanged.connect(self.enableStateChanged)
 
         self.cardTypeSelectorInit()
-        self.enableStateChanged()
         self.autoGenerateStateChanged()
+        self.enableStateChanged()
 
     def cardTypeSelectorChanged(self):
         self.cardTypeSelectorSave()
@@ -134,7 +135,6 @@ class SetRandomizerOptions(QDialog):
         self.close()
 
 def setup_menu_option():
-
     mult_choice = QAction('Set Randomizer Options...', mw)
 
     def invoke_options():
@@ -146,4 +146,10 @@ def setup_menu_option():
     mult_choice.triggered.connect(invoke_options)
     mw.form.menuTools.addAction(mult_choice)
 
+def default_write_on_startup():
+    configs_data = config.get_configs_data()
+    config.write_configs_data(configs_data)
+    model_editor.setup_models(configs_data)
+
+addHook('profileLoaded', default_write_on_startup)
 setup_menu_option()

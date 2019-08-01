@@ -11,9 +11,12 @@ import {
 import generateRandomization from './lib/randomize'
 
 if (window.Persistence && Persistence.isAvailable() && Persistence.getItem("AnkiSetRandomizerOptions")) {
-  const options = Persistence.getItem("AnkiSetRandomizerOptions")
+  const inheritedOptions            = Persistence.getItem("AnkiSetRandomizerOptions")
+  const inheritedNewReorders        = Persistence.getItem("AnkiSetRandomizerNewReorders")
+  const inheritedLastMinuteReorders = Persistence.getItem("AnkiSetRandomizerLastMinuteReorders")
+  const inheritedRandomIndices      = Persistence.getItem("AnkiSetRandomizerRandomIndices")
 
-  const form = formatter(options)
+  const form = formatter(inheritedOptions)
   const originalStructure = form.getOriginalStructure()
 
   if (originalStructure) {
@@ -57,6 +60,11 @@ if (window.Persistence && Persistence.isAvailable() && Persistence.getItem("Anki
     )
 
     //////////////////////////////////////////////////////////////////////////////
-    form.renderSets(lastMinuteElements)
+  form.renderSets(
+    lastMinuteElements
+    // import for collective color indexing
+    .map((v, i) => ({rendering: v, order: i})),
+    inheritedRandomIndices
+  )
   }
 }

@@ -4,12 +4,7 @@ import {
   applySharedOrder
 } from './reorder'
 
-import {
-  applySetReorder,
-  applyCommand,
-} from './sort'
-
-export default function generateRandomization(numberedSets, elementSharingSets, orderSharingSets, lastMinute) {
+export default function generateRandomization(numberedSets, elementSharingSets, orderSharingSets) {
   const elements = numberedSets
     .map(v => v.elements)
     .map(v => v.map(u => [u[0], u[1], u[2], 'n']))
@@ -22,12 +17,5 @@ export default function generateRandomization(numberedSets, elementSharingSets, 
 
   // modifies setReorders (!)
   orderSharingSets.forEach(oss => applySharedOrder(oss, setReorders))
-
-  // numbered are sorted 0 -> n, then named are in order of appearance
-  // modifies elementsCopy (!)
-  setReorders
-    .filter(v => v.lastMinute || !lastMinute)
-    .forEach(sr => applySetReorder(sr, elementsCopy, elements))
-
-  return [elementsCopy, setReorders]
+  return [elements, elementsCopy, setReorders]
 }

@@ -8,13 +8,17 @@ import {
   processCommands,
 } from './lib/processor'
 
+import {
+  applySetReorder,
+} from './lib/sort'
+
 import generateRandomization from './lib/randomize'
 
 if (window.Persistence && Persistence.isAvailable()) {
   Persistence.removeItem("AnkiSetRandomizerOptions")
-  Persistence.removeItem("AnkiSetRandomizerNewRandomization")
-  Persistence.removeItem("AnkiSetRandomizerLastMinuteRandomization")
-  // and everything else
+  Persistence.removeItem("AnkiSetRandomizerNewReorders")
+  Persistence.removeItem("AnkiSetRandomizerLastMinuteReorders")
+  Persistence.removeItem("AnkiSetRandomizerRandomIndices")
 }
 
 const options = {
@@ -43,12 +47,16 @@ if (originalStructure) {
   const elementSharingSets = processElementSharingSets(originalStructure)
   const orderSharingSets = processElementSharingSets(originalStructure)
 
-  const [newElements, newReorders] = generateRandomization(
+  const [newElements, newElementsCopy, newReorders] = generateRandomization(
     numberedSets,
     elementSharingSets,
     orderSharingSets,
-    false,
   )
+
+  // numbered are sorted 0 -> n, then named are in order of appearance
+  // modifies elementsCopy (!)
+  newReorders
+    .forEach(sr => applySetReorder(sr, newElements, newElementsCopy))
 
   //////////////////////////////////////////////////////////////////////////////
   // are applied last to first
@@ -69,24 +77,39 @@ if (originalStructure) {
     .map(set => set.filter(elem => elem[3] !== 'd'))
 
   const lastMinuteNumberedSets = processNumberedSets(lastMinuteStructure)
-    .map((v, i) => ({name: v.name, elements: v.elements, lastMinute: numberedSets[i].lastMinute}))
+    .map((v, i) => ({
+      name: v.name,
+      elements: v.elements,
+      lastMinute: numberedSets[i].lastMinute
+    }))
 
-  const [lastMinuteElements, lastMinuteSetReorders] = generateRandomization(
+  const [lastMinuteElements, lastMinuteElementsCopy, lastMinuteReorders] = generateRandomization(
     lastMinuteNumberedSets,
     elementSharingSets,
     orderSharingSets.filter(v => v.lastMinute),
-    true,
+  )
+
+  // numbered are sorted 0 -> n, then named are in order of appearance
+  // modifies elementsCopy (!)
+  lastMinuteReorders
+    .filter(v => v.lastMinute)
+    .forEach(sr => applySetReorder(sr, lastMinuteElements, lastMinuteElementsCopy))
+
+  //////////////////////////////////////////////////////////////////////////////
+  const randomIndices = new Array(lastMinuteElements.length).fill(0).map(_ => Math.random())
+
+  form.renderSets(
+    lastMinuteElements
+    // import for collective color indexing
+    .map((v, i) => ({rendering: v, order: i})),
+    randomIndices
   )
 
   //////////////////////////////////////////////////////////////////////////////
-  form.renderSets(lastMinuteElements
-    // import for collective color indexing
-    .map((v, i) => ({rendering: v, order: i}))
-  )
-}
-
-if (options) {
   if (window.Persistence && Persistence.isAvailable()) {
     Persistence.setItem("AnkiSetRandomizerOptions", options)
+    Persistence.setItem("AnkiSetRandomizerNewReorders", newReorders)
+    Persistence.setItem("AnkiSetRandomizerLastMinuteReorders", lastMinuteReorders)
+    Persistence.setItem("AnkiSetRandomizerRandomIndices", randomIndices)
   }
 }

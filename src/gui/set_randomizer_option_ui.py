@@ -108,7 +108,7 @@ class Ui_SetRandomizerOptionDialog(object):
 
     def retranslateUi(self, SetRandomizerOptionDialog):
         _translate = QtCore.QCoreApplication.translate
-        SetRandomizerOptionDialog.setWindowTitle(_translate("SetRandomizerOptionDialog", "Dialog"))
+        SetRandomizerOptionDialog.setWindowTitle(_translate("SetRandomizerOptionDialog", "Set Randomizer Options"))
         self.tab_settings.setWhatsThis(_translate("SetRandomizerOptionDialog", "<html><head/><body><p><br/></p></body></html>"))
         self.cardTypeSelector.setItemText(0, _translate("SetRandomizerOptionDialog", "CardType"))
         self.enableCheckBox.setText(_translate("SetRandomizerOptionDialog", "Enable Randomized Sets"))

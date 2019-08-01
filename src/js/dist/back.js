@@ -53,20 +53,20 @@
       return splitResults
     };
 
-    const renderSets = function(reordering) {
+    const renderSets = function(reordering, randomIndices) {
 
-      let absoluteIndex = 0 + (options.colors_random_start_index ? Math.floor(Math.random() * options.colors.length) : 0);
+      let absoluteIndex = 0 + (options.colors_random_start_index ? Math.floor(randomIndices[0] * options.colors.length) : 0);
 
       const stylizedResults = Array(reordering.length);
-      for (const set of reordering) {
+      for (const [i, set] of reordering.entries()) {
 
         const actualValues = [];
 
-        const randomStartIndex = (options.colors_random_start_index ? Math.floor(Math.random() * options.colors.length) : 0);
+        const randomStartIndex = (options.colors_random_start_index ? Math.floor(randomIndices[i] * options.colors.length) : 0);
 
-        for (const [i, element] of set.rendering.entries()) {
+        for (const [j, element] of set.rendering.entries()) {
           if (element[3] !== 'd') {
-            const theIndex    = ((options.colors_collective_indexing ? absoluteIndex++ : randomStartIndex + i) % options.colors.length);
+            const theIndex    = ((options.colors_collective_indexing ? absoluteIndex++ : randomStartIndex + j) % options.colors.length);
 
             const className   = `class="set-randomizer--element set-randomizer--element-index-${element[0]}-${element[1]}"`;
 
@@ -98,55 +98,6 @@
       getRawStructure: getRawStructure,
       getOriginalStructure: getOriginalStructure,
       renderSets: renderSets,
-    }
-  }
-
-  function sortWithIndices(elems, indices) {
-    const result = [];
-
-    for (const idx of indices) {
-      const maybeElem = elems[idx];
-
-      if (maybeElem) {
-        result.push(maybeElem);
-      }
-    }
-
-    if (indices.length < elems.length) {
-        for (const idx of Array.from(new Array(elems.length - indices.length), (x, i) => i + indices.length)) {
-          result.push(elems[idx]);
-        }
-    }
-
-    return result
-  }
-
-  function sliceWithLengths(elems, lengths) {
-    const result = [];
-
-    let startIndex = 0;
-    for (const l of lengths) {
-      result.push(elems.slice(startIndex, startIndex + l));
-      startIndex += l;
-    }
-
-    return result
-  }
-
-  function applySetReorder(sr, elems, elemsOrig) {
-    switch (typeof sr.name) {
-      case 'number':
-        const saveElems = elemsOrig[sr.name];
-        elems[sr.name] = sortWithIndices(saveElems, sr.order);
-        break
-
-      case 'string':
-        const flatSaveElems = sr.sets.map(v => elemsOrig[v]).flat();
-        sliceWithLengths(sortWithIndices(flatSaveElems, sr.order), sr.setLengths)
-          .forEach((v, i) => {
-            elems[sr.sets[i]] = v;
-          });
-        break
     }
   }
 
@@ -378,7 +329,7 @@
     return setReorders
   }
 
-  function generateRandomization(numberedSets, elementSharingSets, orderSharingSets, lastMinute) {
+  function generateRandomization(numberedSets, elementSharingSets, orderSharingSets) {
     const elements = numberedSets
       .map(v => v.elements)
       .map(v => v.map(u => [u[0], u[1], u[2], 'n']));
@@ -391,20 +342,16 @@
 
     // modifies setReorders (!)
     orderSharingSets.forEach(oss => applySharedOrder(oss, setReorders));
-
-    // numbered are sorted 0 -> n, then named are in order of appearance
-    // modifies elementsCopy (!)
-    setReorders
-      .filter(v => v.lastMinute || !lastMinute)
-      .forEach(sr => applySetReorder(sr, elementsCopy, elements));
-
-    return [elementsCopy, setReorders]
+    return [elements, elementsCopy, setReorders]
   }
 
   if (window.Persistence && Persistence.isAvailable() && Persistence.getItem("AnkiSetRandomizerOptions")) {
-    const options = Persistence.getItem("AnkiSetRandomizerOptions");
+    const inheritedOptions            = Persistence.getItem("AnkiSetRandomizerOptions");
+    const inheritedNewReorders        = Persistence.getItem("AnkiSetRandomizerNewReorders");
+    const inheritedLastMinuteReorders = Persistence.getItem("AnkiSetRandomizerLastMinuteReorders");
+    const inheritedRandomIndices      = Persistence.getItem("AnkiSetRandomizerRandomIndices");
 
-    const form = formatter(options);
+    const form = formatter(inheritedOptions);
     const originalStructure = form.getOriginalStructure();
 
     if (originalStructure) {
@@ -415,9 +362,7 @@
       const [newElements, newReorders] = generateRandomization(
         numberedSets,
         elementSharingSets,
-        orderSharingSets,
-        false,
-      );
+        orderSharingSets);
 
       //////////////////////////////////////////////////////////////////////////////
       // are applied last to first
@@ -443,12 +388,15 @@
       const [lastMinuteElements, lastMinuteSetReorders] = generateRandomization(
         lastMinuteNumberedSets,
         elementSharingSets,
-        orderSharingSets.filter(v => v.lastMinute),
-        true,
-      );
+        orderSharingSets.filter(v => v.lastMinute));
 
       //////////////////////////////////////////////////////////////////////////////
-      form.renderSets(lastMinuteElements);
+    form.renderSets(
+      lastMinuteElements
+      // import for collective color indexing
+      .map((v, i) => ({rendering: v, order: i})),
+      inheritedRandomIndices
+    );
     }
   }
 

@@ -12,7 +12,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Set Randomizer Options</string>
   </property>
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">

@@ -9,20 +9,45 @@
 body {
   font-family: 'Helvetica Neue', Arial, sans-serif;
   color: #333;
-  font-weight: 300;
+  background-color: #666;
+  font-weight: 500;
+}
+div {
+  font-size: 38px;
+}
+h1 {
+  text-align: center;
 }
     </style>
+
+    <script>
+$$query = 'div#set-randomizer-container'
+$$colors = ['red', 'lime', 'blue', 'cyan', 'magenta', 'yellow']
+$$colors_collective_indexing = true
+$$colors_random_start_index = false
+$$field_padding = 10
+$$input_syntax_open_delim = '(^'
+$$input_syntax_close_delim = '^)'
+$$input_syntax_field_separator = '::'
+$$output_syntax_open_delim = '\u3014'
+$$output_syntax_close_delim = '\u3015'
+$$output_syntax_field_separator = ''
+    </script>
+
+    <script src='anki-persistence.js'></script>
   </head>
 
   <body>
     <h1>anki-set-randomizer BACK</h1>
+
     <div id="set-randomizer-container">
       This is a test (^abc::def::ghi::jkl^)<br/>
       (^^0=^)<br/>
       <div>(^^0~1^)</div>
       (^^0~1^)<br/>
     </div>
-    <script src='anki-persistence.js'></script>
+
     <script src='back.js'></script>
   </body>
+
 </html>

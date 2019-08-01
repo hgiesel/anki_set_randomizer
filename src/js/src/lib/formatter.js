@@ -47,20 +47,20 @@ export default function formatter(options) {
     return splitResults
   }
 
-  const renderSets = function(reordering) {
+  const renderSets = function(reordering, randomIndices) {
 
-    let absoluteIndex = 0 + (options.colors_random_start_index ? Math.floor(Math.random() * options.colors.length) : 0)
+    let absoluteIndex = 0 + (options.colors_random_start_index ? Math.floor(randomIndices[0] * options.colors.length) : 0)
 
     const stylizedResults = Array(reordering.length)
-    for (const set of reordering) {
+    for (const [i, set] of reordering.entries()) {
 
       const actualValues = []
 
-      const randomStartIndex = (options.colors_random_start_index ? Math.floor(Math.random() * options.colors.length) : 0)
+      const randomStartIndex = (options.colors_random_start_index ? Math.floor(randomIndices[i] * options.colors.length) : 0)
 
-      for (const [i, element] of set.rendering.entries()) {
+      for (const [j, element] of set.rendering.entries()) {
         if (element[3] !== 'd') {
-          const theIndex    = ((options.colors_collective_indexing ? absoluteIndex++ : randomStartIndex + i) % options.colors.length)
+          const theIndex    = ((options.colors_collective_indexing ? absoluteIndex++ : randomStartIndex + j) % options.colors.length)
 
           const className   = `class="set-randomizer--element set-randomizer--element-index-${element[0]}-${element[1]}"`
 
