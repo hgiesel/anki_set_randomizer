@@ -1,3 +1,4 @@
 # Dependency directories
 node_modules/
 *.log
+meta.json
