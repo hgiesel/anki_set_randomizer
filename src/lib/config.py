@@ -37,6 +37,16 @@ def deserialize_configs(model_names, configs_settings_list):
         True,
     )
 
+    CLOZE_OVERLAPPER_DEFAULT_SETTINGS = SetRandomizerSettings(
+        False,
+        'div#clozed', False,
+        ['orange', 'olive', 'maroon', 'aqua', 'fuchsia'], False, False,
+        4,
+        '(^', '^)', '::',
+        '〔', '〕', '',
+        True,
+    )
+
     model_configs = []
 
     for model_name in model_names:
@@ -51,9 +61,21 @@ def deserialize_configs(model_names, configs_settings_list):
 
             def safe_get(key, key2=None):
                 if key2:
-                    return theFound[key][key2] if key in theFound and key2 in theFound[key] else getattr(getattr(DEFAULT_SETTINGS, key), key2)
+                    return (theFound[key][key2]
+                            if key in theFound and key2 in theFound[key]
+                            else getattr(
+                                getattr(DEFAULT_SETTINGS
+                                if not model_name == 'Cloze (overlapping)'
+                                else CLOZE_OVERLAPPER_DEFAULT_SETTINGS, key), key2)
+                            )
                 else:
-                    return theFound[key] if key in theFound else getattr(DEFAULT_SETTINGS, key)
+                    return (theFound[key]
+                            if key in theFound
+                            else getattr(
+                                DEFAULT_SETTINGS
+                                if not model_name == 'Cloze (overlapping)'
+                                else CLOZE_OVERLAPPER_DEFAULT_SETTINGS, key)
+                            )
 
 
             model_configs.append({
@@ -84,7 +106,9 @@ def deserialize_configs(model_names, configs_settings_list):
         else:
             model_configs.append({
                 "name": model_name,
-                "settings": DEFAULT_SETTINGS
+                "settings": (DEFAULT_SETTINGS
+                             if not model_name == 'Cloze (overlapping)'
+                             else CLOZE_OVERLAPPER_DEFAULT_SETTINGS)
             })
 
     return model_configs

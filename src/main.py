@@ -81,8 +81,13 @@ class SetRandomizerOptions(QDialog):
 
     def enableStateChanged(self):
         if self.f.enableCheckBox.isChecked():
-            self.f.cssQueryLineEdit.setReadOnly(False)
-            self.f.cssQueryLineEdit.setEnabled(True)
+            if self.f.autoGenerateCheckBox.isChecked():
+                self.f.cssQueryLineEdit.setReadOnly(True)
+                self.f.cssQueryLineEdit.setEnabled(False)
+            else:
+                self.f.cssQueryLineEdit.setReadOnly(False)
+                self.f.cssQueryLineEdit.setEnabled(True)
+
             self.f.cssColorsLineEdit.setReadOnly(False)
             self.f.cssColorsLineEdit.setEnabled(True)
 
