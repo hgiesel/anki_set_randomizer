@@ -1,115 +1,141 @@
-import formatter from './lib/formatter'
-import { applyCommand } from './lib/sort'
+import formatter from './lib/formatter.js'
 
 import {
   processNumberedSets,
   processElementSharingSets,
   processOrderSharingSets,
   processCommands,
-} from './lib/processor'
+} from './lib/processor.js'
 
 import {
+  applyCommand,
   applySetReorder,
-} from './lib/sort'
+} from './lib/sort.js'
 
-import generateRandomization from './lib/randomize'
+import {
+  generateRandomization,
+} from './lib/randomize.js'
+
+import {
+  escapeHtml,
+} from './lib/util.js'
 
 if (window.Persistence && Persistence.isAvailable()) {
-  Persistence.removeItem("AnkiSetRandomizerOptions")
-  Persistence.removeItem("AnkiSetRandomizerNewReorders")
-  Persistence.removeItem("AnkiSetRandomizerLastMinuteReorders")
-  Persistence.removeItem("AnkiSetRandomizerRandomIndices")
+  mainFront()
 }
 
-const options = {
-  query: $$query,
-  colors: $$colors,
-  colors_collective_indexing: $$colors_collective_indexing,
-  colors_random_start_index: $$colors_random_start_index,
-  fieldPadding: $$field_padding,
-  inputSyntax: {
-    openDelim: $$input_syntax_open_delim,
-    closeDelim: $$input_syntax_close_delim,
-    fieldSeparator: $$input_syntax_field_separator,
-  },
-  outputSyntax: {
-    openDelim: $$output_syntax_open_delim,
-    closeDelim: $$output_syntax_close_delim,
-    fieldSeparator: $$output_syntax_field_separator,
+function mainFront() {
+
+  const options = {
+    query: $$query,
+    colors: $$colors,
+    colors_collective_indexing: $$colors_collective_indexing,
+    colors_random_start_index: $$colors_random_start_index,
+    fieldPadding: $$field_padding,
+    inputSyntax: {
+      openDelim: $$input_syntax_open_delim,
+      closeDelim: $$input_syntax_close_delim,
+      fieldSeparator: $$input_syntax_field_separator,
+    },
+    outputSyntax: {
+      openDelim: $$output_syntax_open_delim,
+      closeDelim: $$output_syntax_close_delim,
+      fieldSeparator: $$output_syntax_field_separator,
+    }
   }
-}
 
-const form = formatter(options)
-const originalStructure = form.getOriginalStructure()
+  const testQuery = document.querySelector(options.query)
 
-if (originalStructure) {
-  const numberedSets = processNumberedSets(originalStructure)
-  const elementSharingSets = processElementSharingSets(originalStructure)
-  const orderSharingSets = processElementSharingSets(originalStructure)
+  // protect against invalid query or {{FrontSide}}
+  if (!testQuery || !testQuery.innerHTML ||
+      testQuery.innerHTML.includes('SET RANDOMIZER FRONT TEMPLATE') ||
+      testQuery.innerHTML.includes('SET RANDOMIZER BACK TEMPLATE')) {
+    return
+  }
 
-  const [newElements, newElementsCopy, newReorders] = generateRandomization(
-    numberedSets,
-    elementSharingSets,
-    orderSharingSets,
-  )
+  const form = formatter(options)
+  const originalStructure = form.getOriginalStructure()
 
-  // numbered are sorted 0 -> n, then named are in order of appearance
-  // modifies elementsCopy (!)
-  newReorders
-    .forEach(sr => applySetReorder(sr, newElements, newElementsCopy))
+  if (originalStructure) {
 
-  //////////////////////////////////////////////////////////////////////////////
-  // are applied last to first
-  const commands = processCommands(originalStructure)
+    const [numberedSets, generatorValues] = processNumberedSets(originalStructure, [])
+    const elementSharingSets              = processElementSharingSets(originalStructure)
+    const orderSharingSets                = processOrderSharingSets(originalStructure)
 
-  const reversedCommands = commands.reverse()
-  const sortedReversedCommands = [
-    reversedCommands.filter(v => v[2] === 'm'),
-    reversedCommands.filter(v => v[2] === 'c'),
-    reversedCommands.filter(v => v[2] === 'd')
-  ].flat()
+    const [newElements, newElementsCopy, newReorders] = generateRandomization(
+      numberedSets,
+      elementSharingSets,
+      orderSharingSets,
+    )
 
-  sortedReversedCommands
-    .forEach(cmd => applyCommand(cmd, newElements))
+    // numbered are sorted 0 -> n, then named are in order of appearance
+    // modifies newElementsCopy (!)
 
-  //////////////////////////////////////////////////////////////////////////////
-  const lastMinuteStructure = newElements
-    .map(set => set.filter(elem => elem[3] !== 'd'))
+    newReorders
+      .forEach(sr => applySetReorder(sr, newElements, newElementsCopy))
 
-  const lastMinuteNumberedSets = processNumberedSets(lastMinuteStructure)
-    .map((v, i) => ({
-      name: v.name,
-      elements: v.elements,
-      lastMinute: numberedSets[i].lastMinute
-    }))
+    //////////////////////////////////////////////////////////////////////////////
+    // COMMANDS
+    // are applied last to first
+    const commands = processCommands(originalStructure)
 
-  const [lastMinuteElements, lastMinuteElementsCopy, lastMinuteReorders] = generateRandomization(
-    lastMinuteNumberedSets,
-    elementSharingSets,
-    orderSharingSets.filter(v => v.lastMinute),
-  )
+    const reversedCommands = commands.reverse()
+    const sortedReversedCommands = [
+      reversedCommands.filter(v => v[3] === 'm'),
+      reversedCommands.filter(v => v[3] === 'c'),
+      reversedCommands.filter(v => v[3] === 'd'),
+    ].flat()
 
-  // numbered are sorted 0 -> n, then named are in order of appearance
-  // modifies elementsCopy (!)
-  lastMinuteReorders
-    .filter(v => v.lastMinute)
-    .forEach(sr => applySetReorder(sr, lastMinuteElements, lastMinuteElementsCopy))
+    // modifies newElements
+    sortedReversedCommands
+      .forEach(cmd => applyCommand(cmd, newElements))
 
-  //////////////////////////////////////////////////////////////////////////////
-  const randomIndices = new Array(lastMinuteElements.length).fill(0).map(_ => Math.random())
+    //////////////////////////////////////////////////////////////////////////////
+    // LAST MINUTE
+    const lastMinuteStructure = newElements
+      .map(set => set.filter(elem => elem[3] !== 'd'))
 
-  form.renderSets(
-    lastMinuteElements
-    // import for collective color indexing
-    .map((v, i) => ({rendering: v, order: i})),
-    randomIndices
-  )
+    const lastMinuteNumberedSets = processNumberedSets(lastMinuteStructure, [])[0]
+      .map((v, i) => ({
+        name: v.name,
+        elements: v.elements,
+        lastMinute: numberedSets[i].lastMinute
+      }))
 
-  //////////////////////////////////////////////////////////////////////////////
-  if (window.Persistence && Persistence.isAvailable()) {
+    const [lastMinuteElements, lastMinuteElementsCopy, lastMinuteReorders] = generateRandomization(
+      lastMinuteNumberedSets,
+      elementSharingSets,
+      orderSharingSets.filter(v => v.lastMinute),
+    )
+
+    // numbered are sorted 0 -> n, then named are in order of appearance
+    // modifies elementsCopy (!)
+    lastMinuteReorders
+      .filter(v => v.lastMinute)
+      .forEach(sr => applySetReorder(sr, lastMinuteElements, lastMinuteElementsCopy))
+
+    //////////////////////////////////////////////////////////////////////////////
+    const randomIndices = new Array(lastMinuteElements.length)
+      .fill(0).map(_ => Math.random())
+
+    form.renderSets(
+      lastMinuteElements
+      // import for collective color indexing
+      .map((v, i) => ({rendering: v, order: i})), randomIndices)
+
+    //////////////////////////////////////////////////////////////////////////////
+    Persistence.removeItem("AnkiSetRandomizerOriginalStructure")
+    Persistence.removeItem("AnkiSetRandomizerOptions")
+    Persistence.removeItem("AnkiSetRandomizerGeneratorValues")
+    Persistence.removeItem("AnkiSetRandomizerNewReorders")
+    Persistence.removeItem("AnkiSetRandomizerLastMinuteReorders")
+    Persistence.removeItem("AnkiSetRandomizerRandomIndices")
+
     Persistence.setItem("AnkiSetRandomizerOptions", options)
-    Persistence.setItem("AnkiSetRandomizerNewReorders", newReorders)
-    Persistence.setItem("AnkiSetRandomizerLastMinuteReorders", lastMinuteReorders)
-    Persistence.setItem("AnkiSetRandomizerRandomIndices", randomIndices)
+    Persistence.setItem("AnkiSetRandomizerOriginalStructure", originalStructure)
+    Persistence.setItem("AnkiSetRandomizerGeneratorValues", generatorValues || [])
+    Persistence.setItem("AnkiSetRandomizerNewReorders", newReorders || [])
+    Persistence.setItem("AnkiSetRandomizerLastMinuteReorders", lastMinuteReorders || [])
+    Persistence.setItem("AnkiSetRandomizerRandomIndices", randomIndices || [])
   }
 }

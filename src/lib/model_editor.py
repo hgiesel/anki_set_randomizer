@@ -24,6 +24,14 @@ def remove_model_template(model):
 
     for template in model['tmpls']:
 
+        for side in ['qfmt', 'afmt']:
+            template[side] = re.sub(
+                '^[^\n]*SET RANDOMIZER AUTOGEN DIV[^\n]*$\n',
+                '',
+                template[side],
+                flags=re.MULTILINE,
+            )
+
         template['qfmt'] = re.sub(
             '\n?<script>\n// SET RANDOMIZER FRONT TEMPLATE .*</script>',
             '',
@@ -38,19 +46,13 @@ def remove_model_template(model):
             flags=re.MULTILINE | re.DOTALL,
         ).strip()
 
-        for side in ['qfmt', 'afmt']:
-            template[side] = re.sub(
-                '^.*<!-- CREATED BY SET RANDOMIZER -->$',
-                '',
-                template[side],
-            )
 
 def update_model_template(model, settings):
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
     with io.open(f'{dir_path}/../js/dist/front.js', mode='r', encoding='utf-8') as template_front:
         js_front = BetterTemplate(template_front.read()).substitute(
-            query= json.dumps(settings.css_query) if not settings.css_query_auto_generate else json.dumps("div#set-randomizer-container"),
+            query=json.dumps(settings.css_query) if not settings.css_query_auto_generate else json.dumps("div#set-randomizer-container"),
             colors=json.dumps(settings.css_colors),
             colors_collective_indexing=json.dumps(settings.css_colors_collective_indexing),
             colors_random_start_index=json.dumps(settings.css_colors_random_start_index),
@@ -70,5 +72,12 @@ def update_model_template(model, settings):
         anki_persistence = template_anki_persistence.read() + '\n'
 
     for template in model['tmpls']:
+        before = f'<div id="set-randomizer-container"> <!-- SET RANDOMIZER AUTOGEN DIV -->'
+        after = f'</div> <!-- SET RANDOMIZER AUTOGEN DIV -->'
+
+        if settings.css_query_auto_generate:
+            template['qfmt'] = f'{before}\n{template["qfmt"]}\n{after}'
+            template['afmt'] = f'{before}\n{template["afmt"]}\n{after}'
+
         template['qfmt'] = f'{template["qfmt"]}\n\n<script>\n// SET RANDOMIZER FRONT TEMPLATE {util.versionString}\n{anki_persistence if settings.inject_anki_persistence else ""}{js_front}</script>'
         template['afmt'] = f'{template["afmt"]}\n\n<script>\n// SET RANDOMIZER BACK TEMPLATE {util.versionString}\n{anki_persistence if settings.inject_anki_persistence else ""}{js_back}</script>'

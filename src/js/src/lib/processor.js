@@ -1,7 +1,18 @@
-export function processNumberedSets(originalStructure) {
-  const numberedSets = []
+function generateRandomValue(min, max) {
+  return Math.random() * (max - min) + min
+}
 
-  const lastMinutePattern     = new RegExp('^\\^!!?$')
+// also processes generator patterns
+export function processNumberedSets(originalStructure, preGeneratedValues) {
+  const result          = []
+  const generatorValues = []
+
+  const lastMinutePattern = new RegExp('^\\^!!?$')
+
+  const realMaybeInt     = '(\\d+(?:\\.\\d*)?)'
+  const generatorSymbol  = '#'
+  const generatorPattern = `^\\^${realMaybeInt},${realMaybeInt}(?:,(\\d+))?${generatorSymbol}$`
+
   const contentElementPattern = new RegExp('^[^\\^]')
 
   for (const [i, set] of originalStructure.entries()) {
@@ -16,27 +27,55 @@ export function processNumberedSets(originalStructure) {
       if (lastMinutePattern.test(elem[2])) {
         lastMinute = true
       }
+      else if (patternResult = new RegExp(generatorPattern, 'gm').exec(elem[2])) {
+        const setIndex  = elem[0]
+        const elemIndex = elem[1]
+
+        let resultValue2
+
+        const maybePregeneratedValue = preGeneratedValues
+          .find(v => v[0] === setIndex && v[1] === elemIndex)
+
+        if (maybePregeneratedValue) {
+          resultValue2 = maybePregeneratedValue
+        }
+
+        else {
+          const minValue   = patternResult[1]
+          const maxValue   = patternResult[2]
+          const extraValue = patternResult[3]
+
+          const isReal      = minValue.includes('.') || maxValue.includes('.')
+          const preValue    = generateRandomValue(Number(minValue), Number(maxValue))
+
+          const resultValue  = isReal ? preValue.toFixed(extraValue || 2) : (Math.round(preValue) * (extraValue || 1)).toString()
+          resultValue2 = [setIndex, elemIndex, resultValue]
+        }
+
+        generatorValues.push(resultValue2)
+        contentElements.push(resultValue2)
+      }
 
       else if (contentElementPattern.test(elem[2])) {
         contentElements.push(elem)
       }
     }
 
-    numberedSets.push({
+    result.push({
       name: i,
       elements: contentElements,
       lastMinute: lastMinute,
     })
   }
 
-  return numberedSets
+  return [result, generatorValues]
 }
 
 export function processElementSharingSets(originalStructure) {
   const elementSharingSets = []
 
-  const maybeSharedOrderPattern = '(?:[a-zA-Z]+\\?\\??)?'
-  const namedSetPattern   = `^\\^([a-zA-Z]+)!!?${maybeSharedOrderPattern}$`
+  const maybeSharedOrderPattern = '(?:[a-zA-Z_][a-zA-Z0-9_]*\\?\\??)?'
+  const namedSetPattern   = `^\\^([a-zA-Z_][a-zA-Z0-9_]*)!!?${maybeSharedOrderPattern}$`
   const lastMinutePattern = new RegExp(`^\\^.*!!${maybeSharedOrderPattern}$`)
 
   for (const elem of originalStructure.flat()) {
@@ -71,8 +110,8 @@ export function processElementSharingSets(originalStructure) {
 export function processOrderSharingSets(originalStructure) {
   const orderSharingSets = []
 
-  const maybeNamedSetPattern = '(?:([a-zA-Z]+)!!?)?'
-  const sharedOrderPattern   = `^\\^${maybeNamedSetPattern}([a-zA-Z]+)\\?$`
+  const maybeNamedSetPattern = '(?:([a-zA-Z_][a-zA-Z0-9_]*)!!?)?'
+  const sharedOrderPattern   = `^\\^${maybeNamedSetPattern}([a-zA-Z_][a-zA-Z0-9_]*)\\?$`
   const lastMinutePattern    = new RegExp('^\\^.*\\?\\?$')
 
   for (const elem of originalStructure.flat()) {
@@ -132,18 +171,21 @@ function processIndex(index, currentIndex, elemCount) {
 export function processCommands(originalStructure) {
   const result = []
 
-  const idxPattern      = '(\\d+|\\+\\d+|\\-\\d+|n(?:-\\d+)?|[a-zA-Z]+)'
-  const positionPattern = '(?::(\\d+|n(?:-\\d+)?))?'
+  const idxPattern      = '(\\d+|\\+\\d+|\\-\\d+|n(?:-\\d+)?|[a-zA-Z_][a-zA-Z0-9_]*)'
+
+  const positionSymbol  = ':'
+  const positionPattern = `(?:${positionSymbol}(\\d+|n(?:-\\d+)?))?`
+
   const amountPattern   = '(?:(\\d+))?'
 
   const copySymbol    = '='
-  const copyPattern   = `^\\^${idxPattern}${positionPattern}${copySymbol}${amountPattern}$`
+  const copyPattern   = `^\\^${idxPattern}${positionPattern},${amountPattern}${copySymbol}$`
 
   const moveSymbol    = '\\~'
-  const movePattern   = `^\\^${idxPattern}${positionPattern}${moveSymbol}${amountPattern}$`
+  const movePattern   = `^\\^${idxPattern}${positionPattern},${amountPattern}${moveSymbol}$`
 
   const deleteSymbol  = '\\%'
-  const deletePattern = `^\\^${idxPattern}${positionPattern}${deleteSymbol}${amountPattern}$`
+  const deletePattern = `^\\^${amountPattern}${deleteSymbol}$`
 
   for (const set of originalStructure) {
     for (const elem of set) {
@@ -164,11 +206,33 @@ export function processCommands(originalStructure) {
         commandType = 'd'
       }
 
-      if (commandType) {
+      if (commandType === 'c' || commandType === 'm') {
         const fromSetName     = processIndex(patternResult[1], toSetName, originalStructure.length)
         const fromSetPosition = processIndex(patternResult[2] || 0, toSetPosition, set.length)
         const fromSetAmount   = Number(patternResult[3]) || 999
-        result.push([toSetName, toSetPosition, commandType, fromSetName, fromSetPosition, fromSetAmount])
+
+        result.push([
+          fromSetName,
+          fromSetPosition,
+          fromSetAmount,
+          commandType,
+          toSetName,
+          toSetPosition,
+        ])
+      }
+      else if (commandType === 'd') {
+        const fromSetName     = toSetName
+        const fromSetPosition = toSetPosition
+        const fromSetAmount   = Number(patternResult[1]) || 999
+
+        result.push([
+          fromSetName,
+          fromSetPosition,
+          fromSetAmount,
+          commandType,
+          toSetName,
+          toSetPosition,
+        ])
       }
     }
   }

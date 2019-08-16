@@ -4,13 +4,22 @@ import {
   applySharedOrder
 } from './reorder'
 
-export default function generateRandomization(numberedSets, elementSharingSets, orderSharingSets) {
-  const elements = numberedSets
-    .map(v => v.elements)
-    .map(v => v.map(u => [u[0], u[1], u[2], 'n']))
 
+function initializeNumberedSets(numberedSets) {
+  return numberedSets
+    .map(v => v.elements)
+    .map(u => u.map(w => [w[0], w[1], w[2], 'n']))
+}
+export function generateRandomization(
+  numberedSets,
+  elementSharingSets,
+  orderSharingSets,
+) {
+
+  const elements     = initializeNumberedSets(numberedSets)
   const elementsCopy = JSON.parse(JSON.stringify(elements))
-  const setReorders = [
+
+  const setReorders  = [
     reorderNumberedSets(numberedSets),
     reorderElementSharingSets(elementSharingSets, numberedSets),
   ].flat()

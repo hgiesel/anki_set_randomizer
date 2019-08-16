@@ -1,3 +1,19 @@
+function complementArrays(elems1, elems2) {
+  const result = []
+
+  for (const e of elems1) {
+    result.push(e)
+  }
+
+  for (const e of elems2) {
+    if (!result.includes(e)) {
+      result.push(e)
+    }
+  }
+
+  return result
+}
+
 function sortWithIndices(elems, indices) {
   const result = []
 
@@ -47,18 +63,74 @@ export function applySetReorder(sr, elems, elemsOrig) {
   }
 }
 
-// cmd = [0:toSet, 1:toPosition, 2:cmdName, 3:fromSet, 4:fromPosition, 5:amount]
+// cmd = [0:fromSet, 1:fromPosition, 2:fromAmount, 3:cmdName, 4:toSet, 5:toPosition]
+// .splice(n, m, repl)
+// .splice(n, 0) : does nothing
+// .splice(bigger_than_arr, m) : does nothing
 export function applyCommand(cmd, elems) {
 
-  const saveElems = elems[cmd[3]]
-    .filter(v => v[3] === 'n')
-    .slice(cmd[4], cmd[4] + cmd[5])
+  // delete commands in original position
+  // from position is IGNORED (!)
+  const capturedElements = []
 
-  if (cmd[2] === 'd' || cmd[2] === 'm') {
-    elems[cmd[3]].splice(cmd[4], cmd[5], ...saveElems.map(v => [v[0], v[1], v[2], 'd']))
+  for (const elem of elems[cmd[0]]) {
+
+    if (elem[3] !== 'd') {
+      capturedElements.push(elem.map(v => v))
+
+      if ('dm'.includes(cmd[3])) {
+        elem[3] = 'd'
+      }
+
+      if (--cmd[2] === 0) {
+        break
+      }
+    }
   }
 
-  if (cmd[2] === 'c' || cmd[2] === 'm') {
-    elems[cmd[0]].splice(cmd[1], 0, ...saveElems.map(v => [v[0], v[1], v[2], cmd[2]]))
+  capturedElements.forEach(v => v.splice(3, 1, 'c'))
+
+  // insert commands to new position
+  if ('cm'.includes(cmd[3])) {
+      elems[cmd[4]].splice(
+        cmd[5],
+        0,
+        ...capturedElements,
+      )
   }
+}
+
+export function applyInheritedSetReorder(newReorders, inheritedNewReorders, structureMatches) {
+  const modifiedReorders = []
+
+  for (const reorder of newReorders) {
+    let match
+
+    if ((typeof reorder.name) === 'string') {
+      if (match = inheritedNewReorders.find(v => reorder.name === v.name)) {
+
+        modifiedReorders.push({
+          name: reorder.name,
+          length: reorder.length,
+          sets: reorder.sets,
+          setLengths: reorder.setLengths,
+          order: complementArrays(match.order, reorder.order),
+          lastMinute: reorder.lastMinute,
+        })
+
+      }
+      else {
+        modifiedReorders.push(reorder)
+      }
+    }
+
+    else if (match = structureMatches.find(v => reorder.name === v.to)) {
+      modifiedReorders.push(inheritedNewReorders.find(v => v.name === match.from))
+    }
+    else {
+      modifiedReorders.push(reorder)
+    }
+  }
+
+  return modifiedReorders
 }

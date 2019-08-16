@@ -1,27 +1,28 @@
 /**
  * For all funtions that concerns accessing the html content
  */
-import { escapeString } from './util'
+
+import {
+  escapeString,
+  escapeHtml,
+} from './util'
 
 export default function formatter(options) {
 
-  let _rawStructure
+  let _rawStructure = {}
+  const exprString = `${escapeString(options.inputSyntax.openDelim)}(?:::)?(.*?)(?:::)?${escapeString(options.inputSyntax.closeDelim)}`
 
-  const getRawStructure = function() {
-    if (_rawStructure) {
-      return _rawStructure
+  const getRawStructure = function(theQuery=options.query) {
+    if (_rawStructure[theQuery]) {
+      return _rawStructure[theQuery]
     }
 
     else {
-      const theElement = document.querySelector(options.query)
+      const theElement = document.querySelector(theQuery)
       const theBody = theElement ? theElement.innerHTML : ''
 
       const rawStructure = []
-
-      const exprRegex = RegExp(
-        `${escapeString(options.inputSyntax.openDelim)}(?:::)?(.*?)(?:::)?${escapeString(options.inputSyntax.closeDelim)}`,
-        'gm'
-      )
+      const exprRegex    = RegExp(exprString, 'gm')
 
       let m = exprRegex.exec(theBody)
       while (m) {
@@ -29,14 +30,14 @@ export default function formatter(options) {
         m = exprRegex.exec(theBody)
       }
 
-      return _rawStructure = rawStructure
+      return _rawStructure[theQuery] = rawStructure
     }
   }
 
-  const getOriginalStructure = function() {
+  const getOriginalStructure = function(theQuery=options.query) {
     const splitResults = []
 
-    for (const [i, group] of getRawStructure().entries()) {
+    for (const [i, group] of getRawStructure(theQuery).entries()) {
       const splitGroup = group
         .split(options.inputSyntax.fieldSeparator)
         .map((v, j) => [i, j, v])
@@ -47,16 +48,24 @@ export default function formatter(options) {
     return splitResults
   }
 
-  const renderSets = function(reordering, randomIndices) {
+  const renderSets = function(reordering, randomIndices, theQuery=options.query) {
 
-    let absoluteIndex = 0 + (options.colors_random_start_index ? Math.floor(randomIndices[0] * options.colors.length) : 0)
+    let absoluteIndex = 0 + (
+      options.colors_random_start_index
+      ? Math.floor((randomIndices[0] || Math.random()) * options.colors.length)
+      : 0
+    )
 
     const stylizedResults = Array(reordering.length)
     for (const [i, set] of reordering.entries()) {
 
       const actualValues = []
 
-      const randomStartIndex = (options.colors_random_start_index ? Math.floor(randomIndices[i] * options.colors.length) : 0)
+      const randomStartIndex = (
+        options.colors_random_start_index
+        ? Math.floor((randomIndices[i] || Math.random()) * options.colors.length)
+        : 0
+      )
 
       for (const [j, element] of set.rendering.entries()) {
         if (element[3] !== 'd') {
@@ -74,10 +83,10 @@ export default function formatter(options) {
       stylizedResults[set.order] = (actualValues.join(options.outputSyntax.fieldSeparator))
     }
 
-    const theElement = document.querySelector(options.query)
+    const theElement = document.querySelector(theQuery)
     let replacement = theElement ? theElement.innerHTML : ''
 
-    for (const [i, v] of getRawStructure().entries()) {
+    for (const [i, v] of getRawStructure(theQuery).entries()) {
       replacement = replacement
         .replace(
           `${options.inputSyntax.openDelim}${v}${options.inputSyntax.closeDelim}`,
@@ -85,11 +94,29 @@ export default function formatter(options) {
         )
     }
 
-    document.querySelector(options.query).innerHTML = replacement
+    document.querySelector(theQuery).innerHTML = replacement
+
+    if (theQuery === 'div#clozed') {
+
+      const olParse = getOriginalStructure('div#original').flat()
+
+      if (olParse.length > 0) {
+        const newReordering = reordering
+          .map(v => ({ rendering: v.rendering
+            .map(w => [
+              w[0],
+              w[1],
+              olParse.find(u => u[0] === w[0] && u[1] === w[1])[2],
+              w[3]],
+            ), order: v.order
+          }))
+
+        renderSets(newReordering, randomIndices, 'div#original')
+      }
+    }
   }
 
   return {
-    getRawStructure: getRawStructure,
     getOriginalStructure: getOriginalStructure,
     renderSets: renderSets,
   }
