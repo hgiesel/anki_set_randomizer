@@ -1,131 +1,20 @@
-= Anki Multiple Choice
+= Anki Set Randomizer
 
 Anki Multiple Choice is an add-on that allows you
-to define Multiple Choices on your cards. Maybe,
-to be more precise, it allows you to define randomized
-sets of items. Its usage exceeds that of Multiple Choices.
+to define randomized sets of elements.
 
-It is not a new note type, but rather a general syntax, that
-can be used on *all note types*. It works on platforms, that
-anki-persistence works on, which includes Web, Android, iOS,
-Mac, Linux, and Windows.
+It is not a note type, but rather a general syntax addition, that
+can be used on *all note types*. It works on all platforms, that
+*Anki Persistence* supports, which AnkiDesktop, AnkiWeb, AnkiDroid, and
+AnkiMobile.
 
-== Multiple Choice in Cloze Cards
+Its use cases include:
+* Differentiation cards
+* Multiple Choice cards
+* Assign categories cards
+* Make associations cards
+* A special form of clozes, which I dubbed "SR Clozes"
 
-Multiple Choice group will work with Cloze Cards as well.
-They can be used to randomize set of items. And avoid learning things
-only in a specific sequence.
-
-=== Cloze hint Multiple Choice
-
-Normally nested Multiple Choices are not allowed.
-But they can't interfere with other multiple choice groups.
-
-
-== Special fields
-
-There exists several kinds of special values for fields,
-which govern how they behave.
-
-=== Copy groups
-
-Copy groups are used to copy the contents of a previously
-defined multiple choice group. Groups are copied **as is**,
-which means while the group they copy from was randomized,
-they themselves keep the order of the randomized group,
-when copied. You could say they both have the same randomized
-order.
-
-Copy groups are helpful, if you have multiple questions,
-and a multiple choice group with all the answers. The fact that
-the answers keep their order after being copied makes it easier
-for you to choose the correct answer.
-
-.A first example of copy groups
-----
-Capital of Italy is (^Rome::Berlin^)
-Capital of Germany is (^^0^)
-----
-
-=== Group indices
-
-A copy group has the syntax `^x`, where `x` indicates the group
-they copy from. You can choose between *absolute* and *relative*
-indices.
-
-==== Absolute indices
-*Absolute indices* are simply a number. Keep in mind that _multiple
-choice groups of the whole card_ are considered here. So "group 0" might
-not necessarily mean what you think. That is why *relative* groups should
-generally be preferred. But they still have their purposes.
-
-You can also define from the last of the multiple choice group. For this
-use the syntax `n-x`, where x is the index from behind. So `n-0` and `n`
-both refer to the last defined multiple choice group on the card.
-
-----
-Countries: (^Thailand::Italy::Germany^)
-A randomized list of countries and then a randomized list of capitals: (^^0::^n^)
-Capitals: (^Bangkok::Rome::Berlin^)
-----
-
-image::TODO[]
-
-==== Relative indices
-*Relative indices* refer to a relatively defined group in relation to the
-copy group itself. The syntax is `+x` for going forward, and `-x` for
-going backwards.
-
-----
-Countries: (^Thailand::Italy::Germany^)
-A randomized list of countries and then a randomized list of capitals: (^^-1::^+1^)
-Capitals: (^Bangkok::Rome::Berlin^)
-----
-
-image::TODO[]
-
-=== Draw groups
-
-A draw group _draws_ a certain amount of cards from another multiple choice
-group. In other words, it steals items from another multiple choice group. It
-has the syntax `^x+y`, where `x` might a absolute or relative index, and `y` is
-the amount of cards to steal. If you define more cards that the group actually
-has, you steal all of them.
-
-----
-Wrong answers: (^Rome::Bangkok::Berlin^)
-What is the capital of China: (^Beijing::^-1+2^)
-----
-
-=== Manual randomizing
-
-An effect of using special fields in any group is that the group itself
-is not mixed. This is to allow copy groups to work as they do. So
-the following example might not be what you expect. The third multiple
-choice will always depict "Hello" and "World" in the fifth and sixth place.
-
-----
-* (^Germany::England::Thailand::Vietnam^)
-* (^Berlin::London::Bangkok::Hanoi^)
-* (^^0+2::^1+2::Hello::World^)
-----
-
-However using a draw group mixes all the multiple choices up to this
-point. So to make the prior example work like expected, you
-have two choices. Number one is define the elements, and then define
-the draw groups afterwards:
-
-----
-* (^Germany::England::Thailand::Vietnam^)
-* (^Berlin::London::Bangkok::Hanoi^)
-* (^Hello::World::^0+2::^1+2^)
-----
-
-Another option is to use a draw group that imports zero elements. It
-will still mix all items imported up to this point:
-
-----
-* (^Germany::England::Thailand::Vietnam^)
-* (^Berlin::London::Bangkok::Hanoi^)
-* (^^0+2::^1+2::Hello::World::^0+0^)
-----
+All of these use cases can be inspected, if you download the sample deck and
+look through its cards. Its the best next thing to a tutorial I can offer right
+now.
