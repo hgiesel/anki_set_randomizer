@@ -48,17 +48,21 @@ export function reorderElementSharingSets(elementSharingSets, numberedSets) {
 function detectOrderDictator(orderSharingSet, setReorders) {
   return orderSharingSet.sets.map(v => ({
     name: v,
-    length: setReorders.filter(w => w.name === v)[0].length
+    length: setReorders.find(w => w.name === v).length
   })).reduce((accu, v) => accu.length < v.length ? v : accu).name
 }
 
 export function applySharedOrder(orderSharingSet, setReorders) {
-  const dictator = detectOrderDictator(orderSharingSet, setReorders)
-  const dictatorOrder = setReorders.filter(v => v.name === dictator)[0].order
+
+  const dictator      = detectOrderDictator(orderSharingSet, setReorders)
+  const dictatorOrder = setReorders.find(v => v.name === dictator).order
 
   for (const set of orderSharingSet.sets) {
-    const oldOrder = setReorders.filter(v => v.name === set)[0].order
+
+    const oldOrder = setReorders.find(v => v.name === set).order
     const newOrder = dictatorOrder.filter(v => v < oldOrder.length)
+
+    // modifies setReorders
     setReorders.forEach(v => {
       if (v.name === set) {
         v.order = newOrder

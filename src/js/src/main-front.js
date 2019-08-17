@@ -41,6 +41,7 @@ function mainFront() {
       openDelim: $$output_syntax_open_delim,
       closeDelim: $$output_syntax_close_delim,
       fieldSeparator: $$output_syntax_field_separator,
+      emptySet: $$output_syntax_empty_set,
     }
   }
 
@@ -81,8 +82,8 @@ function mainFront() {
 
     const reversedCommands = commands.reverse()
     const sortedReversedCommands = [
-      reversedCommands.filter(v => v[3] === 'm'),
       reversedCommands.filter(v => v[3] === 'c'),
+      reversedCommands.filter(v => v[3] === 'm'),
       reversedCommands.filter(v => v[3] === 'd'),
     ].flat()
 

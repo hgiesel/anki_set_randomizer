@@ -24,7 +24,8 @@
         "output_syntax": {
           "open_delim": "〔",
           "close_delim": "〕",
-          "field_separator": ""
+          "field_separator": "",
+          "empty_set": "…"
         },
         "inject_anki_persistence": true
       }

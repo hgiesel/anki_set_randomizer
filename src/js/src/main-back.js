@@ -27,6 +27,10 @@ import {
   escapeHtml,
 } from './lib/util.js'
 
+import {
+  applySharedOrder
+} from './lib/reorder.js'
+
 
 if (window.Persistence && Persistence.isAvailable()) {
   mainBack()
@@ -75,6 +79,9 @@ function mainBack() {
       structureMatches,
     )
 
+    // modifies modifiesReorders (!)
+    orderSharingSets.forEach(oss => applySharedOrder(oss, modifiedReorders))
+
     // numbered are sorted 0 -> n, then named are in order of appearance
     // modifies newElementsCopy (!)
     modifiedReorders
@@ -87,8 +94,8 @@ function mainBack() {
 
     const reversedCommands = commands.reverse()
     const sortedReversedCommands = [
-      reversedCommands.filter(v => v[3] === 'm'),
       reversedCommands.filter(v => v[3] === 'c'),
+      reversedCommands.filter(v => v[3] === 'm'),
       reversedCommands.filter(v => v[3] === 'd'),
     ].flat()
 
@@ -103,10 +110,12 @@ function mainBack() {
     const lastMinuteNumberedSets = processNumberedSets(lastMinuteStructure, [])[0]
       .map((v, i) => ({name: v.name, elements: v.elements, lastMinute: numberedSets[i].lastMinute}))
 
+    const lastMinuteOrderSharingSets = orderSharingSets.filter(v => v.lastMinute)
+
     const [lastMinuteElements, lastMinuteElementsCopy, lastMinuteReorders] = generateRandomization(
       lastMinuteNumberedSets,
       elementSharingSets,
-      orderSharingSets.filter(v => v.lastMinute),
+      lastMinuteOrderSharingSets,
       true,
     )
 
@@ -115,6 +124,9 @@ function mainBack() {
       inheritedLastMinuteReorders,
       structureMatches,
     )
+
+    // modifies modifiesReorders (!)
+    lastMinuteOrderSharingSets.forEach(oss => applySharedOrder(oss, modifiedLastMinuteReorders))
 
     // numbered are sorted 0 -> n, then named are in order of appearance
     // modifies elementsCopy (!)

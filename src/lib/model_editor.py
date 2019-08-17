@@ -63,6 +63,7 @@ def update_model_template(model, settings):
             output_syntax_open_delim=json.dumps(settings.output_syntax_open_delim),
             output_syntax_close_delim=json.dumps(settings.output_syntax_close_delim),
             output_syntax_field_separator=json.dumps(settings.output_syntax_field_separator),
+            output_syntax_empty_set=json.dumps(settings.output_syntax_empty_set),
         )
 
     with io.open(f'{dir_path}/../js/dist/back.js', mode='r', encoding='utf-8') as template_back:

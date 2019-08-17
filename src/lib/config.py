@@ -21,6 +21,7 @@ SetRandomizerSettings = namedtuple('SetRandomizerSettings', [
     'output_syntax_open_delim',      # str
     'output_syntax_close_delim',     # str
     'output_syntax_field_separator', # str
+    'output_syntax_empty_set',       # str
 
     'inject_anki_persistence',       # bool
 ])
@@ -33,7 +34,7 @@ def deserialize_configs(model_names, configs_settings_list):
         ['orange', 'olive', 'maroon', 'aqua', 'fuchsia'], False, False,
         4,
         '(^', '^)', '::',
-        '〔', '〕', '',
+        '〔', '〕', '', '…',
         True,
     )
 
@@ -43,7 +44,7 @@ def deserialize_configs(model_names, configs_settings_list):
         ['orange', 'olive', 'maroon', 'aqua', 'fuchsia'], False, False,
         4,
         '(^', '^)', '::',
-        '〔', '〕', '',
+        '〔', '〕', '', '…',
         True,
     )
 
@@ -98,6 +99,7 @@ def deserialize_configs(model_names, configs_settings_list):
                     safe_get('output_syntax', 'open_delim'),
                     safe_get('output_syntax', 'close_delim'),
                     safe_get('output_syntax', 'field_separator'),
+                    safe_get('output_syntax', 'empty_set'),
 
                     safe_get('inject_anki_persistence'),
                 )
@@ -139,6 +141,7 @@ def serialize_configs(configs_data):
                     'open_delim': settings.output_syntax_open_delim,
                     'close_delim': settings.output_syntax_close_delim,
                     'field_separator': settings.output_syntax_field_separator,
+                    'empty_set': settings.output_syntax_empty_set,
                 },
                 'inject_anki_persistence': settings.inject_anki_persistence,
             }

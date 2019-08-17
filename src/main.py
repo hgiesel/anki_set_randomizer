@@ -59,6 +59,7 @@ class SetRandomizerOptions(QDialog):
             self.f.openDelimLineEdit.text(),
             self.f.closeDelimLineEdit.text(),
             self.f.fieldSeparatorLineEdit.text(),
+            current_settings.output_syntax_empty_set,
             current_settings.inject_anki_persistence,
         )
 

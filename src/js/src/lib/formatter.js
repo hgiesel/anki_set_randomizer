@@ -87,10 +87,13 @@ export default function formatter(options) {
     let replacement = theElement ? theElement.innerHTML : ''
 
     for (const [i, v] of getRawStructure(theQuery).entries()) {
+
+      const renderOutput = stylizedResults[i] || options.outputSyntax.emptySet
+
       replacement = replacement
         .replace(
           `${options.inputSyntax.openDelim}${v}${options.inputSyntax.closeDelim}`,
-          `${options.outputSyntax.openDelim}${stylizedResults[i]}${options.outputSyntax.closeDelim}`
+          `${options.outputSyntax.openDelim}${renderOutput}${options.outputSyntax.closeDelim}`
         )
     }
 

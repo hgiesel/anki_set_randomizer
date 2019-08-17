@@ -63,22 +63,21 @@ export function applySetReorder(sr, elems, elemsOrig) {
   }
 }
 
+// values states include 'n', 'c', 'd'
+// cmds states include 'c', 'd', 'm'
 // cmd = [0:fromSet, 1:fromPosition, 2:fromAmount, 3:cmdName, 4:toSet, 5:toPosition]
-// .splice(n, m, repl)
-// .splice(n, 0) : does nothing
-// .splice(bigger_than_arr, m) : does nothing
 export function applyCommand(cmd, elems) {
 
   // delete commands in original position
-  // from position is IGNORED (!)
+  // from position is IGNORED (!) atm
   const capturedElements = []
 
   for (const elem of elems[cmd[0]]) {
 
-    if (elem[3] !== 'd') {
+    if (elem[3] !== 'd' && elem[3] !== 'c') {
       capturedElements.push(elem.map(v => v))
 
-      if ('dm'.includes(cmd[3])) {
+      if (cmd[3] === 'd' || cmd[3] === 'm') {
         elem[3] = 'd'
       }
 
@@ -88,10 +87,13 @@ export function applyCommand(cmd, elems) {
     }
   }
 
+  // .splice(pos, amount, replacement) -> deleted_values
+  // .splice(n, 0) : does nothing
+  // .splice(bigger_than_arr, m) : does nothing
   capturedElements.forEach(v => v.splice(3, 1, 'c'))
 
   // insert commands to new position
-  if ('cm'.includes(cmd[3])) {
+  if (cmd[3] === 'c' || cmd[3] === 'm') {
       elems[cmd[4]].splice(
         cmd[5],
         0,
