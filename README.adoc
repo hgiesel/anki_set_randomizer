@@ -18,3 +18,18 @@ Its use cases include:
 All of these use cases can be inspected, if you download the sample deck and
 look through its cards. Its the best next thing to a tutorial I can offer right
 now.
+
+== Related Add-ons
+
+link:https://ankiweb.net/shared/info/1280092568[Insert Randomized Lists]
+* allows for randomization of a list of items in a single field, expressed in an unordered list
+* does not work on Mobile
+link:https://ankiweb.net/shared/info/1491702369[Sequence Inserter]
+* can generate random integers and choose random elements from predefined sets
+* does not work on Mobile or 2.1
+link:https://ankiweb.net/shared/info/1484572887[Field Modifier: Random Item]
+* picks a random item from a Field
+* does not work on Mobile
+link:https://ankiweb.net/shared/info/413154037[Multiple Choice]
+* uses multiple fields, to contain several items
+* does not work on Mobile

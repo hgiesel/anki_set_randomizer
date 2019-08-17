@@ -4,6 +4,7 @@ import {
   processNumberedSets,
   processElementSharingSets,
   processOrderSharingSets,
+  processRenderDirectives,
   processCommands,
 } from './lib/processor.js'
 
@@ -59,9 +60,15 @@ function mainFront() {
 
   if (originalStructure) {
 
-    const [numberedSets, generatorValues] = processNumberedSets(originalStructure, [])
-    const elementSharingSets              = processElementSharingSets(originalStructure)
-    const orderSharingSets                = processOrderSharingSets(originalStructure)
+    const [
+      numberedSets,
+      generatorValues,
+    ] = processNumberedSets(originalStructure, [])
+
+    const elementSharingSets = processElementSharingSets(originalStructure)
+    const orderSharingSets   = processOrderSharingSets(originalStructure)
+
+    const renderDirectives   = processRenderDirectives(originalStructure)
 
     const [newElements, newElementsCopy, newReorders] = generateRandomization(
       numberedSets,

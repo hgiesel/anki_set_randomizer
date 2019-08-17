@@ -50,6 +50,8 @@ export default function formatter(options) {
 
   const renderSets = function(reordering, randomIndices, theQuery=options.query) {
 
+    console.log(reordering)
+
     let absoluteIndex = 0 + (
       options.colors_random_start_index
       ? Math.floor((randomIndices[0] || Math.random()) * options.colors.length)

@@ -179,7 +179,6 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
           generatorValues.push(resultValue2)
           contentElements.push(resultValue2)
         }
-
       }
 
       else if (contentElementPattern.test(elem[2])) {
@@ -349,6 +348,20 @@ export function processCommands(originalStructure) {
       }
     }
   }
+
+  return result
+}
+
+export function processRenderDirectives(originalStructure) {
+  const result = []
+
+  const renderDirectiveSymbol = '&'
+  const namedSetSymbol        = '!'
+
+  const generatorPattern = `^\\^(?:[a-zA-Z_]\\w*${namedSetSymbol})?([a-zA-Z]+),(\\w+)${renderDirectiveSymbol}$`
+  const uniquenessSetRegex = `^\\^([a-zA-Z_]\\w*${namedSetSymbol})`
+
+
 
   return result
 }

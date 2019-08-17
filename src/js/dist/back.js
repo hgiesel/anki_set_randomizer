@@ -1,1 +1,907 @@
-!function(){"use strict";function e(e){return e.replace(/[-\/\\^$*+?.()|[\]{}]/g,"\\$&")}function n(e,n){const t=[],r=[],o=new RegExp("^\\^([a-zA-Z_]\\w*)\\[(.*)\\]$"),s=[];for(const[n,t]of e.entries())for(const e of t){let n;(n=e[2].match(o))&&s.push({name:n[1],elements:n[2].substr(1,n[2].length-2).split(new RegExp("['\"],[\"']"))})}const i=new RegExp("^\\^!!?$"),c=new RegExp("^[^\\^]"),a=[];for(const[o,u]of e.entries()){const e=[];let m=!1;for(const t of u){let o;if(i.test(t[2]))m=!0;else if(o=new RegExp("^\\^(?:[a-zA-Z_]\\w*\\$)?(\\d+(?:\\.\\d*)?,\\d+(?:\\.\\d*)?(?:,\\d+)?|[a-zA-Z_]\\w*)#$","gm").exec(t[2])){const i=o[0].match(RegExp("^\\^([a-zA-Z_]\\w*)\\$"));let c;i&&(c=i[1]),a.find(e=>e.name===c)||a.push({name:c,values:[]});const u=t[0],m=t[1];let d;const p=n.find(e=>e[0]===u&&e[1]===m);if(p)d=p;else if(/^\d/.test(o[1])){const e=o[1].match(RegExp("(\\d+(?:\\.\\d*)?),(\\d+(?:\\.\\d*)?)(?:,(\\d+))?")),n=e[1],t=e[2],r=e[3],s=n.includes(".")||t.includes(".");let i,p=!1,h=0;const g=1e3;for(;!p&&h<g;){const e=(f=Number(n),l=Number(t),Math.random()*(l-f)+f);i=s?e.toFixed(r||2):(Math.round(e)*(r||1)).toString(),c&&(a.find(e=>e.name===c).values.includes(i)||(p=!0)),h++}h<g&&(d=[u,m,i])}else{const e=o[1],n=s.find(n=>n.name===e);if(n){let e,t=!1,r=0;const o=1e3;for(;!t&&r<o;){const o=Math.floor(Math.random()*n.elements.length);e=n.elements[o],c&&(a.find(e=>e.name===c).values.includes(e)||(t=!0)),r++}r<o&&(d=[u,m,e])}}d&&(c&&a.find(e=>e.name===c).values.push(d[2]),r.push(d),e.push(d))}else c.test(t[2])&&e.push(t)}t.push({name:o,elements:e,lastMinute:m})}var f,l;return[t,r]}function t(e,n,t){let r;return(r=new RegExp("^\\+(\\d+)$").exec(e))?n+Number(r[1]):(r=new RegExp("^-(\\d+)$").exec(e))?n-Number(r[1]):(r=new RegExp("^n(-\\d+)?$").exec(e))?t-(Number(r[1])||0)-1:(r=new RegExp("^\\d+$").exec(e))?Number(e):e}function r(e){for(var n,t,r=e.length;0!==r;)t=Math.floor(Math.random()*r),n=e[r-=1],e[r]=e[t],e[t]=n;return e}function o(e){return e.map(e=>({name:e.name,length:e.elements.length,order:r([...new Array(e.elements.length).keys()]),lastMinute:e.lastMinute}))}function s(e,n){return e.map(e=>{const t=e.sets.map(e=>n.filter(n=>n.name===e)).map(e=>e[0].elements.length),o=t.reduce((e,n)=>e+n,0);return{name:e.name,length:o,sets:e.sets,setLengths:t,order:r([...new Array(o).keys()]),lastMinute:e.lastMinute}})}function i(e,n){const t=function(e,n){return e.sets.map(e=>({name:e,length:n.find(n=>n.name===e).length})).reduce((e,n)=>e.length<n.length?n:e).name}(e,n),r=n.find(e=>e.name===t).order;for(const t of e.sets){const e=n.find(e=>e.name===t).order,o=r.filter(n=>n<e.length);n.forEach(e=>{e.name===t&&(e.order=o)})}return n}function c(e,n,t){const r=function(e){return e.map(e=>e.elements).map(e=>e.map(e=>[e[0],e[1],e[2],"n"]))}(e),c=JSON.parse(JSON.stringify(r)),a=[o(e),s(n,e)].flat();return t.forEach(e=>i(e,a)),[r,c,a]}function a(e,n){if(!n||e.length!==n.length)return!1;for(let t=0,r=e.length;t<r;t++)if(e[t]instanceof Array&&n[t]instanceof Array){if(!a(e[t],n[t]))return!1}else if(e[t]!=n[t])return!1;return!0}function f(e,n){const t=[];let r;for(const[o,s]of n.entries())(r=e.find(e=>e.from===o))&&(t[r.to]=s);return t}function l(e,n){const t=[];for(const n of e)t.push(n);for(const e of n)t.includes(e)||t.push(e);return t}function u(e,n){const t=[];for(const r of n){const n=e[r];n&&t.push(n)}if(n.length<e.length)for(const r of Array.from(new Array(e.length-n.length),(e,t)=>t+n.length))t.push(e[r]);return t}function m(e,n,t){switch(typeof e.name){case"number":const r=t[e.name];n[e.name]=u(r,e.order);break;case"string":(function(e,n){const t=[];let r=0;for(const o of n)t.push(e.slice(r,r+o)),r+=o;return t})(u(e.sets.map(e=>t[e]).flat(),e.order),e.setLengths).forEach((t,r)=>{n[e.sets[r]]=t})}}function d(e,n,t){const r=[];for(const o of e){let e;"string"==typeof o.name?(e=n.find(e=>o.name===e.name))?r.push({name:o.name,length:o.length,sets:o.sets,setLengths:o.setLengths,order:l(e.order,o.order),lastMinute:o.lastMinute}):r.push(o):(e=t.find(e=>o.name===e.to))?r.push(n.find(n=>n.name===e.from)):r.push(o)}return r}window.Persistence&&Persistence.isAvailable()&&function(){const r=Persistence.getItem("AnkiSetRandomizerOriginalStructure"),o=Persistence.getItem("AnkiSetRandomizerOptions"),s=Persistence.getItem("AnkiSetRandomizerGeneratorValues"),l=Persistence.getItem("AnkiSetRandomizerNewReorders"),u=Persistence.getItem("AnkiSetRandomizerLastMinuteReorders"),p=Persistence.getItem("AnkiSetRandomizerRandomIndices");if(!(r&&o&&s&&l&&u&&p))return;const h=function(n){let t={};const r=`${e(n.inputSyntax.openDelim)}(?:::)?(.*?)(?:::)?${e(n.inputSyntax.closeDelim)}`,o=function(e=n.query){if(t[e])return t[e];{const n=document.querySelector(e),o=n?n.innerHTML:"",s=[],i=RegExp(r,"gm");let c=i.exec(o);for(;c;)s.push(c[1]),c=i.exec(o);return t[e]=s}},s=function(e=n.query){const t=[];for(const[r,s]of o(e).entries()){const e=s.split(n.inputSyntax.fieldSeparator).map((e,n)=>[r,n,e]);t.push(e)}return t},i=function(e,t,r=n.query){let c=0+(n.colors_random_start_index?Math.floor((t[0]||Math.random())*n.colors.length):0);const a=Array(e.length);for(const[r,o]of e.entries()){const e=[],s=n.colors_random_start_index?Math.floor((t[r]||Math.random())*n.colors.length):0;for(const[t,r]of o.rendering.entries())if("d"!==r[3]){const o=(n.colors_collective_indexing?c++:s+t)%n.colors.length,i=`class="set-randomizer--element set-randomizer--element-index-${r[0]}-${r[1]}"`,a=n.colors[o]?` color: ${n.colors[o]};`:"",f=`style="padding: 0px ${n.fieldPadding}px;${a}"`;e.push(`<span ${i} ${f}>${r[2]}</span>`)}a[o.order]=e.join(n.outputSyntax.fieldSeparator)}const f=document.querySelector(r);let l=f?f.innerHTML:"";for(const[e,t]of o(r).entries()){const r=a[e]||n.outputSyntax.emptySet;l=l.replace(`${n.inputSyntax.openDelim}${t}${n.inputSyntax.closeDelim}`,`${n.outputSyntax.openDelim}${r}${n.outputSyntax.closeDelim}`)}if(document.querySelector(r).innerHTML=l,"div#clozed"===r){const n=s("div#original").flat();if(n.length>0){const r=e.map(e=>({rendering:e.rendering.map(e=>[e[0],e[1],n.find(n=>n[0]===e[0]&&n[1]===e[1])[2],e[3]]),order:e.order}));i(r,t,"div#original")}}};return{getOriginalStructure:s,renderSets:i}}(o),g=h.getOriginalStructure();if(g){const e=function(e,n){const t=[];for(const r of e)for(const e of n)!a(r.map(e=>e[2]),e.map(e=>e[2]))||t.find(n=>n.from===e[0][0])||t.find(e=>e.to===r[0][0])||t.push({from:e[0][0],to:r[0][0]});return t}(g,r),[o,x]=n(g,function(e,n){const t=[];for(const r of n){const n=e.find(e=>e.from===r[0]);n&&t.push([n.to,r[1],r[2]])}return t}(e,s)),$=function(e){const n=[],t=new RegExp("^\\^.*!!(?:[a-zA-Z_]\\w*\\?\\??)?$");for(const r of e.flat()){let e;if(e=new RegExp("^\\^([a-zA-Z_]\\w*)!!?(?:[a-zA-Z_]\\w*\\?\\??)?$").exec(r[2])){const o=r[0];0===n.filter(n=>n.name===e[1]).length?n.push({name:e[1],lastMinute:!1,sets:[o]}):n.filter(n=>n.name===e[1])[0].sets.push(o),t.test(r[2])&&(n.filter(n=>n.name===e[1])[0].lastMinute=!0)}}return n}(g),w=function(e){const n=[],t=new RegExp("^\\^.*\\?\\?$");for(const r of e.flat()){let e;if(e=new RegExp("^\\^(?:([a-zA-Z_]\\w*)!!?)?([a-zA-Z_]\\w*)\\?$").exec(r[2])){const o=e[1]||r[0];0===n.filter(n=>n.name===e[2]).length?n.push({name:e[2],sets:[o]}):n.filter(n=>n.name===e[2])[0].sets.push(o),t.test(r[2])&&(n.filter(n=>n.name===e[1])[0].lastMinute=!0)}}return n}(g),[y,S,E]=c(o,$,w),M=d(E,l,e);w.forEach(e=>i(e,M)),M.forEach(e=>m(e,y,S));const R=function(e){const n=[],r="(\\d+|\\+\\d+|\\-\\d+|n(?:-\\d+)?|[a-zA-Z_]\\w*)",o=`^\\^(?:${r}(?::(\\d+|n(?:-\\d+)?))?(?:,(\\d+))?)?=$`,s=`^\\^(?:${r}(?::(\\d+|n(?:-\\d+)?))?(?:,(\\d+))?)?\\~$`,i=`^\\^(?:${r}(?::(\\d+|n(?:-\\d+)?))?(?:,(\\d+))?)?\\%$`;for(const r of e)for(const c of r){const a=c[0],f=c[1];let l,u;if((l=new RegExp(o,"gm").exec(c[2]))?u="c":(l=new RegExp(s,"gm").exec(c[2]))?u="m":(l=new RegExp(i,"gm").exec(c[2]))&&(u="d"),u){const o=t(l[1]||a,a,e.length),s=t(l[2]||0,f,r.length),i=Number(l[3])||999;n.push([o,s,i,u,a,f])}}return n}(g),A=R.reverse(),z=[A.filter(e=>"c"===e[3]),A.filter(e=>"m"===e[3]),A.filter(e=>"d"===e[3])].flat();z.forEach(e=>(function(e,n){const t=[];for(const r of n[e[0]])if("d"!==r[3]&&"c"!==r[3]&&(t.push(r.map(e=>e)),"d"!==e[3]&&"m"!==e[3]||(r[3]="d"),0==--e[2]))break;t.forEach(e=>e.splice(3,1,"c")),"c"!==e[3]&&"m"!==e[3]||n[e[4]].splice(e[5],0,...t)})(e,y));const _=y.map(e=>e.filter(e=>"d"!==e[3])),b=n(_,[])[0].map((e,n)=>({name:e.name,elements:e.elements,lastMinute:o[n].lastMinute})),v=w.filter(e=>e.lastMinute),[k,N,Z]=c(b,$,v),P=d(Z,u,e);v.forEach(e=>i(e,P)),P.filter(e=>e.lastMinute).forEach(e=>m(e,k,N)),h.renderSets(k.map((e,n)=>({rendering:e,order:n})),f(e,f(e,p)))}}()}();
+(function () {
+  'use strict';
+
+  function escapeString(str) {
+    return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  }
+
+  /**
+   * For all funtions that concerns accessing the html content
+   */
+
+  function formatter(options) {
+
+    let _rawStructure = {};
+    const exprString = `${escapeString(options.inputSyntax.openDelim)}(?:::)?(.*?)(?:::)?${escapeString(options.inputSyntax.closeDelim)}`;
+
+    const getRawStructure = function(theQuery=options.query) {
+      if (_rawStructure[theQuery]) {
+        return _rawStructure[theQuery]
+      }
+
+      else {
+        const theElement = document.querySelector(theQuery);
+        const theBody = theElement ? theElement.innerHTML : '';
+
+        const rawStructure = [];
+        const exprRegex    = RegExp(exprString, 'gm');
+
+        let m = exprRegex.exec(theBody);
+        while (m) {
+          rawStructure.push(m[1]);
+          m = exprRegex.exec(theBody);
+        }
+
+        return _rawStructure[theQuery] = rawStructure
+      }
+    };
+
+    const getOriginalStructure = function(theQuery=options.query) {
+      const splitResults = [];
+
+      for (const [i, group] of getRawStructure(theQuery).entries()) {
+        const splitGroup = group
+          .split(options.inputSyntax.fieldSeparator)
+          .map((v, j) => [i, j, v]);
+
+        splitResults.push(splitGroup);
+      }
+
+      return splitResults
+    };
+
+    const renderSets = function(reordering, randomIndices, theQuery=options.query) {
+
+      console.log(reordering);
+
+      let absoluteIndex = 0 + (
+        options.colors_random_start_index
+        ? Math.floor((randomIndices[0] || Math.random()) * options.colors.length)
+        : 0
+      );
+
+      const stylizedResults = Array(reordering.length);
+      for (const [i, set] of reordering.entries()) {
+
+        const actualValues = [];
+
+        const randomStartIndex = (
+          options.colors_random_start_index
+          ? Math.floor((randomIndices[i] || Math.random()) * options.colors.length)
+          : 0
+        );
+
+        for (const [j, element] of set.rendering.entries()) {
+          if (element[3] !== 'd') {
+            const theIndex    = ((options.colors_collective_indexing ? absoluteIndex++ : randomStartIndex + j) % options.colors.length);
+
+            const className   = `class="set-randomizer--element set-randomizer--element-index-${element[0]}-${element[1]}"`;
+
+            const colorChoice = options.colors[theIndex] ? ` color: ${options.colors[theIndex]};` : '';
+            const style       = `style="padding: 0px ${options.fieldPadding}px;${colorChoice}"`;
+
+            actualValues.push(`<span ${className} ${style}>${element[2]}</span>`);
+          }
+        }
+
+        stylizedResults[set.order] = (actualValues.join(options.outputSyntax.fieldSeparator));
+      }
+
+      const theElement = document.querySelector(theQuery);
+      let replacement = theElement ? theElement.innerHTML : '';
+
+      for (const [i, v] of getRawStructure(theQuery).entries()) {
+
+        const renderOutput = stylizedResults[i] || options.outputSyntax.emptySet;
+
+        replacement = replacement
+          .replace(
+            `${options.inputSyntax.openDelim}${v}${options.inputSyntax.closeDelim}`,
+            `${options.outputSyntax.openDelim}${renderOutput}${options.outputSyntax.closeDelim}`
+          );
+      }
+
+      document.querySelector(theQuery).innerHTML = replacement;
+
+      if (theQuery === 'div#clozed') {
+
+        const olParse = getOriginalStructure('div#original').flat();
+
+        if (olParse.length > 0) {
+          const newReordering = reordering
+            .map(v => ({ rendering: v.rendering
+              .map(w => [
+                w[0],
+                w[1],
+                olParse.find(u => u[0] === w[0] && u[1] === w[1])[2],
+                w[3]],
+              ), order: v.order
+            }));
+
+          renderSets(newReordering, randomIndices, 'div#original');
+        }
+      }
+    };
+
+    return {
+      getOriginalStructure: getOriginalStructure,
+      renderSets: renderSets,
+    }
+  }
+
+  function generateRandomValue(min, max) {
+    return Math.random() * (max - min) + min
+  }
+
+  // also processes generator patterns
+  function processNumberedSets(originalStructure, preGeneratedValues) {
+    const result          = [];
+    const generatorValues = [];
+
+    // get generatorSets
+    const generatorSetPattern = new RegExp('^\\^([a-zA-Z_]\\w*)\\[(.*)\\]$');
+    const generatorSets       = [];
+
+    for (const [i, set] of originalStructure.entries()) {
+      for (const elem of set) {
+
+        let match;
+        if (match = elem[2].match(generatorSetPattern)) {
+          generatorSets.push({
+            name: match[1],
+            elements: match[2].substr(1, match[2].length - 2).split(new RegExp(`['"],["']`)), // match[2].split(new RegExp('(?<="),(?=")')),
+          });
+        }
+
+      }
+    }
+
+    const lastMinutePattern = new RegExp('^\\^!!?$');
+
+    const generatorSymbol            = '#';
+    const uniquenessConstraintSymbol = '\\$';
+
+    const intPattern       = '\\d+';
+    const realOrIntPattern = `${intPattern}(?:\\.\\d*)?`;
+
+    const realIntGenerator           = `${realOrIntPattern},${realOrIntPattern}(?:,${intPattern})?`;
+    const realIntGeneratorWithGroups = `(${realOrIntPattern}),(${realOrIntPattern})(?:,(${intPattern}))?`;
+
+    const setGenerator     = '[a-zA-Z_]\\w*';
+
+    const generatorPattern = `^\\^(?:[a-zA-Z_]\\w*${uniquenessConstraintSymbol})?(${realIntGenerator}|${setGenerator})${generatorSymbol}$`;
+    const uniquenessSetRegex = `^\\^([a-zA-Z_]\\w*)${uniquenessConstraintSymbol}`;
+
+    const contentElementPattern = new RegExp('^[^\\^]');
+
+    const uniquenessSets = [];
+
+    for (const [i, set] of originalStructure.entries()) {
+
+      const contentElements = [];
+      let lastMinute = false;
+
+      for (const elem of set) {
+
+        let patternResult;
+
+        if (lastMinutePattern.test(elem[2])) {
+          lastMinute = true;
+        }
+        else if (patternResult = new RegExp(generatorPattern, 'gm').exec(elem[2])) {
+
+          const uniquenessConstraintMatch = patternResult[0].match(RegExp(uniquenessSetRegex));
+
+          let uniquenessConstraintName;
+          if (uniquenessConstraintMatch) {
+            uniquenessConstraintName = uniquenessConstraintMatch[1];
+          }
+
+          if (!uniquenessSets.find(v => v.name === uniquenessConstraintName)) {
+            uniquenessSets.push({
+              name: uniquenessConstraintName,
+              values: []
+            });
+          }
+
+          const setIndex  = elem[0];
+          const elemIndex = elem[1];
+
+          let resultValue2;
+
+          const maybePregeneratedValue = preGeneratedValues
+            .find(v => v[0] === setIndex && v[1] === elemIndex);
+
+          if (maybePregeneratedValue) {
+            resultValue2 = maybePregeneratedValue;
+          }
+
+          else {
+
+            if (/^\d/.test(patternResult[1])) {
+              // generate a random integer or real number
+              const intOrValueGenerator = patternResult[1].match(RegExp(realIntGeneratorWithGroups));
+
+              const minValue   = intOrValueGenerator[1];
+              const maxValue   = intOrValueGenerator[2];
+              const extraValue = intOrValueGenerator[3];
+
+              const isReal      = minValue.includes('.') || maxValue.includes('.');
+
+              let uniqueValueFound = false;
+              let resultValue;
+
+              let countIdx = 0;
+              const countIdxMax = 1000;
+
+              while (!uniqueValueFound && countIdx < countIdxMax) {
+
+                const preValue = generateRandomValue(
+                  Number(minValue),
+                  Number(maxValue),
+                );
+
+                resultValue = isReal
+                  ? preValue.toFixed(extraValue || 2)
+                  : (Math.round(preValue) * (extraValue || 1)).toString();
+
+                if (uniquenessConstraintName) {
+                  if (!uniquenessSets
+                    .find(v => v.name === uniquenessConstraintName)
+                    .values.includes(resultValue)
+                  ) {
+                    uniqueValueFound = true;
+                  }
+                }
+
+                countIdx++;
+              }
+
+              if (countIdx < countIdxMax) {
+                resultValue2 = [setIndex, elemIndex, resultValue];
+              }
+            }
+
+            else {
+              // generate string from generator set
+              const text = patternResult[1];
+              const foundGeneratorSet = generatorSets.find(v => v.name === text);
+
+              if (foundGeneratorSet) {
+
+                let resultValue;
+
+                let uniqueValueFound = false;
+                let countIdx = 0;
+                const countIdxMax = 1000;
+
+                while (!uniqueValueFound && countIdx < countIdxMax) {
+                  const idx         = Math.floor(Math.random() * foundGeneratorSet.elements.length);
+                  resultValue = foundGeneratorSet.elements[idx];
+
+                  if (uniquenessConstraintName) {
+                    if (!uniquenessSets
+                      .find(v => v.name === uniquenessConstraintName)
+                      .values.includes(resultValue)
+                    ) {
+                      uniqueValueFound = true;
+                    }
+                  }
+
+                  countIdx++;
+                }
+
+                if (countIdx < countIdxMax) {
+                  resultValue2 = [setIndex, elemIndex, resultValue];
+                }
+              }
+            }
+          }
+          // else -> no element can be generated
+          // get resultValue2
+
+          if (resultValue2) {
+            if (uniquenessConstraintName) {
+              uniquenessSets
+                .find(v => v.name === uniquenessConstraintName)
+                .values.push(resultValue2[2]);
+            }
+
+            generatorValues.push(resultValue2);
+            contentElements.push(resultValue2);
+          }
+        }
+
+        else if (contentElementPattern.test(elem[2])) {
+          contentElements.push(elem);
+        }
+      }
+
+      result.push({
+        name: i,
+        elements: contentElements,
+        lastMinute: lastMinute,
+      });
+    }
+
+    return [result, generatorValues]
+  }
+
+  function processElementSharingSets(originalStructure) {
+    const elementSharingSets = [];
+
+    const maybeSharedOrderPattern = '(?:[a-zA-Z_]\\w*\\?\\??)?';
+    const namedSetPattern   = `^\\^([a-zA-Z_]\\w*)!!?${maybeSharedOrderPattern}$`;
+    const lastMinutePattern = new RegExp(`^\\^.*!!${maybeSharedOrderPattern}$`);
+
+    for (const elem of originalStructure.flat()) {
+
+      let patternResult;
+
+      if (patternResult = new RegExp(namedSetPattern).exec(elem[2])){
+
+        const correspondingNumberedSet = elem[0];
+
+        if (elementSharingSets.filter(v => v.name === patternResult[1]).length === 0) {
+          elementSharingSets.push({
+            name: patternResult[1],
+            lastMinute: false,
+            sets: [correspondingNumberedSet]
+          });
+        }
+
+        else {
+          elementSharingSets.filter(v => v.name === patternResult[1])[0].sets.push(correspondingNumberedSet);
+        }
+
+        if (lastMinutePattern.test(elem[2])) {
+          elementSharingSets.filter(v => v.name === patternResult[1])[0].lastMinute = true;
+        }
+      }
+    }
+
+    return elementSharingSets
+  }
+
+  function processOrderSharingSets(originalStructure) {
+    const orderSharingSets = [];
+
+    const maybeNamedSetPattern = '(?:([a-zA-Z_]\\w*)!!?)?';
+    const sharedOrderPattern   = `^\\^${maybeNamedSetPattern}([a-zA-Z_]\\w*)\\?$`;
+    const lastMinutePattern    = new RegExp('^\\^.*\\?\\?$');
+
+    for (const elem of originalStructure.flat()) {
+
+      let patternResult;
+      if (patternResult = new RegExp(sharedOrderPattern).exec(elem[2])) {
+
+        const correspondingSet = patternResult[1] || elem[0];
+
+        if (orderSharingSets.filter(v => v.name === patternResult[2]).length === 0) {
+          orderSharingSets.push({
+            name: patternResult[2],
+            sets: [correspondingSet],
+            // dictator: false, // I think this should be calculated at a later stage
+          });
+        }
+
+        else {
+          orderSharingSets.filter(v => v.name === patternResult[2])[0].sets.push(correspondingSet);
+        }
+
+        if (lastMinutePattern.test(elem[2])) {
+          orderSharingSets.filter(v => v.name === patternResult[1])[0].lastMinute = true;
+        }
+      }
+    }
+
+    return orderSharingSets
+  }
+
+  function processIndex(index, currentIndex, elemCount) {
+    const absolutePositionFromEndPattern  = '^n(-\\d+)?$';
+    const absolutePosition                = '^\\d+$';
+    const posiitveRelativePositionPattern = '^\\+(\\d+)$';
+    const negativeRelativePositionPattern = '^-(\\d+)$';
+
+    let patternResult;
+
+    if (patternResult = new RegExp(posiitveRelativePositionPattern).exec(index)) {
+      return currentIndex + Number(patternResult[1])
+    }
+    else if (patternResult = new RegExp(negativeRelativePositionPattern).exec(index)) {
+      return currentIndex - Number(patternResult[1])
+    }
+
+    else if (patternResult = new RegExp(absolutePositionFromEndPattern).exec(index)) {
+      return elemCount - (Number(patternResult[1]) || 0) - 1
+    }
+    else if (patternResult = new RegExp(absolutePosition).exec(index)) {
+      return Number(index)
+    }
+    else {
+      return index
+    }
+  }
+
+  function processCommands(originalStructure) {
+    const result = [];
+
+    const idxPattern      = '(\\d+|\\+\\d+|\\-\\d+|n(?:-\\d+)?|[a-zA-Z_]\\w*)';
+    const positionSymbol  = ':';
+    const positionPattern = `(?:${positionSymbol}(\\d+|n(?:-\\d+)?))?`;
+
+    const amountPattern   = '(?:,(\\d+))?';
+
+    const copySymbol    = '=';
+    const moveSymbol    = '\\~';
+    const deleteSymbol  = '\\%';
+
+    // (^^=^), 0 args: current set, 999 elements
+    // (^^n=^), 1 args: set n, 999 elements
+    // (^^n,m=^), 2 args: set n, m elements
+    const copyPattern   = `^\\^(?:${idxPattern}${positionPattern}${amountPattern})?${copySymbol}$`;
+    const movePattern   = `^\\^(?:${idxPattern}${positionPattern}${amountPattern})?${moveSymbol}$`;
+    const deletePattern = `^\\^(?:${idxPattern}${positionPattern}${amountPattern})?${deleteSymbol}$`;
+
+    for (const set of originalStructure) {
+      for (const elem of set) {
+
+        const toSetName     = elem[0];
+        const toSetPosition = elem[1];
+
+        let patternResult;
+        let commandType;
+
+        if (patternResult = new RegExp(copyPattern, 'gm').exec(elem[2])) {
+          commandType = 'c';
+        }
+        else if (patternResult = new RegExp(movePattern, 'gm').exec(elem[2])) {
+          commandType = 'm';
+        }
+        else if (patternResult = new RegExp(deletePattern, 'gm').exec(elem[2])) {
+          commandType = 'd';
+        }
+
+        if (commandType) {
+          const fromSetName     = processIndex(patternResult[1] || toSetName, toSetName, originalStructure.length);
+          const fromSetPosition = processIndex(patternResult[2] || 0, toSetPosition, set.length);
+          const fromSetAmount   = Number(patternResult[3]) || 999;
+
+          result.push([
+            fromSetName,
+            fromSetPosition,
+            fromSetAmount,
+            commandType,
+            toSetName,
+            toSetPosition,
+          ]);
+        }
+      }
+    }
+
+    return result
+  }
+
+  function shuffle(array) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+      // Pick a remaining element...
+      randomIndex   = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+      // And swap it with the current element.
+      temporaryValue      = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex]  = temporaryValue;
+    }
+    return array;
+  }
+
+  function reorderNumberedSets(numberedSets) {
+    return numberedSets.map(v => ({
+      name: v.name,
+      length: v.elements.length,
+      order: shuffle([...new Array(v.elements.length).keys()]),
+      lastMinute: v.lastMinute,
+    }))
+  }
+
+  function reorderElementSharingSets(elementSharingSets, numberedSets) {
+    return elementSharingSets.map(v => {
+
+      const containedNumberedSets = v.sets
+        .map(v => numberedSets.filter(u => u.name === v));
+
+      const setLengths = containedNumberedSets
+        .map(v => v[0].elements.length);
+
+      const elementCount = setLengths
+        .reduce((accu, w) => accu + w, 0);
+
+      return {
+        name: v.name,
+        length: elementCount,
+        sets: v.sets,
+        setLengths: setLengths,
+        order: shuffle([...new Array(elementCount).keys()]),
+        lastMinute: v.lastMinute,
+      }
+    })
+  }
+
+  function detectOrderDictator(orderSharingSet, setReorders) {
+    return orderSharingSet.sets.map(v => ({
+      name: v,
+      length: setReorders.find(w => w.name === v).length
+    })).reduce((accu, v) => accu.length < v.length ? v : accu).name
+  }
+
+  function applySharedOrder(orderSharingSet, setReorders) {
+
+    const dictator      = detectOrderDictator(orderSharingSet, setReorders);
+    const dictatorOrder = setReorders.find(v => v.name === dictator).order;
+
+    for (const set of orderSharingSet.sets) {
+
+      const oldOrder = setReorders.find(v => v.name === set).order;
+      const newOrder = dictatorOrder.filter(v => v < oldOrder.length);
+
+      // modifies setReorders
+      setReorders.forEach(v => {
+        if (v.name === set) {
+          v.order = newOrder;
+        }
+      });
+    }
+
+    return setReorders
+  }
+
+  function initializeNumberedSets(numberedSets) {
+    return numberedSets
+      .map(v => v.elements)
+      .map(u => u.map(w => [w[0], w[1], w[2], 'n']))
+  }
+  function generateRandomization(
+    numberedSets,
+    elementSharingSets,
+    orderSharingSets,
+  ) {
+
+    const elements     = initializeNumberedSets(numberedSets);
+    const elementsCopy = JSON.parse(JSON.stringify(elements));
+
+    const setReorders  = [
+      reorderNumberedSets(numberedSets),
+      reorderElementSharingSets(elementSharingSets, numberedSets),
+    ].flat();
+
+    // modifies setReorders (!)
+    orderSharingSets.forEach(oss => applySharedOrder(oss, setReorders));
+    return [elements, elementsCopy, setReorders]
+  }
+
+  function compareArrays(array, otherArray) {
+    if (!otherArray || array.length !== otherArray.length) {
+      return false
+    }
+
+    for (let i = 0, l=array.length; i < l; i++) {
+      // Check if we have nested arrays
+      if (array[i] instanceof Array && otherArray[i] instanceof Array) {
+        // recurse into the nested arrays
+        if (!compareArrays(array[i], otherArray[i])) {
+          return false
+        }
+      }
+      else if (array[i] != otherArray[i]) {
+        // Warning - two different object instances will never be equal: {x:20} != {x:20}
+        return false
+      }
+    }
+    return true
+  }
+
+  function matchStructures(originalStructure, inheritedOriginalStructure) {
+    const result = [];
+
+    for (const set of originalStructure) {
+      for (const inheritedSet of inheritedOriginalStructure) {
+
+        if (compareArrays(set.map(v => v[2]), inheritedSet.map(v => v[2]))
+          // Don't make n-to-m mappings, only 1-to-1:
+          && !result.find(v => v.from === inheritedSet[0][0])
+          && !result.find(v => v.to === set[0][0])) {
+
+          result.push({
+            from: inheritedSet[0][0],
+            to: set[0][0],
+          });
+        }
+      }
+    }
+
+    return result
+  }
+
+  function matchGeneratorValues(structureMatches, generatorValues) {
+    const result = [];
+
+    for (const value of generatorValues) {
+      const match = structureMatches.find(v => v.from === value[0]);
+
+      if (match) {
+        result.push([match.to, value[1], value[2]]);
+      }
+    }
+
+    return result
+  }
+
+  function matchRandomIndices(structureMatches, randomIndices) {
+    const result = [];
+
+    let match;
+    for (const [i, idx] of randomIndices.entries()) {
+
+      if (match = structureMatches.find(v => v.from === i)) {
+        result[match.to] = idx;
+      }
+    }
+
+    return result
+  }
+
+  function complementArrays(elems1, elems2) {
+    const result = [];
+
+    for (const e of elems1) {
+      result.push(e);
+    }
+
+    for (const e of elems2) {
+      if (!result.includes(e)) {
+        result.push(e);
+      }
+    }
+
+    return result
+  }
+
+  function sortWithIndices(elems, indices) {
+    const result = [];
+
+    for (const idx of indices) {
+      const maybeElem = elems[idx];
+
+      if (maybeElem) {
+        result.push(maybeElem);
+      }
+    }
+
+    if (indices.length < elems.length) {
+        for (const idx of Array.from(new Array(elems.length - indices.length), (x, i) => i + indices.length)) {
+          result.push(elems[idx]);
+        }
+    }
+
+    return result
+  }
+
+  function sliceWithLengths(elems, lengths) {
+    const result = [];
+
+    let startIndex = 0;
+    for (const l of lengths) {
+      result.push(elems.slice(startIndex, startIndex + l));
+      startIndex += l;
+    }
+
+    return result
+  }
+
+  function applySetReorder(sr, elems, elemsOrig) {
+    switch (typeof sr.name) {
+      case 'number':
+        const saveElems = elemsOrig[sr.name];
+        elems[sr.name] = sortWithIndices(saveElems, sr.order);
+        break
+
+      case 'string':
+        const flatSaveElems = sr.sets.map(v => elemsOrig[v]).flat();
+        sliceWithLengths(sortWithIndices(flatSaveElems, sr.order), sr.setLengths)
+          .forEach((v, i) => {
+            elems[sr.sets[i]] = v;
+          });
+        break
+    }
+  }
+
+  // values states include 'n', 'c', 'd'
+  // cmds states include 'c', 'd', 'm'
+  // cmd = [0:fromSet, 1:fromPosition, 2:fromAmount, 3:cmdName, 4:toSet, 5:toPosition]
+  function applyCommand(cmd, elems) {
+
+    // delete commands in original position
+    // from position is IGNORED (!) atm
+    const capturedElements = [];
+
+    for (const elem of elems[cmd[0]]) {
+
+      if (elem[3] !== 'd' && elem[3] !== 'c') {
+        capturedElements.push(elem.map(v => v));
+
+        if (cmd[3] === 'd' || cmd[3] === 'm') {
+          elem[3] = 'd';
+        }
+
+        if (--cmd[2] === 0) {
+          break
+        }
+      }
+    }
+
+    // .splice(pos, amount, replacement) -> deleted_values
+    // .splice(n, 0) : does nothing
+    // .splice(bigger_than_arr, m) : does nothing
+    capturedElements.forEach(v => v.splice(3, 1, 'c'));
+
+    // insert commands to new position
+    if (cmd[3] === 'c' || cmd[3] === 'm') {
+        elems[cmd[4]].splice(
+          cmd[5],
+          0,
+          ...capturedElements,
+        );
+    }
+  }
+
+  function applyInheritedSetReorder(newReorders, inheritedNewReorders, structureMatches) {
+    const modifiedReorders = [];
+
+    for (const reorder of newReorders) {
+      let match;
+
+      if ((typeof reorder.name) === 'string') {
+        if (match = inheritedNewReorders.find(v => reorder.name === v.name)) {
+
+          modifiedReorders.push({
+            name: reorder.name,
+            length: reorder.length,
+            sets: reorder.sets,
+            setLengths: reorder.setLengths,
+            order: complementArrays(match.order, reorder.order),
+            lastMinute: reorder.lastMinute,
+          });
+
+        }
+        else {
+          modifiedReorders.push(reorder);
+        }
+      }
+
+      else if (match = structureMatches.find(v => reorder.name === v.to)) {
+        modifiedReorders.push(inheritedNewReorders.find(v => v.name === match.from));
+      }
+      else {
+        modifiedReorders.push(reorder);
+      }
+    }
+
+    return modifiedReorders
+  }
+
+  if (window.Persistence && Persistence.isAvailable()) {
+    mainBack();
+  }
+
+  function mainBack() {
+    const inheritedOriginalStructure  = Persistence.getItem("AnkiSetRandomizerOriginalStructure");
+    const inheritedOptions            = Persistence.getItem("AnkiSetRandomizerOptions");
+    const inheritedGeneratorValues    = Persistence.getItem("AnkiSetRandomizerGeneratorValues");
+    const inheritedNewReorders        = Persistence.getItem("AnkiSetRandomizerNewReorders");
+    const inheritedLastMinuteReorders = Persistence.getItem("AnkiSetRandomizerLastMinuteReorders");
+    const inheritedRandomIndices      = Persistence.getItem("AnkiSetRandomizerRandomIndices");
+
+    // invalid FrontSide will cause an invalid BackSide
+    if (
+      !inheritedOriginalStructure ||
+      !inheritedOptions ||
+      !inheritedGeneratorValues ||
+      !inheritedNewReorders ||
+      !inheritedLastMinuteReorders ||
+      !inheritedRandomIndices
+    ) {
+      return
+    }
+
+    const form = formatter(inheritedOptions);
+    const originalStructure = form.getOriginalStructure();
+
+    if (originalStructure) {
+
+      const structureMatches = matchStructures(originalStructure, inheritedOriginalStructure);
+
+      const [numberedSets, _]  = processNumberedSets(originalStructure, matchGeneratorValues(structureMatches, inheritedGeneratorValues));
+      const elementSharingSets = processElementSharingSets(originalStructure);
+      const orderSharingSets   = processOrderSharingSets(originalStructure);
+
+      const [newElements, newElementsCopy, newReorders] = generateRandomization(
+        numberedSets,
+        elementSharingSets,
+        orderSharingSets,
+      );
+
+      const modifiedReorders = applyInheritedSetReorder(
+        newReorders,
+        inheritedNewReorders,
+        structureMatches,
+      );
+
+      // modifies modifiesReorders (!)
+      orderSharingSets.forEach(oss => applySharedOrder(oss, modifiedReorders));
+
+      // numbered are sorted 0 -> n, then named are in order of appearance
+      // modifies newElementsCopy (!)
+      modifiedReorders
+        .forEach(sr => applySetReorder(sr, newElements, newElementsCopy));
+
+      //////////////////////////////////////////////////////////////////////////////
+      // COMMANDS
+      // are applied last to first
+      const commands = processCommands(originalStructure);
+
+      const reversedCommands = commands.reverse();
+      const sortedReversedCommands = [
+        reversedCommands.filter(v => v[3] === 'c'),
+        reversedCommands.filter(v => v[3] === 'm'),
+        reversedCommands.filter(v => v[3] === 'd'),
+      ].flat();
+
+      // modifies newElements
+      sortedReversedCommands
+        .forEach(cmd => applyCommand(cmd, newElements));
+
+      //////////////////////////////////////////////////////////////////////////////
+      const lastMinuteStructure = newElements
+        .map(set => set.filter(elem => elem[3] !== 'd'));
+
+      const lastMinuteNumberedSets = processNumberedSets(lastMinuteStructure, [])[0]
+        .map((v, i) => ({name: v.name, elements: v.elements, lastMinute: numberedSets[i].lastMinute}));
+
+      const lastMinuteOrderSharingSets = orderSharingSets.filter(v => v.lastMinute);
+
+      const [lastMinuteElements, lastMinuteElementsCopy, lastMinuteReorders] = generateRandomization(
+        lastMinuteNumberedSets,
+        elementSharingSets,
+        lastMinuteOrderSharingSets);
+
+      const modifiedLastMinuteReorders = applyInheritedSetReorder(
+        lastMinuteReorders,
+        inheritedLastMinuteReorders,
+        structureMatches,
+      );
+
+      // modifies modifiesReorders (!)
+      lastMinuteOrderSharingSets.forEach(oss => applySharedOrder(oss, modifiedLastMinuteReorders));
+
+      // numbered are sorted 0 -> n, then named are in order of appearance
+      // modifies elementsCopy (!)
+      modifiedLastMinuteReorders
+        .filter(v => v.lastMinute)
+        .forEach(sr => applySetReorder(sr, lastMinuteElements, lastMinuteElementsCopy));
+
+      //////////////////////////////////////////////////////////////////////////////
+      form.renderSets(
+        lastMinuteElements
+        // import for collective color indexing
+        .map((v, i) => ({rendering: v, order: i})), matchRandomIndices(
+          structureMatches,
+          matchRandomIndices(structureMatches, inheritedRandomIndices)
+        )
+      );
+    }
+  }
+
+}());
