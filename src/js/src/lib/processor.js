@@ -2,13 +2,15 @@ function generateRandomValue(min, max) {
   return Math.random() * (max - min) + min
 }
 
+const namePattern = '[a-zA-Z_]\\w*'
+
 // also processes generator patterns
 export function processNumberedSets(originalStructure, preGeneratedValues) {
   const result          = []
   const generatorValues = []
 
   // get generatorSets
-  const generatorSetPattern = new RegExp('^\\^([a-zA-Z_]\\w*)\\[(.*)\\]$')
+  const generatorSetPattern = new RegExp(`^\\^(${namePattern})\\[(.*)\\]$`)
   const generatorSets       = []
 
   for (const [i, set] of originalStructure.entries()) {
@@ -36,10 +38,8 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
   const realIntGenerator           = `${realOrIntPattern},${realOrIntPattern}(?:,${intPattern})?`
   const realIntGeneratorWithGroups = `(${realOrIntPattern}),(${realOrIntPattern})(?:,(${intPattern}))?`
 
-  const setGenerator     = '[a-zA-Z_]\\w*'
-
-  const generatorPattern = `^\\^(?:[a-zA-Z_]\\w*${uniquenessConstraintSymbol})?(${realIntGenerator}|${setGenerator})${generatorSymbol}$`
-  const uniquenessSetRegex = `^\\^([a-zA-Z_]\\w*)${uniquenessConstraintSymbol}`
+  const generatorPattern = `^\\^(?:${namePattern}${uniquenessConstraintSymbol})?(${realIntGenerator}|${namePattern})${generatorSymbol}$`
+  const uniquenessSetRegex = `^\\^(${namePattern})${uniquenessConstraintSymbol}`
 
   const contentElementPattern = new RegExp('^[^\\^]')
 
@@ -196,11 +196,17 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
   return [result, generatorValues]
 }
 
-export function processElementSharingSets(originalStructure) {
-  const elementSharingSets = []
+export function processSharedElementsGroups(originalStructure) {
+  const sharedElementsGroups = []
 
-  const maybeSharedOrderPattern = '(?:[a-zA-Z_]\\w*\\?\\??)?'
-  const namedSetPattern   = `^\\^([a-zA-Z_]\\w*)!!?${maybeSharedOrderPattern}$`
+  const renderDirectiveSymbol = '@'
+  const renderGroupSymbol     = '\\+'
+  const sharedOrderSymbol     = '\\?'
+
+  const maybeRenderDirective    = `(?:${namePattern}${renderGroupSymbol})?(?:([a-zA-Z]+),.*?${renderDirectiveSymbol})*$`
+  const maybeSharedOrderPattern = `${namePattern}${sharedOrderSymbol}${sharedOrderSymbol}`
+
+  const namedSetPattern   = `^\\^(${namePattern})!!?(?:${maybeSharedOrderPattern}|${maybeRenderDirective})?$`
   const lastMinutePattern = new RegExp(`^\\^.*!!${maybeSharedOrderPattern}$`)
 
   for (const elem of originalStructure.flat()) {
@@ -211,8 +217,8 @@ export function processElementSharingSets(originalStructure) {
 
       const correspondingNumberedSet = elem[0]
 
-      if (elementSharingSets.filter(v => v.name === patternResult[1]).length === 0) {
-        elementSharingSets.push({
+      if (sharedElementsGroups.filter(v => v.name === patternResult[1]).length === 0) {
+        sharedElementsGroups.push({
           name: patternResult[1],
           lastMinute: false,
           sets: [correspondingNumberedSet]
@@ -220,23 +226,23 @@ export function processElementSharingSets(originalStructure) {
       }
 
       else {
-        elementSharingSets.filter(v => v.name === patternResult[1])[0].sets.push(correspondingNumberedSet)
+        sharedElementsGroups.filter(v => v.name === patternResult[1])[0].sets.push(correspondingNumberedSet)
       }
 
       if (lastMinutePattern.test(elem[2])) {
-        elementSharingSets.filter(v => v.name === patternResult[1])[0].lastMinute = true
+        sharedElementsGroups.filter(v => v.name === patternResult[1])[0].lastMinute = true
       }
     }
   }
 
-  return elementSharingSets
+  return sharedElementsGroups
 }
 
-export function processOrderSharingSets(originalStructure) {
-  const orderSharingSets = []
+export function processSharedOrderGroups(originalStructure) {
+  const sharedOrderGroups = []
 
-  const maybeNamedSetPattern = '(?:([a-zA-Z_]\\w*)!!?)?'
-  const sharedOrderPattern   = `^\\^${maybeNamedSetPattern}([a-zA-Z_]\\w*)\\?$`
+  const maybeNamedSetPattern = `(?:(${namePattern})!!?)?`
+  const sharedOrderPattern   = `^\\^${maybeNamedSetPattern}(${namePattern})\\?$`
   const lastMinutePattern    = new RegExp('^\\^.*\\?\\?$')
 
   for (const elem of originalStructure.flat()) {
@@ -246,8 +252,8 @@ export function processOrderSharingSets(originalStructure) {
 
       const correspondingSet = patternResult[1] || elem[0]
 
-      if (orderSharingSets.filter(v => v.name === patternResult[2]).length === 0) {
-        orderSharingSets.push({
+      if (sharedOrderGroups.filter(v => v.name === patternResult[2]).length === 0) {
+        sharedOrderGroups.push({
           name: patternResult[2],
           sets: [correspondingSet],
           // dictator: false, // I think this should be calculated at a later stage
@@ -255,16 +261,16 @@ export function processOrderSharingSets(originalStructure) {
       }
 
       else {
-        orderSharingSets.filter(v => v.name === patternResult[2])[0].sets.push(correspondingSet)
+        sharedOrderGroups.filter(sog => sog.name === patternResult[2])[0].sets.push(correspondingSet)
       }
 
       if (lastMinutePattern.test(elem[2])) {
-        orderSharingSets.filter(v => v.name === patternResult[1])[0].lastMinute = true
+        sharedOrderGroups.filter(sog => sog.name === patternResult[1])[0].lastMinute = true
       }
     }
   }
 
-  return orderSharingSets
+  return sharedOrderGroups
 }
 
 function processIndex(index, currentIndex, elemCount) {
@@ -296,7 +302,7 @@ function processIndex(index, currentIndex, elemCount) {
 export function processCommands(originalStructure) {
   const result = []
 
-  const idxPattern      = '(\\d+|\\+\\d+|\\-\\d+|n(?:-\\d+)?|[a-zA-Z_]\\w*)'
+  const idxPattern      = '(\\d+|\\+\\d+|\\-\\d+|n(?:-\\d+)?|${namePattern})'
   const positionSymbol  = ':'
   const positionPattern = `(?:${positionSymbol}(\\d+|n(?:-\\d+)?))?`
 
@@ -352,16 +358,148 @@ export function processCommands(originalStructure) {
   return result
 }
 
-export function processRenderDirectives(originalStructure) {
-  const result = []
+export function processRenderDirectives(originalStructure, sharedElementsGroups) {
+  const renderDirectives = []
 
-  const renderDirectiveSymbol = '&'
   const namedSetSymbol        = '!'
+  const renderGroupSymbol     = '\\+'
+  const renderDirectiveSymbol = '@'
 
-  const generatorPattern = `^\\^(?:[a-zA-Z_]\\w*${namedSetSymbol})?([a-zA-Z]+),(\\w+)${renderDirectiveSymbol}$`
-  const uniquenessSetRegex = `^\\^([a-zA-Z_]\\w*${namedSetSymbol})`
+  const namedSetPattern = `(${namePattern})${namedSetSymbol}`
+  const renderGroupPattern = `(${namePattern})${renderGroupSymbol}`
+  const renderDirectivePattern = `^\\^(?:(?:(${namePattern})${namedSetSymbol})?(${namePattern})${renderGroupSymbol})?((?:[a-zA-Z]+,.*?${renderDirectiveSymbol})*)$`
 
+  const renderGroups      = []
+  const renderAssignments = []
 
+  for (const [i, set] of originalStructure.entries()) {
 
-  return result
+    renderDirectives.push({
+      name: i,
+      directives: {},
+    })
+
+    for (const elem of set) {
+
+      let match
+      if (match = elem[2].match(renderDirectivePattern)) {
+
+        const namedSet    = match[1]
+        const renderGroup = match[2]
+
+        if (renderGroup) {
+          if (!renderGroups.find(v => v.name === renderGroup)) {
+            renderGroups.push({
+              name: renderGroup,
+              sets: []
+            })
+          }
+
+          if (namedSet) {
+            renderGroups
+              .find(v => v.name === renderGroup)
+              .sets
+              .push(...sharedElementsGroups.find(v => v.name === namedSet).sets)
+          }
+          else {
+            renderGroups
+              .find(v => v.name === renderGroup)
+              .sets
+              .push(i)
+          }
+        }
+
+        const renderStatements = match[3]
+          .split('@')
+          .slice(0, -1)
+
+        if (renderStatements.length > 0) {
+          renderAssignments.push({
+            name: renderGroup || i,
+            assignments: renderStatements
+              .map(v => [v.split(',', 1)[0], v.split(/^.*?,/)[1]]),
+          })
+        }
+      }
+    }
+  }
+
+  // fill renderdirectives
+  for (const assignment of renderAssignments
+    .sort((a,_) => (typeof a.name === 'number') ? 1 : -1)
+  ) {
+
+    const effectiveAssignments = []
+
+    for (const elem of assignment.assignments) {
+      switch (elem[0]) {
+        case 'openDelim':
+        case 'od':
+          effectiveAssignments.push({
+            name: 'openDelim',
+            value: elem[1],
+          })
+          break;
+
+        case 'closeDelim':
+        case 'cd':
+          effectiveAssignments.push({
+            name: 'closeDelim',
+            value: elem[1],
+          })
+          break;
+
+        case 'fieldSeparator':
+        case 'fs':
+          effectiveAssignments.push({
+            name: 'fieldSeparator',
+            value: elem[1],
+          })
+          break;
+
+        case 'fieldPadding':
+        case 'fp':
+
+          const theValue = Number(elem[1])
+
+          if (theValue) {
+            effectiveAssignments.push({
+              name: 'fieldPadding',
+              value: theValue,
+            })
+          }
+          break;
+
+        case 'colors':
+        case 'clrs':
+          effectiveAssignments.push({
+            name: 'colors',
+            value: elem[1].split(','),
+          })
+          break;
+      }
+    }
+
+    const executeAssignment = function(name, values) {
+      switch (typeof name) {
+
+        case 'number':
+          for (const v of values) {
+            renderDirectives.find(v => v.name === name).directives[v.name] = v.value
+          }
+          break;
+
+        case 'string':
+          for (const set of renderGroups.find(v => v.name === name).sets) {
+            executeAssignment(set, values)
+          }
+          break;
+
+      }
+    }
+
+    executeAssignment(assignment.name, effectiveAssignments)
+  }
+
+  return renderDirectives
 }

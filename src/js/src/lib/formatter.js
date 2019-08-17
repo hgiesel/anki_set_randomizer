@@ -48,41 +48,78 @@ export default function formatter(options) {
     return splitResults
   }
 
-  const renderSets = function(reordering, randomIndices, theQuery=options.query) {
+  const renderSets = function(reordering, renderDirectives, randomIndices, theQuery=options.query) {
 
-    console.log(reordering)
+    // console.log(reordering)
+    // console.log(renderDirectives)
 
     let absoluteIndex = 0 + (
       options.colors_random_start_index
       ? Math.floor((randomIndices[0] || Math.random()) * options.colors.length)
       : 0
     )
+    let absoluteIndexSave = 0
 
     const stylizedResults = Array(reordering.length)
     for (const [i, set] of reordering.entries()) {
+
+      const customRendering     = renderDirectives.find(rd => rd.name === i).directives
+
+      let theColors
+      if (customRendering.colors === undefined) {
+        theColors = options.colors
+      }
+      else {
+        theColors = customRendering.colors
+
+        absoluteIndexSave = absoluteIndex
+        absoluteIndex     = 0
+      }
+
+      const theFieldSeparator = customRendering.fieldSeparator === undefined
+        ? options.outputSyntax.fieldSeparator
+        : customRendering.fieldSeparator
+      const theFieldPadding  = customRendering.fieldPadding === undefined
+      ? options.fieldPadding
+        : customRendering.fieldPadding
+      const theCloseDelim = customRendering.closeDelim === undefined
+        ? options.outputSyntax.closeDelim
+        : customRendering.closeDelim
+      const theOpenDelim = customRendering.openDelim === undefined
+        ? options.outputSyntax.openDelim
+        : customRendering.openDelim
 
       const actualValues = []
 
       const randomStartIndex = (
         options.colors_random_start_index
-        ? Math.floor((randomIndices[i] || Math.random()) * options.colors.length)
+        ? Math.floor((randomIndices[i] || Math.random()) * theColors.length)
         : 0
       )
 
       for (const [j, element] of set.rendering.entries()) {
         if (element[3] !== 'd') {
-          const theIndex    = ((options.colors_collective_indexing ? absoluteIndex++ : randomStartIndex + j) % options.colors.length)
+          const theIndex    = ((options.colors_collective_indexing ? absoluteIndex++ : randomStartIndex + j) % theColors.length)
 
           const className   = `class="set-randomizer--element set-randomizer--element-index-${element[0]}-${element[1]}"`
 
-          const colorChoice = options.colors[theIndex] ? ` color: ${options.colors[theIndex]};` : ''
-          const style       = `style="padding: 0px ${options.fieldPadding}px;${colorChoice}"`
+          const colorChoice = theColors[theIndex] ? ` color: ${theColors[theIndex]};` : ''
+          const style       = `style="padding: 0px ${theFieldPadding}px;${colorChoice}"`
 
           actualValues.push(`<span ${className} ${style}>${element[2]}</span>`)
         }
       }
 
-      stylizedResults[set.order] = (actualValues.join(options.outputSyntax.fieldSeparator))
+      if (actualValues.length > 0) {
+        stylizedResults[set.order] = `${theOpenDelim}${actualValues.join(theFieldSeparator)}${theCloseDelim}`
+      }
+      else {
+        stylizedResults[set.order] = `${theOpenDelim}${options.outputSyntax.emptySet}${theCloseDelim}`
+      }
+
+      if (customRendering.colors !== undefined) {
+        absoluteIndex = absoluteIndexSave
+      }
     }
 
     const theElement = document.querySelector(theQuery)
@@ -90,12 +127,12 @@ export default function formatter(options) {
 
     for (const [i, v] of getRawStructure(theQuery).entries()) {
 
-      const renderOutput = stylizedResults[i] || options.outputSyntax.emptySet
+      const renderOutput = stylizedResults[i]
 
       replacement = replacement
         .replace(
           `${options.inputSyntax.openDelim}${v}${options.inputSyntax.closeDelim}`,
-          `${options.outputSyntax.openDelim}${renderOutput}${options.outputSyntax.closeDelim}`
+          `${renderOutput}`
         )
     }
 
@@ -116,7 +153,7 @@ export default function formatter(options) {
             ), order: v.order
           }))
 
-        renderSets(newReordering, randomIndices, 'div#original')
+        renderSets(newReordering, renderDirectives, randomIndices, 'div#original')
       }
     }
   }

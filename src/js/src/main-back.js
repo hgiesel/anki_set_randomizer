@@ -2,8 +2,9 @@ import formatter from './lib/formatter.js'
 
 import {
   processNumberedSets,
-  processElementSharingSets,
-  processOrderSharingSets,
+  processSharedElementsGroups,
+  processSharedOrderGroups,
+  processRenderDirectives,
   processCommands,
 } from './lib/processor.js'
 
@@ -63,14 +64,16 @@ function mainBack() {
 
     const structureMatches = matchStructures(originalStructure, inheritedOriginalStructure)
 
-    const [numberedSets, _]  = processNumberedSets(originalStructure, matchGeneratorValues(structureMatches, inheritedGeneratorValues))
-    const elementSharingSets = processElementSharingSets(originalStructure)
-    const orderSharingSets   = processOrderSharingSets(originalStructure)
+    const [numberedSets, _]    = processNumberedSets(originalStructure, matchGeneratorValues(structureMatches, inheritedGeneratorValues))
+    const sharedElementsGroups = processSharedElementsGroups(originalStructure)
+    const sharedOrderGroups    = processSharedOrderGroups(originalStructure)
+    const renderDirectives     = processRenderDirectives(originalStructure, sharedElementsGroups)
+    console.log(renderDirectives)
 
     const [newElements, newElementsCopy, newReorders] = generateRandomization(
       numberedSets,
-      elementSharingSets,
-      orderSharingSets,
+      sharedElementsGroups,
+      sharedOrderGroups,
     )
 
     const modifiedReorders = applyInheritedSetReorder(
@@ -80,7 +83,7 @@ function mainBack() {
     )
 
     // modifies modifiesReorders (!)
-    orderSharingSets.forEach(oss => applySharedOrder(oss, modifiedReorders))
+    sharedOrderGroups.forEach(sog => applySharedOrder(sog, modifiedReorders))
 
     // numbered are sorted 0 -> n, then named are in order of appearance
     // modifies newElementsCopy (!)
@@ -110,12 +113,12 @@ function mainBack() {
     const lastMinuteNumberedSets = processNumberedSets(lastMinuteStructure, [])[0]
       .map((v, i) => ({name: v.name, elements: v.elements, lastMinute: numberedSets[i].lastMinute}))
 
-    const lastMinuteOrderSharingSets = orderSharingSets.filter(v => v.lastMinute)
+    const lastMinuteSharedOrderGroups = sharedOrderGroups.filter(v => v.lastMinute)
 
     const [lastMinuteElements, lastMinuteElementsCopy, lastMinuteReorders] = generateRandomization(
       lastMinuteNumberedSets,
-      elementSharingSets,
-      lastMinuteOrderSharingSets,
+      sharedElementsGroups,
+      lastMinuteSharedOrderGroups,
       true,
     )
 
@@ -126,7 +129,7 @@ function mainBack() {
     )
 
     // modifies modifiesReorders (!)
-    lastMinuteOrderSharingSets.forEach(oss => applySharedOrder(oss, modifiedLastMinuteReorders))
+    lastMinuteSharedOrderGroups.forEach(sog => applySharedOrder(sog, modifiedLastMinuteReorders))
 
     // numbered are sorted 0 -> n, then named are in order of appearance
     // modifies elementsCopy (!)
@@ -138,9 +141,9 @@ function mainBack() {
     form.renderSets(
       lastMinuteElements
       // import for collective color indexing
-      .map((v, i) => ({rendering: v, order: i})), matchRandomIndices(
-        structureMatches,
-        matchRandomIndices(structureMatches, inheritedRandomIndices)
+      .map((v, i) => ({rendering: v, order: i})),
+      renderDirectives,
+      matchRandomIndices(structureMatches, matchRandomIndices(structureMatches, inheritedRandomIndices),
       )
     )
   }

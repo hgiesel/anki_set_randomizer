@@ -2,8 +2,8 @@ import formatter from './lib/formatter.js'
 
 import {
   processNumberedSets,
-  processElementSharingSets,
-  processOrderSharingSets,
+  processSharedElementsGroups,
+  processSharedOrderGroups,
   processRenderDirectives,
   processCommands,
 } from './lib/processor.js'
@@ -65,15 +65,14 @@ function mainFront() {
       generatorValues,
     ] = processNumberedSets(originalStructure, [])
 
-    const elementSharingSets = processElementSharingSets(originalStructure)
-    const orderSharingSets   = processOrderSharingSets(originalStructure)
-
-    const renderDirectives   = processRenderDirectives(originalStructure)
+    const sharedElementsGroups = processSharedElementsGroups(originalStructure)
+    const sharedOrderGroups   = processSharedOrderGroups(originalStructure)
+    const renderDirectives   = processRenderDirectives(originalStructure, sharedElementsGroups)
 
     const [newElements, newElementsCopy, newReorders] = generateRandomization(
       numberedSets,
-      elementSharingSets,
-      orderSharingSets,
+      sharedElementsGroups,
+      sharedOrderGroups,
     )
 
     // numbered are sorted 0 -> n, then named are in order of appearance
@@ -112,8 +111,8 @@ function mainFront() {
 
     const [lastMinuteElements, lastMinuteElementsCopy, lastMinuteReorders] = generateRandomization(
       lastMinuteNumberedSets,
-      elementSharingSets,
-      orderSharingSets.filter(v => v.lastMinute),
+      sharedElementsGroups,
+      sharedOrderGroups.filter(v => v.lastMinute),
     )
 
     // numbered are sorted 0 -> n, then named are in order of appearance
@@ -129,7 +128,7 @@ function mainFront() {
     form.renderSets(
       lastMinuteElements
       // import for collective color indexing
-      .map((v, i) => ({rendering: v, order: i})), randomIndices)
+      .map((v, i) => ({rendering: v, order: i})), renderDirectives, randomIndices)
 
     //////////////////////////////////////////////////////////////////////////////
     Persistence.removeItem("AnkiSetRandomizerOriginalStructure")

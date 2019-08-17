@@ -1,6 +1,6 @@
 import {
   reorderNumberedSets,
-  reorderElementSharingSets,
+  reorderSharedElementsGroups,
   applySharedOrder
 } from './reorder'
 
@@ -12,8 +12,8 @@ function initializeNumberedSets(numberedSets) {
 }
 export function generateRandomization(
   numberedSets,
-  elementSharingSets,
-  orderSharingSets,
+  sharedElementsGroups,
+  sharedOrderGroups,
 ) {
 
   const elements     = initializeNumberedSets(numberedSets)
@@ -21,10 +21,10 @@ export function generateRandomization(
 
   const setReorders  = [
     reorderNumberedSets(numberedSets),
-    reorderElementSharingSets(elementSharingSets, numberedSets),
+    reorderSharedElementsGroups(sharedElementsGroups, numberedSets),
   ].flat()
 
   // modifies setReorders (!)
-  orderSharingSets.forEach(oss => applySharedOrder(oss, setReorders))
+  sharedOrderGroups.forEach(sog => applySharedOrder(sog, setReorders))
   return [elements, elementsCopy, setReorders]
 }
