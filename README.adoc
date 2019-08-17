@@ -9,6 +9,7 @@ can be used on *all note types*. It works on all platforms, that
 AnkiMobile.
 
 Its use cases include:
+
 * Differentiation cards
 * Multiple Choice cards
 * Assign categories cards
