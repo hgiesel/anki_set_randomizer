@@ -66,8 +66,8 @@ function mainFront() {
     ] = processNumberedSets(originalStructure, [])
 
     const sharedElementsGroups = processSharedElementsGroups(originalStructure)
-    const sharedOrderGroups   = processSharedOrderGroups(originalStructure)
-    const renderDirectives   = processRenderDirectives(originalStructure, sharedElementsGroups)
+    const sharedOrderGroups    = processSharedOrderGroups(originalStructure)
+    const renderDirectives     = processRenderDirectives(originalStructure, sharedElementsGroups)
 
     const [newElements, newElementsCopy, newReorders] = generateRandomization(
       numberedSets,

@@ -1,8 +1,12 @@
-function generateRandomValue(min, max) {
-  return Math.random() * (max - min) + min
-}
-
 const namePattern = '[a-zA-Z_]\\w*'
+
+function generateRandomValue(min, max, extra, isReal) {
+  const preValue = Math.random() * (max - min) + min
+
+  return isReal
+    ? preValue.toFixed(extra || 2)
+    : (Math.round(preValue) * (extra || 1)).toString()
+}
 
 // also processes generator patterns
 export function processNumberedSets(originalStructure, preGeneratedValues) {
@@ -95,38 +99,40 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
             const maxValue   = intOrValueGenerator[2]
             const extraValue = intOrValueGenerator[3]
 
-            const isReal      = minValue.includes('.') || maxValue.includes('.')
+            const isReal = minValue.includes('.') || maxValue.includes('.')
 
-            let uniqueValueFound = false
-            let resultValue
+            let resultValue = generateRandomValue(
+              Number(minValue),
+              Number(maxValue),
+              Number(extraValue),
+              isReal,
+            )
 
-            let countIdx = 0
-            const countIdxMax = 1000
+            if (uniquenessConstraintName) {
+              let countIdx = 0
+              const countIdxMax = 1000
 
-            while (!uniqueValueFound && countIdx < countIdxMax) {
+              while (uniquenessSets
+                .find(v => v.name === uniquenessConstraintName)
+                .values.includes(resultValue)
+                && countIdx < countIdxMax) {
 
-              const preValue = generateRandomValue(
-                Number(minValue),
-                Number(maxValue),
-              )
+                resultValue = generateRandomValue(
+                  Number(minValue),
+                  Number(maxValue),
+                  Number(extraValue),
+                  isReal,
+                )
 
-              resultValue = isReal
-                ? preValue.toFixed(extraValue || 2)
-                : (Math.round(preValue) * (extraValue || 1)).toString()
-
-              if (uniquenessConstraintName) {
-                if (!uniquenessSets
-                  .find(v => v.name === uniquenessConstraintName)
-                  .values.includes(resultValue)
-                ) {
-                  uniqueValueFound = true
-                }
+                countIdx++
               }
 
-              countIdx++
+              if (countIdx == countIdxMax) {
+                resultValue = null
+              }
             }
 
-            if (countIdx < countIdxMax) {
+            if (resultValue) {
               resultValue2 = [setIndex, elemIndex, resultValue]
             }
           }
@@ -138,29 +144,31 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
 
             if (foundGeneratorSet) {
 
-              let resultValue
+              let resultValue = foundGeneratorSet.elements[
+                Math.floor(Math.random() * foundGeneratorSet.elements.length)
+              ]
 
-              let uniqueValueFound = false
-              let countIdx = 0
-              const countIdxMax = 1000
+              if (uniquenessConstraintName) {
+                let countIdx = 0
+                const countIdxMax = 1000
 
-              while (!uniqueValueFound && countIdx < countIdxMax) {
-                const idx         = Math.floor(Math.random() * foundGeneratorSet.elements.length)
-                resultValue = foundGeneratorSet.elements[idx]
+                while (uniquenessSets
+                  .find(v => v.name === uniquenessConstraintName)
+                  .values.includes(resultValue)
+                  && countIdx < countIdxMax) {
 
-                if (uniquenessConstraintName) {
-                  if (!uniquenessSets
-                    .find(v => v.name === uniquenessConstraintName)
-                    .values.includes(resultValue)
-                  ) {
-                    uniqueValueFound = true
-                  }
+                  const idx   = Math.floor(Math.random() * foundGeneratorSet.elements.length)
+                  resultValue = foundGeneratorSet.elements[idx]
+
+                  countIdx++
                 }
 
-                countIdx++
+                if (countIdx == countIdxMax) {
+                  resultValue = null
+                }
               }
 
-              if (countIdx < countIdxMax) {
+              if (resultValue) {
                 resultValue2 = [setIndex, elemIndex, resultValue]
               }
             }
