@@ -211,7 +211,7 @@ export function processSharedElementsGroups(originalStructure) {
   const renderGroupSymbol     = '\\+'
   const sharedOrderSymbol     = '\\?'
 
-  const maybeRenderDirective    = `(?:${namePattern}${renderGroupSymbol})?(?:([a-zA-Z]+),.*?${renderDirectiveSymbol})*$`
+  const maybeRenderDirective    = `(?:${namePattern}${renderGroupSymbol})?(?:(?:([a-zA-Z]+),.*?)?${renderDirectiveSymbol})*$`
   const maybeSharedOrderPattern = `${namePattern}${sharedOrderSymbol}${sharedOrderSymbol}`
 
   const namedSetPattern   = `^\\^(${namePattern})!!?(?:${maybeSharedOrderPattern}|${maybeRenderDirective})?$`
@@ -375,7 +375,7 @@ export function processRenderDirectives(originalStructure, sharedElementsGroups)
 
   const namedSetPattern = `(${namePattern})${namedSetSymbol}`
   const renderGroupPattern = `(${namePattern})${renderGroupSymbol}`
-  const renderDirectivePattern = `^\\^(?:(?:(${namePattern})${namedSetSymbol})?(${namePattern})${renderGroupSymbol})?((?:[a-zA-Z]+,.*?${renderDirectiveSymbol})*)$`
+  const renderDirectivePattern = `^\\^(?:(?:(${namePattern})${namedSetSymbol})?(${namePattern})${renderGroupSymbol})?((?:(?:[a-zA-Z]+,.*?)?${renderDirectiveSymbol})*)$`
 
   const renderGroups      = []
   const renderAssignments = []
@@ -425,7 +425,7 @@ export function processRenderDirectives(originalStructure, sharedElementsGroups)
           renderAssignments.push({
             name: renderGroup || i,
             assignments: renderStatements
-              .map(v => [v.split(',', 1)[0], v.split(/^.*?,/)[1]]),
+            .map(v => v.length > 0 ? [v.split(',', 1)[0], v.split(/^.*?,/)[1]] : ['display', 'none'])
           })
         }
       }
@@ -483,6 +483,13 @@ export function processRenderDirectives(originalStructure, sharedElementsGroups)
           effectiveAssignments.push({
             name: 'colors',
             value: elem[1].split(','),
+          })
+          break;
+
+        case 'display':
+          effectiveAssignments.push({
+            name: 'display',
+            value: elem[1]
           })
           break;
       }

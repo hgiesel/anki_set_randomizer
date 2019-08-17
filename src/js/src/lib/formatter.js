@@ -110,7 +110,10 @@ export default function formatter(options) {
         }
       }
 
-      if (actualValues.length > 0) {
+      if (customRendering.display === 'none') {
+        stylizedResults[set.order] = ''
+      }
+      else if (actualValues.length > 0) {
         stylizedResults[set.order] = `${theOpenDelim}${actualValues.join(theFieldSeparator)}${theCloseDelim}`
       }
       else {
