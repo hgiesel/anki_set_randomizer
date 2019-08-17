@@ -1,0 +1,10 @@
+{
+    "name": "Set Randomizer",
+    "package": "anki-set-randomizer",
+    "ankiweb_id": "",
+    "author": "Henrik Giesel",
+    "version": "v2.0",
+    "homepage": "https://github.com/hgiesel/anjoy",
+    "conflicts": [],
+    "mod": 0
+}
