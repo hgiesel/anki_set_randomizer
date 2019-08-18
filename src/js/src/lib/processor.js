@@ -194,7 +194,7 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
         }
       }
 
-      else if (contentElementPattern.test(elem[2])) {
+      else if (contentElementPattern.test(elem[2]) || elem[2].length === 0) {
         contentElements.push(elem)
       }
     }
