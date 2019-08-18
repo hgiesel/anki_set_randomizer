@@ -30,7 +30,7 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
     }
   }
 
-  const lastMinutePattern = new RegExp('^\\^!!?$')
+  const lastMinutePattern = new RegExp(`^\\^!!(?:${namePattern}\\?\\??)?`)
 
   const uniquenessConstraintSymbol   = '\\$'
   const uniquenessConstraintPattern =
@@ -42,7 +42,7 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
     `(${realOrIntPattern}),(${realOrIntPattern})(?:,(${intPattern}))?`
 
   const positionSymbol  = ':'
-  const positionPattern = `(?:${positionSymbol}(-?\\d+))?`
+  const positionPattern = `(?:${positionSymbol}(n(?:-\\d+)?|-\\d|\\d+))?`
 
   const generatorSymbol = '#'
   const generatorPattern = new RegExp(
@@ -92,10 +92,10 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
 
         let resultValue
 
-        if (preGeneratedValues
-          .find(v => v[0] === setIndex && v[1] === elemIndex)
-        ) {
-          resultValue2 = maybePregeneratedValue
+        let maybePregeneratedValue
+        if (maybePregeneratedValue = preGeneratedValues
+          .find(v => v[0] === setIndex && v[1] === elemIndex)) {
+          resultValue = maybePregeneratedValue[2]
         }
 
         else if (minValue && maxValue) {
@@ -142,13 +142,19 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
 
           if (foundGeneratorSet) {
 
-            resultValue = typeof generatorSetIndex === 'number'
-              ? generatorSetIndex >= 0
-                ? foundGeneratorSet.elements[generatorSetIndex]
-                : foundGeneratorSet.elements[foundGeneratorSet.elements.length + generatorSetIndex]
-              : foundGeneratorSet.elements[
-                Math.floor(Math.random() * foundGeneratorSet.elements.length)
-            ]
+            resultValue = typeof generatorSetIndex !== 'number' || Number.isNaN(generatorSetIndex)
+              ? foundGeneratorSet.elements[Math.floor(Math.random() * foundGeneratorSet.elements.length)]
+              : generatorSetIndex >= 0
+                ? foundGeneratorSet.elements[
+                  foundGeneratorSet.elements.length <= generatorSetIndex
+                    ? null // foundGeneratorSet.elements.length - 1
+                    : generatorSetIndex
+                ]
+                : foundGeneratorSet.elements[
+                  foundGeneratorSet.elements.length + generatorSetIndex < 0
+                    ? null // 0
+                    : foundGeneratorSet.elements.length + generatorSetIndex
+                ]
 
             if (uniquenessConstraintName) {
               let countIdx = 0
@@ -250,7 +256,7 @@ export function processSharedElementsGroups(originalStructure) {
 export function processSharedOrderGroups(originalStructure) {
   const sharedOrderGroups = []
 
-  const maybeNamedSetPattern = `(?:(${namePattern})!!?)?`
+  const maybeNamedSetPattern = `(?:(${namePattern})!!?|!!?)?`
   const sharedOrderPattern   = `^\\^${maybeNamedSetPattern}(${namePattern})\\?\\??$`
   const lastMinutePattern    = new RegExp('\\?\\?$')
 
@@ -288,31 +294,68 @@ export function processSharedOrderGroups(originalStructure) {
   return sharedOrderGroups
 }
 
-function processIndex(index, currentIndex, elemCount, sharedElementsGroups) {
-  const absolutePositionFromEndPattern  = '^n(-\\d+)?$'
-  const absolutePosition                = '^\\d+$'
-  const posiitveRelativePositionPattern = '^\\+(\\d+)$'
-  const negativeRelativePositionPattern = '^-(\\d+)$'
+function indexProcessor(sharedElementsGroups) {
 
-  let patternResult
+  const absolutePositionRegex        = new RegExp('^\\d+$')
+  const absolutePositionFromEndRegex = new RegExp('^n(-\\d+)?$')
+  const relativePositionRegex        = new RegExp('^((?:\\+|-)\\d+)$')
 
-  if (patternResult = new RegExp(posiitveRelativePositionPattern).exec(index)) {
-    return currentIndex + Number(patternResult[1])
-  }
-  else if (patternResult = new RegExp(negativeRelativePositionPattern).exec(index)) {
-    return currentIndex - Number(patternResult[1])
+  const processPositionIndex = function(index) {
+    let patternResult
+
+    if (!index) {
+      return null
+    }
+    else if (patternResult = index.toString().match(relativePositionRegex)) {
+      return Number(patternResult[1])
+    }
+
+    else if (patternResult = index.toString().match(absolutePositionFromEndRegex)) {
+      return Number(patternResult[1])
+    }
+
+    else if (patternResult = index.toString().match(absolutePositionRegex)) {
+      return Number(index)
+    }
   }
 
-  else if (patternResult = new RegExp(absolutePositionFromEndPattern).exec(index)) {
-    return elemCount - (Number(patternResult[1]) || 0) - 1
-  }
-  else if (patternResult = new RegExp(absolutePosition).exec(index)) {
-    return Number(index)
-  }
-  else {
-    const foundSeg = sharedElementsGroups.find(seg => seg.name === index)
+  const processSetIndex = function(index, currentIndex, elemCount) {
+    let patternResult
 
-    return foundSeg ? foundSeg.sets : null
+    if (patternResult = index.toString().match(relativePositionRegex)) {
+      const result = currentIndex + Number(patternResult[1])
+      return result < 0
+        ? null
+        : elemCount < result
+          ? null
+          : [result]
+    }
+
+    else if (patternResult = index.toString().match(absolutePositionFromEndRegex)) {
+      const result = elemCount - (Number(patternResult[1]) || 0) - 1
+      return result < 0
+        ? null
+        : [result]
+    }
+
+    else if (patternResult = index.toString().match(absolutePositionRegex)) {
+      const result = Number(index)
+      return elemCount < result
+        ? null
+        : [result]
+    }
+
+    else {
+      // named set
+      const foundSeg = sharedElementsGroups.find(seg => seg.name === index)
+
+      return foundSeg ? foundSeg.sets : []
+    }
+  }
+
+  return {
+    processSetIndex: processSetIndex,
+    processPositionIndex: processPositionIndex,
   }
 }
 
@@ -320,61 +363,108 @@ export function processCommands(originalStructure, numberedSets, sharedElementsG
   const result = []
 
   const idxPattern      = `(\\d+|\\+\\d+|\\-\\d+|n(?:-\\d+)?|${namePattern})`
+
   const positionSymbol  = ':'
-  const positionPattern = `(?:${positionSymbol}(-?\\d+))?`
+  const positionPattern = `${positionSymbol}(n(?:-\\d+)?|-\\d|\\d+)`
 
-  const amountPattern   = '(?:,(\\d+))?'
-
-  const copySymbol    = '='
-  const moveSymbol    = '\\~'
-  const deleteSymbol  = '\\%'
+  const amountPattern   = '(\\d+)'
 
   // (^^=^), 0 args: current set, 999 elements
   // (^^n=^), 1 args: set n, 999 elements
   // (^^n,m=^), 2 args: set n, m elements
-  const copyPattern   = `^\\^(?:${idxPattern}${positionPattern}${amountPattern})?${copySymbol}$`
-  const movePattern   = `^\\^(?:${idxPattern}${positionPattern}${amountPattern})?${moveSymbol}$`
-  const deletePattern = `^\\^(?:${idxPattern}${positionPattern}${amountPattern})?${deleteSymbol}$`
+  const copySymbol    = '='
+  const moveSymbol    = '\\~'
+  const deleteSymbol  = '\\%'
+
+  const mainRegex = new RegExp(
+    `^\\^` +
+    `(?:` +
+    `${idxPattern}(?:${positionPattern})?` + // fromPosition
+    `(?:` +
+    `,${amountPattern}` +
+    `(?:` +
+    `,${idxPattern}(?:${positionPattern})?` + // toPosition
+    `)?` +
+    `)?` +
+    `)?` +
+    `(?:(${copySymbol})|(${moveSymbol})|(${deleteSymbol}))$`
+  )
 
   for (const set of originalStructure) {
 
     for (const elem of set) {
 
-      const toSetName     = elem[0]
-      const toSetPosition = elem[1]
-
       let patternResult
-      let commandType
 
-      if (patternResult = new RegExp(copyPattern, 'gm').exec(elem[2])) {
-        commandType = 'c'
-      }
-      else if (patternResult = new RegExp(movePattern, 'gm').exec(elem[2])) {
-        commandType = 'm'
-      }
-      else if (patternResult = new RegExp(deletePattern, 'gm').exec(elem[2])) {
-        commandType = 'd'
-      }
+      // pr[0]: all, pr[1]: fromIdx, pr[2]: fromPos, pr[3]: amount,
+      // pr[4]: toIdx, pr[5]: toPos,
+      // pr[6]: copySymbol, pr[7]: moveSymbol, pr[8]: deleteSymbol
+      if (patternResult = elem[2].match(mainRegex)) {
 
-      if (commandType) {
-        const fromSetName     = processIndex(patternResult[1] || toSetName, toSetName, originalStructure.length, sharedElementsGroups)
-        const fromSetPosition = processIndex(patternResult[2] || 0, toSetPosition, set.length, sharedElementsGroups)
-        const fromSetAmount   = /\d/.test(patternResult[3]) ? Number(patternResult[3]) : 999
+        const cmdName = patternResult[6]
+          ? 'c'
+          : patternResult[7]
+            ? 'm'
+            : patternResult[8]
+              ? 'd'
+              : ''
 
-        // const contentElementCount = numberedSets
-        const contentElementCount = numberedSets
-          .find(v => v.name === toSetName)
-          .elements
-          .findIndex(v => v[1] > toSetPosition)
+        const ip = indexProcessor(sharedElementsGroups)
 
-        if (fromSetName !== null && fromSetAmount > 0) {
+        // is converted to a single numbered list in here
+        const toSetName = ip.processSetIndex(
+          patternResult[4] || elem[0],
+          elem[0],
+          originalStructure.length,
+        )
+
+        const toSetPosition = patternResult[5] // take defined value if defined
+          ? ip.processSetIndex(patternResult[5])
+          : patternResult[4] // otherwise take 0, if you defined a toSetName
+            ? 0
+            : numberedSets // otherwise, calculate its position in context of its idx
+                           // using the the numbered sets
+              .find(v => v.name === toSetName[0])
+              .elements
+              .reduce((accu, v) => v[1] < elem[1]
+                ? accu + 1
+                : accu, 0
+              )
+
+        const [toSetNameNew, toSetPositionNew] = numberedSets
+          .filter(v => toSetName.includes(v.name))
+          .reduce((accu, sl, i, arr) => {
+            return accu[1] - (sl.elements.length + 1) < 0
+              ? [accu[0] || sl.name, accu[1]]
+              : [null, accu[1] - (sl.elements.length + 1)]
+          }, [null, toSetPosition])
+
+        // will stay a list -> is further computed
+        // in applyCommand
+        const fromSetName = ip.processSetIndex(
+          patternResult[1] || toSetName,
+          elem[0],
+          originalStructure.length,
+        )
+
+        const fromSetPosition = ip.processPositionIndex(patternResult[2]) || 0
+        const fromSetAmount   = /\d/.test(patternResult[3])
+          ? Number(patternResult[3])
+          : 999
+
+        if (
+          fromSetName !== null &&
+          toSetNameNew !== null &&
+          fromSetAmount > 0
+        ) {
+
           result.push([
             fromSetName,
             fromSetPosition,
             fromSetAmount,
-            commandType,
-            toSetName,
-            contentElementCount,
+            cmdName,
+            toSetNameNew,
+            toSetPositionNew,
           ])
         }
       }
@@ -488,7 +578,7 @@ export function processRenderDirectives(originalStructure, sharedElementsGroups)
 
           const theValue = Number(elem[1])
 
-          if (theValue) {
+          if (!Number.isNaN(theValue)) {
             effectiveAssignments.push({
               name: 'fieldPadding',
               value: theValue,

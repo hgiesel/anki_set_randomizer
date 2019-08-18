@@ -48,7 +48,7 @@ export default function formatter(options) {
     return splitResults
   }
 
-  const renderSets = function(reordering, renderDirectives, randomIndices, theQuery=options.query) {
+  const renderSets = function(reordering, renderDirectives, randomIndices, numberedSets, theQuery=options.query) {
 
     let absoluteIndex = 0 + (
       options.colors_random_start_index
@@ -77,7 +77,7 @@ export default function formatter(options) {
         ? options.outputSyntax.fieldSeparator
         : customRendering.fieldSeparator
       const theFieldPadding  = customRendering.fieldPadding === undefined
-      ? options.fieldPadding
+        ? options.fieldPadding
         : customRendering.fieldPadding
       const theCloseDelim = customRendering.closeDelim === undefined
         ? options.outputSyntax.closeDelim
@@ -88,14 +88,15 @@ export default function formatter(options) {
 
       const actualValues = []
 
-      const randomStartIndex = (
-        options.colors_random_start_index
+      const randomStartIndex = options.colors_random_start_index
         ? Math.floor((randomIndices[i] || Math.random()) * theColors.length)
         : 0
-      )
 
       if (customRendering.display === 'sort') {
         set.rendering.sort()
+      }
+      else if (customRendering.display === 'orig') {
+        set.rendering = numberedSets.find(v => v.name === i).elements
       }
 
       for (const [j, element] of set.rendering.entries()) {
@@ -114,11 +115,11 @@ export default function formatter(options) {
       if (customRendering.display === 'none') {
         stylizedResults[set.order] = ''
       }
-      else if (actualValues.length > 0) {
-        stylizedResults[set.order] = `${theOpenDelim}${actualValues.join(theFieldSeparator)}${theCloseDelim}`
+      else if (actualValues.length === 0 || customRendering.display === 'empty') {
+        stylizedResults[set.order] = `${theOpenDelim}${options.outputSyntax.emptySet}${theCloseDelim}`
       }
       else {
-        stylizedResults[set.order] = `${theOpenDelim}${options.outputSyntax.emptySet}${theCloseDelim}`
+        stylizedResults[set.order] = `${theOpenDelim}${actualValues.join(theFieldSeparator)}${theCloseDelim}`
       }
 
       if (customRendering.colors !== undefined) {

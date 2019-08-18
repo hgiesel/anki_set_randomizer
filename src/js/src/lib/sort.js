@@ -93,6 +93,15 @@ export function applyCommand(cmd, elems) {
       break
   }
 
+
+  // don't allow crazy positions indices
+  if (
+    theElems.length <= fromPosition ||
+    fromPosition < -theElems.length
+  ) {
+    return
+  }
+
   rotate(theElems, fromPosition)
 
   const capturedElements = []

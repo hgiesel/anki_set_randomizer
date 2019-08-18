@@ -140,8 +140,8 @@ function mainBack() {
       // import for collective color indexing
       .map((v, i) => ({rendering: v, order: i})),
       renderDirectives,
-      matchRandomIndices(structureMatches, matchRandomIndices(structureMatches, inheritedRandomIndices),
-      )
+      matchRandomIndices(structureMatches, inheritedRandomIndices),
+      numberedSets,
     )
   }
 }

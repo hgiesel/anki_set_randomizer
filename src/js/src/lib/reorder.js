@@ -66,6 +66,9 @@ export function applySharedOrder(sog, setReorders) {
     setReorders.forEach(v => {
       if (v.name === set) {
         v.order = newOrder
+        if (sog.lastMinute) {
+          v.lastMinute = true
+        }
       }
     })
   }

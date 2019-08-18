@@ -127,7 +127,7 @@ function mainFront() {
     form.renderSets(
       lastMinuteElements
       // import for collective color indexing
-      .map((v, i) => ({rendering: v, order: i})), renderDirectives, randomIndices)
+      .map((v, i) => ({rendering: v, order: i})), renderDirectives, randomIndices, numberedSets)
 
     //////////////////////////////////////////////////////////////////////////////
     Persistence.removeItem("AnkiSetRandomizerOriginalStructure")
