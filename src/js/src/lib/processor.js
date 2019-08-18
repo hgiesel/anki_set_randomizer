@@ -27,23 +27,29 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
           elements: match[2].substr(1, match[2].length - 2).split(new RegExp(`['"],["']`)), // match[2].split(new RegExp('(?<="),(?=")')),
         })
       }
-
     }
   }
 
   const lastMinutePattern = new RegExp('^\\^!!?$')
 
-  const generatorSymbol            = '#'
-  const uniquenessConstraintSymbol = '\\$'
+  const uniquenessConstraintSymbol   = '\\$'
+  const uniquenessConstraintPattern =
+    `(?:(${namePattern})${uniquenessConstraintSymbol})?`
 
   const intPattern       = '\\d+'
   const realOrIntPattern = `${intPattern}(?:\\.\\d*)?`
+  const realIntGenerator =
+    `(${realOrIntPattern}),(${realOrIntPattern})(?:,(${intPattern}))?`
 
-  const realIntGenerator           = `${realOrIntPattern},${realOrIntPattern}(?:,${intPattern})?`
-  const realIntGeneratorWithGroups = `(${realOrIntPattern}),(${realOrIntPattern})(?:,(${intPattern}))?`
+  const positionSymbol  = ':'
+  const positionPattern = `(?:${positionSymbol}(-?\\d+))?`
 
-  const generatorPattern = `^\\^(?:${namePattern}${uniquenessConstraintSymbol})?(${realIntGenerator}|${namePattern})${generatorSymbol}$`
-  const uniquenessSetRegex = `^\\^(${namePattern})${uniquenessConstraintSymbol}`
+  const generatorSymbol = '#'
+  const generatorPattern = new RegExp(
+    `^\\^${uniquenessConstraintPattern}` +
+    `(?:${realIntGenerator}|` +
+    `(${namePattern})${positionPattern})${generatorSymbol}$`
+  )
 
   const contentElementPattern = new RegExp('^[^\\^]')
 
@@ -61,16 +67,20 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
       if (lastMinutePattern.test(elem[2])) {
         lastMinute = true
       }
-      else if (patternResult = new RegExp(generatorPattern, 'gm').exec(elem[2])) {
 
-        const uniquenessConstraintMatch = patternResult[0].match(RegExp(uniquenessSetRegex))
+      else if (patternResult = elem[2].match(generatorPattern)) {
 
-        let uniquenessConstraintName
-        if (uniquenessConstraintMatch) {
-          uniquenessConstraintName = uniquenessConstraintMatch[1]
-        }
+        const uniquenessConstraintName = patternResult[1]
 
-        if (!uniquenessSets.find(v => v.name === uniquenessConstraintName)) {
+        const minValue   = patternResult[2]
+        const maxValue   = patternResult[3]
+        const extraValue = patternResult[4]
+
+        const generatorSetName  = patternResult[5]
+        const generatorSetIndex = Number(patternResult[6])
+
+        if (uniquenessConstraintName &&
+          !uniquenessSets.find(v => v.name === uniquenessConstraintName)) {
           uniquenessSets.push({
             name: uniquenessConstraintName,
             values: []
@@ -80,33 +90,65 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
         const setIndex  = elem[0]
         const elemIndex = elem[1]
 
-        let resultValue2
+        let resultValue
 
-        const maybePregeneratedValue = preGeneratedValues
+        if (preGeneratedValues
           .find(v => v[0] === setIndex && v[1] === elemIndex)
-
-        if (maybePregeneratedValue) {
+        ) {
           resultValue2 = maybePregeneratedValue
         }
 
+        else if (minValue && maxValue) {
+          // generate a random integer or real number
+          const isReal = minValue.includes('.') || maxValue.includes('.')
+
+          resultValue = generateRandomValue(
+            Number(minValue),
+            Number(maxValue),
+            Number(extraValue),
+            isReal,
+          )
+
+          if (uniquenessConstraintName) {
+            let countIdx = 0
+            const countIdxMax = 1000
+
+            while (uniquenessSets
+              .find(v => v.name === uniquenessConstraintName)
+              .values.includes(resultValue)
+              && countIdx < countIdxMax) {
+
+              resultValue = generateRandomValue(
+                Number(minValue),
+                Number(maxValue),
+                Number(extraValue),
+                isReal,
+              )
+
+              countIdx++
+            }
+
+            if (countIdx == countIdxMax) {
+              resultValue = null
+            }
+          }
+        }
+
         else {
+          // generator set name
 
-          if (/^\d/.test(patternResult[1])) {
-            // generate a random integer or real number
-            const intOrValueGenerator = patternResult[1].match(RegExp(realIntGeneratorWithGroups))
+          const foundGeneratorSet = generatorSets
+            .find(v => v.name === generatorSetName)
 
-            const minValue   = intOrValueGenerator[1]
-            const maxValue   = intOrValueGenerator[2]
-            const extraValue = intOrValueGenerator[3]
+          if (foundGeneratorSet) {
 
-            const isReal = minValue.includes('.') || maxValue.includes('.')
-
-            let resultValue = generateRandomValue(
-              Number(minValue),
-              Number(maxValue),
-              Number(extraValue),
-              isReal,
-            )
+            resultValue = typeof generatorSetIndex === 'number'
+              ? generatorSetIndex >= 0
+                ? foundGeneratorSet.elements[generatorSetIndex]
+                : foundGeneratorSet.elements[foundGeneratorSet.elements.length + generatorSetIndex]
+              : foundGeneratorSet.elements[
+                Math.floor(Math.random() * foundGeneratorSet.elements.length)
+            ]
 
             if (uniquenessConstraintName) {
               let countIdx = 0
@@ -117,12 +159,8 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
                 .values.includes(resultValue)
                 && countIdx < countIdxMax) {
 
-                resultValue = generateRandomValue(
-                  Number(minValue),
-                  Number(maxValue),
-                  Number(extraValue),
-                  isReal,
-                )
+                const idx   = Math.floor(Math.random() * foundGeneratorSet.elements.length)
+                resultValue = foundGeneratorSet.elements[idx]
 
                 countIdx++
               }
@@ -131,57 +169,18 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
                 resultValue = null
               }
             }
-
-            if (resultValue) {
-              resultValue2 = [setIndex, elemIndex, resultValue]
-            }
-          }
-
-          else {
-            // generate string from generator set
-            const text = patternResult[1]
-            const foundGeneratorSet = generatorSets.find(v => v.name === text)
-
-            if (foundGeneratorSet) {
-
-              let resultValue = foundGeneratorSet.elements[
-                Math.floor(Math.random() * foundGeneratorSet.elements.length)
-              ]
-
-              if (uniquenessConstraintName) {
-                let countIdx = 0
-                const countIdxMax = 1000
-
-                while (uniquenessSets
-                  .find(v => v.name === uniquenessConstraintName)
-                  .values.includes(resultValue)
-                  && countIdx < countIdxMax) {
-
-                  const idx   = Math.floor(Math.random() * foundGeneratorSet.elements.length)
-                  resultValue = foundGeneratorSet.elements[idx]
-
-                  countIdx++
-                }
-
-                if (countIdx == countIdxMax) {
-                  resultValue = null
-                }
-              }
-
-              if (resultValue) {
-                resultValue2 = [setIndex, elemIndex, resultValue]
-              }
-            }
           }
         }
         // else -> no element can be generated
         // get resultValue2
 
-        if (resultValue2) {
+        if (resultValue) {
+          const resultValue2 = [setIndex, elemIndex, resultValue]
+
           if (uniquenessConstraintName) {
             uniquenessSets
               .find(v => v.name === uniquenessConstraintName)
-              .values.push(resultValue2[2])
+              .values.push(resultValue2)
           }
 
           generatorValues.push(resultValue2)
@@ -212,20 +211,20 @@ export function processSharedElementsGroups(originalStructure) {
   const sharedOrderSymbol     = '\\?'
 
   const maybeRenderDirective    = `(?:${namePattern}${renderGroupSymbol})?(?:(?:([a-zA-Z]+),.*?)?${renderDirectiveSymbol})*$`
-  const maybeSharedOrderPattern = `${namePattern}${sharedOrderSymbol}${sharedOrderSymbol}`
+  const maybeSharedOrderPattern = `${namePattern}${sharedOrderSymbol}${sharedOrderSymbol}?`
 
-  const namedSetPattern   = `^\\^(${namePattern})!!?(?:${maybeSharedOrderPattern}|${maybeRenderDirective})?$`
-  const lastMinutePattern = new RegExp(`^\\^.*!!${maybeSharedOrderPattern}$`)
+  const namedSetPattern   = new RegExp(`^\\^(${namePattern})!!?(?:${maybeSharedOrderPattern}|${maybeRenderDirective})?$`)
+  const lastMinutePattern = new RegExp(`^\\^.*!!`)
 
   for (const elem of originalStructure.flat()) {
 
     let patternResult
 
-    if (patternResult = new RegExp(namedSetPattern).exec(elem[2])){
+    if (patternResult = elem[2].match(namedSetPattern)) {
 
       const correspondingNumberedSet = elem[0]
 
-      if (sharedElementsGroups.filter(v => v.name === patternResult[1]).length === 0) {
+      if (!sharedElementsGroups.find(v => v.name === patternResult[1])) {
         sharedElementsGroups.push({
           name: patternResult[1],
           lastMinute: false,
@@ -234,11 +233,13 @@ export function processSharedElementsGroups(originalStructure) {
       }
 
       else {
-        sharedElementsGroups.filter(v => v.name === patternResult[1])[0].sets.push(correspondingNumberedSet)
+        sharedElementsGroups.find(v => v.name === patternResult[1])
+          .sets.push(correspondingNumberedSet)
       }
 
       if (lastMinutePattern.test(elem[2])) {
-        sharedElementsGroups.filter(v => v.name === patternResult[1])[0].lastMinute = true
+        sharedElementsGroups.find(v => v.name === patternResult[1])
+          .lastMinute = true
       }
     }
   }
@@ -250,30 +251,36 @@ export function processSharedOrderGroups(originalStructure) {
   const sharedOrderGroups = []
 
   const maybeNamedSetPattern = `(?:(${namePattern})!!?)?`
-  const sharedOrderPattern   = `^\\^${maybeNamedSetPattern}(${namePattern})\\?$`
-  const lastMinutePattern    = new RegExp('^\\^.*\\?\\?$')
+  const sharedOrderPattern   = `^\\^${maybeNamedSetPattern}(${namePattern})\\?\\??$`
+  const lastMinutePattern    = new RegExp('\\?\\?$')
 
   for (const elem of originalStructure.flat()) {
 
     let patternResult
     if (patternResult = new RegExp(sharedOrderPattern).exec(elem[2])) {
 
-      const correspondingSet = patternResult[1] || elem[0]
+      const correspondingSet     = patternResult[1] || elem[0]
+      const sharedOrderGroupName = patternResult[2]
 
-      if (sharedOrderGroups.filter(v => v.name === patternResult[2]).length === 0) {
+      if (!sharedOrderGroups.find(v => v.name === sharedOrderGroupName)) {
         sharedOrderGroups.push({
-          name: patternResult[2],
+          name: sharedOrderGroupName,
           sets: [correspondingSet],
           // dictator: false, // I think this should be calculated at a later stage
         })
       }
 
       else {
-        sharedOrderGroups.filter(sog => sog.name === patternResult[2])[0].sets.push(correspondingSet)
+        sharedOrderGroups
+          .find(sog => sog.name === sharedOrderGroupName)
+          .sets
+          .push(correspondingSet)
       }
 
       if (lastMinutePattern.test(elem[2])) {
-        sharedOrderGroups.filter(sog => sog.name === patternResult[1])[0].lastMinute = true
+        sharedOrderGroups
+          .find(sog => sog.name === sharedOrderGroupName)
+          .lastMinute = true
       }
     }
   }
@@ -281,7 +288,7 @@ export function processSharedOrderGroups(originalStructure) {
   return sharedOrderGroups
 }
 
-function processIndex(index, currentIndex, elemCount) {
+function processIndex(index, currentIndex, elemCount, sharedElementsGroups) {
   const absolutePositionFromEndPattern  = '^n(-\\d+)?$'
   const absolutePosition                = '^\\d+$'
   const posiitveRelativePositionPattern = '^\\+(\\d+)$'
@@ -303,16 +310,18 @@ function processIndex(index, currentIndex, elemCount) {
     return Number(index)
   }
   else {
-    return index
+    const foundSeg = sharedElementsGroups.find(seg => seg.name === index)
+
+    return foundSeg ? foundSeg.sets : null
   }
 }
 
-export function processCommands(originalStructure) {
+export function processCommands(originalStructure, numberedSets, sharedElementsGroups) {
   const result = []
 
-  const idxPattern      = '(\\d+|\\+\\d+|\\-\\d+|n(?:-\\d+)?|${namePattern})'
+  const idxPattern      = `(\\d+|\\+\\d+|\\-\\d+|n(?:-\\d+)?|${namePattern})`
   const positionSymbol  = ':'
-  const positionPattern = `(?:${positionSymbol}(\\d+|n(?:-\\d+)?))?`
+  const positionPattern = `(?:${positionSymbol}(-?\\d+))?`
 
   const amountPattern   = '(?:,(\\d+))?'
 
@@ -328,6 +337,7 @@ export function processCommands(originalStructure) {
   const deletePattern = `^\\^(?:${idxPattern}${positionPattern}${amountPattern})?${deleteSymbol}$`
 
   for (const set of originalStructure) {
+
     for (const elem of set) {
 
       const toSetName     = elem[0]
@@ -347,18 +357,26 @@ export function processCommands(originalStructure) {
       }
 
       if (commandType) {
-        const fromSetName     = processIndex(patternResult[1] || toSetName, toSetName, originalStructure.length)
-        const fromSetPosition = processIndex(patternResult[2] || 0, toSetPosition, set.length)
-        const fromSetAmount   = Number(patternResult[3]) || 999
+        const fromSetName     = processIndex(patternResult[1] || toSetName, toSetName, originalStructure.length, sharedElementsGroups)
+        const fromSetPosition = processIndex(patternResult[2] || 0, toSetPosition, set.length, sharedElementsGroups)
+        const fromSetAmount   = /\d/.test(patternResult[3]) ? Number(patternResult[3]) : 999
 
-        result.push([
-          fromSetName,
-          fromSetPosition,
-          fromSetAmount,
-          commandType,
-          toSetName,
-          toSetPosition,
-        ])
+        // const contentElementCount = numberedSets
+        const contentElementCount = numberedSets
+          .find(v => v.name === toSetName)
+          .elements
+          .findIndex(v => v[1] > toSetPosition)
+
+        if (fromSetName !== null && fromSetAmount > 0) {
+          result.push([
+            fromSetName,
+            fromSetPosition,
+            fromSetAmount,
+            commandType,
+            toSetName,
+            contentElementCount,
+          ])
+        }
       }
     }
   }
@@ -509,7 +527,6 @@ export function processRenderDirectives(originalStructure, sharedElementsGroups)
             executeAssignment(set, values)
           }
           break;
-
       }
     }
 

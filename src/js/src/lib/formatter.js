@@ -50,9 +50,6 @@ export default function formatter(options) {
 
   const renderSets = function(reordering, renderDirectives, randomIndices, theQuery=options.query) {
 
-    // console.log(reordering)
-    // console.log(renderDirectives)
-
     let absoluteIndex = 0 + (
       options.colors_random_start_index
       ? Math.floor((randomIndices[0] || Math.random()) * options.colors.length)
@@ -96,6 +93,10 @@ export default function formatter(options) {
         ? Math.floor((randomIndices[i] || Math.random()) * theColors.length)
         : 0
       )
+
+      if (customRendering.display === 'sort') {
+        set.rendering.sort()
+      }
 
       for (const [j, element] of set.rendering.entries()) {
         if (element[3] !== 'd') {

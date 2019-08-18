@@ -1,3 +1,9 @@
+// modifies in-place (!)
+function rotate(arr, count) {
+  count -= arr.length * Math.floor(count / arr.length)
+  arr.push.apply(arr, arr.splice(0, count))
+}
+
 function complementArrays(elems1, elems2) {
   const result = []
 
@@ -65,23 +71,47 @@ export function applySetReorder(sr, elems, elemsOrig) {
 
 // values states include 'n', 'c', 'd'
 // cmds states include 'c', 'd', 'm'
-// cmd = [0:fromSet, 1:fromPosition, 2:fromAmount, 3:cmdName, 4:toSet, 5:toPosition]
+// cmd = [0:fromSet, 1:fromPosition, 2:fromAmount, 3:cmdName, 4:toSet, 5:toPosition, 6:contentElementCount]
 export function applyCommand(cmd, elems) {
 
-  // delete commands in original position
-  // from position is IGNORED (!) atm
+  const fromSet             = cmd[0]
+  const fromPosition        = cmd[1]
+  const cmdName             = cmd[3]
+  const toSet               = cmd[4]
+  const contentElementCount = cmd[5]
+
+  let theElems
+
+  switch (typeof fromSet) {
+    case 'number':
+      theElems = elems[fromSet]
+      break
+
+    // it's a list
+    case 'object':
+      theElems   = fromSet.flatMap(i => elems[i])
+      break
+  }
+
+  rotate(theElems, fromPosition)
+
   const capturedElements = []
 
-  for (const elem of elems[cmd[0]]) {
+  let elemAmount = cmd[2]
 
-    if (elem[3] !== 'd' && elem[3] !== 'c') {
-      capturedElements.push(elem.map(v => v))
+  for (const elem of theElems) {
+    const elemType = elem[3]
 
-      if (cmd[3] === 'd' || cmd[3] === 'm') {
+    if (elemType !== 'd' && elemType !== 'c') {
+
+      capturedElements.push(elem.slice(0))
+
+      if (cmdName === 'd' || cmdName === 'm') {
+        // modifies elems
         elem[3] = 'd'
       }
 
-      if (--cmd[2] === 0) {
+      if (--elemAmount === 0) {
         break
       }
     }
@@ -93,13 +123,29 @@ export function applyCommand(cmd, elems) {
   capturedElements.forEach(v => v.splice(3, 1, 'c'))
 
   // insert commands to new position
-  if (cmd[3] === 'c' || cmd[3] === 'm') {
-      elems[cmd[4]].splice(
-        cmd[5],
-        0,
-        ...capturedElements,
-      )
+  if ((cmdName === 'c' || cmdName === 'm') && capturedElements.length > 0) {
+
+    let elemCount   = contentElementCount
+    let thePosition = 0
+
+    while (elemCount > 0) {
+      thePosition += elems[toSet]
+        .slice(thePosition)
+        .findIndex(v => v[3] === 'n' || v[3] === 'd')
+      thePosition++
+      elemCount--
+    }
+
+    // modifies elems
+    elems[toSet].splice(
+      thePosition,
+      0,
+      ...capturedElements,
+    )
   }
+
+  // rotate back
+  rotate(theElems, -fromPosition)
 }
 
 export function applyInheritedSetReorder(newReorders, inheritedNewReorders, structureMatches) {

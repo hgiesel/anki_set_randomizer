@@ -67,7 +67,6 @@ function mainFront() {
 
     const sharedElementsGroups = processSharedElementsGroups(originalStructure)
     const sharedOrderGroups    = processSharedOrderGroups(originalStructure)
-    const renderDirectives     = processRenderDirectives(originalStructure, sharedElementsGroups)
 
     const [newElements, newElementsCopy, newReorders] = generateRandomization(
       numberedSets,
@@ -77,25 +76,23 @@ function mainFront() {
 
     // numbered are sorted 0 -> n, then named are in order of appearance
     // modifies newElementsCopy (!)
-
     newReorders
       .forEach(sr => applySetReorder(sr, newElements, newElementsCopy))
 
     //////////////////////////////////////////////////////////////////////////////
     // COMMANDS
     // are applied last to first
-    const commands = processCommands(originalStructure)
-
-    const reversedCommands = commands.reverse()
-    const sortedReversedCommands = [
-      reversedCommands.filter(v => v[3] === 'c'),
-      reversedCommands.filter(v => v[3] === 'm'),
-      reversedCommands.filter(v => v[3] === 'd'),
-    ].flat()
+    const commands = processCommands(originalStructure, numberedSets, sharedElementsGroups)
+      .sort((a, b) => {
+        if (a[3] === b[3]) { return 0 }
+        if (a[3] === 'c') { return -1 }
+        if (a[3] === 'm' && b[3] === 'd') { return -1 }
+        if (a[3] === 'm' && b[3] === 'c') { return 1 }
+        if (a[3] === 'd') { return 1 }
+      })
 
     // modifies newElements
-    sortedReversedCommands
-      .forEach(cmd => applyCommand(cmd, newElements))
+    commands.forEach(cmd => applyCommand(cmd, newElements))
 
     //////////////////////////////////////////////////////////////////////////////
     // LAST MINUTE
@@ -122,6 +119,8 @@ function mainFront() {
       .forEach(sr => applySetReorder(sr, lastMinuteElements, lastMinuteElementsCopy))
 
     //////////////////////////////////////////////////////////////////////////////
+    const renderDirectives = processRenderDirectives(originalStructure, sharedElementsGroups)
+
     const randomIndices = new Array(lastMinuteElements.length)
       .fill(0).map(_ => Math.random())
 

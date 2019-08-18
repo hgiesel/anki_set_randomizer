@@ -68,7 +68,6 @@ function mainBack() {
     const sharedElementsGroups = processSharedElementsGroups(originalStructure)
     const sharedOrderGroups    = processSharedOrderGroups(originalStructure)
     const renderDirectives     = processRenderDirectives(originalStructure, sharedElementsGroups)
-    console.log(renderDirectives)
 
     const [newElements, newElementsCopy, newReorders] = generateRandomization(
       numberedSets,
@@ -82,7 +81,7 @@ function mainBack() {
       structureMatches,
     )
 
-    // modifies modifiesReorders (!)
+    // modifies modifiedReorders (!)
     sharedOrderGroups.forEach(sog => applySharedOrder(sog, modifiedReorders))
 
     // numbered are sorted 0 -> n, then named are in order of appearance
@@ -92,19 +91,17 @@ function mainBack() {
 
     //////////////////////////////////////////////////////////////////////////////
     // COMMANDS
-    // are applied last to first
-    const commands = processCommands(originalStructure)
-
-    const reversedCommands = commands.reverse()
-    const sortedReversedCommands = [
-      reversedCommands.filter(v => v[3] === 'c'),
-      reversedCommands.filter(v => v[3] === 'm'),
-      reversedCommands.filter(v => v[3] === 'd'),
-    ].flat()
+    const commands = processCommands(originalStructure, numberedSets, sharedElementsGroups)
+      .sort((a, b) => {
+        if (a[3] === b[3]) { return 0 }
+        if (a[3] === 'c') { return -1 }
+        if (a[3] === 'm' && b[3] === 'd') { return -1 }
+        if (a[3] === 'm' && b[3] === 'c') { return 1 }
+        if (a[3] === 'd') { return 1 }
+      })
 
     // modifies newElements
-    sortedReversedCommands
-      .forEach(cmd => applyCommand(cmd, newElements))
+    commands.forEach(cmd => applyCommand(cmd, newElements))
 
     //////////////////////////////////////////////////////////////////////////////
     const lastMinuteStructure = newElements
