@@ -10,7 +10,10 @@ import {
 export default function formatter(options) {
 
   let _rawStructure = {}
-  const exprString = `${escapeString(options.inputSyntax.openDelim)}(?:::)?(.*?)(?:::)?${escapeString(options.inputSyntax.closeDelim)}`
+  const exprString =
+    `${escapeString(options.inputSyntax.openDelim)}` +
+    `(.*?)` +
+    `${escapeString(options.inputSyntax.closeDelim)}`
 
   const getRawStructure = function(theQuery=options.query) {
     if (_rawStructure[theQuery]) {
