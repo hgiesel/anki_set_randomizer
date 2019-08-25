@@ -55,16 +55,29 @@ export function matchGeneratorValues(structureMatches, generatorValues) {
   return result
 }
 
-export function matchRandomIndices(structureMatches, randomIndices) {
-  const result = []
+// important for collective color indexing
+export function reorderForRendering(structureMatches, reorderings) {
 
-  let match
-  for (const [i, idx] of randomIndices.entries()) {
+  const result = Array(reorderings.length)
 
-    if (match = structureMatches.find(v => v.from === i)) {
-      result[match.to] = idx
+  for (const [i, ro] of reorderings
+    .map((v, i) => ({
+      rendering: v,
+      order: i
+    }))
+    .entries()
+  ) {
+
+    const match = structureMatches.find(v => i === v.to)
+
+    if (match) {
+      result[match.from] = ro
+    }
+    else {
+      result.push(ro)
     }
   }
 
   return result
+    .filter(v => v !== undefined)
 }

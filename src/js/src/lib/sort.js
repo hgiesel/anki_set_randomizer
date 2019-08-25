@@ -52,15 +52,14 @@ function sliceWithLengths(elems, lengths) {
   return result
 }
 
-export function applySetReorder(sr, elems, elemsOrig) {
+export function applySetReorder(sr, elems) {
   switch (typeof sr.name) {
     case 'number':
-      const saveElems = elemsOrig[sr.name]
-      elems[sr.name] = sortWithIndices(saveElems, sr.order)
+      elems[sr.name] = sortWithIndices(elems[sr.name], sr.order)
       break
 
     case 'string':
-      const flatSaveElems = sr.sets.map(v => elemsOrig[v]).flat()
+      const flatSaveElems = sr.sets.map(v => elems[v]).flat()
       sliceWithLengths(sortWithIndices(flatSaveElems, sr.order), sr.setLengths)
         .forEach((v, i) => {
           elems[sr.sets[i]] = v

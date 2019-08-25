@@ -7,15 +7,15 @@ import {
   escapeHtml,
 } from './util'
 
-export default function formatter(options) {
+export default function formatter(inputSyntax) {
 
   let _rawStructure = {}
   const exprString =
-    `${escapeString(options.inputSyntax.openDelim)}` +
+    `${escapeString(inputSyntax.openDelim)}` +
     `(.*?)` +
-    `${escapeString(options.inputSyntax.closeDelim)}`
+    `${escapeString(inputSyntax.closeDelim)}`
 
-  const getRawStructure = function(theQuery=options.query) {
+  const getRawStructure = function(theQuery=inputSyntax.query) {
     if (_rawStructure[theQuery]) {
       return _rawStructure[theQuery]
     }
@@ -37,12 +37,12 @@ export default function formatter(options) {
     }
   }
 
-  const getOriginalStructure = function(theQuery=options.query) {
+  const getOriginalStructure = function(theQuery=inputSyntax.query) {
     const splitResults = []
 
     for (const [i, group] of getRawStructure(theQuery).entries()) {
       const splitGroup = group
-        .split(options.inputSyntax.fieldSeparator)
+        .split(inputSyntax.fieldSeparator)
         .map((v, j) => [i, j, v])
 
       splitResults.push(splitGroup)
@@ -51,82 +51,140 @@ export default function formatter(options) {
     return splitResults
   }
 
-  const renderSets = function(reordering, renderDirectives, randomIndices, numberedSets, theQuery=options.query) {
+  const stylingsAccessor = function(stylingDefinitions, randomIndices) {
 
-    let absoluteIndex = 0 + (
-      options.colors_random_start_index
-      ? Math.floor((randomIndices[0] || Math.random()) * options.colors.length)
-      : 0
-    )
-    let absoluteIndexSave = 0
+    const defaultStyle = stylingDefinitions.find(v => v.name === 'default').stylings
 
+    stylingDefinitions
+      .forEach(def => {
+        def.stylings.randomIndices = randomIndices[def.name] || []
+        def.stylings.nextIndex = 0
+      })
+
+    const propAccessor = function(styleName, theDefaultStyle=defaultStyle) {
+
+      const theStyle = styleName
+        ? stylingDefinitions.find(v => v.name === styleName).stylings
+        : theDefaultStyle
+
+      const getProp = function(propName) {
+
+        return theStyle[propName] !== undefined
+          ? theStyle[propName]
+          : theDefaultStyle[propName]
+      }
+
+      let currentIndex
+
+      const getIndex = function() {
+
+        let theIndex
+        if (currentIndex === undefined) {
+          if (getProp('collectiveIndexing') && getProp('randomStartIndex')) {
+
+            if (getProp('randomIndices').length === 0) {
+              theIndex = Math.floor(Math.random() * getProp('colors').length)
+              getProp('randomIndices').push(theIndex)
+            }
+            else {
+              theIndex = getProp('nextIndex') === 0
+                ? getProp('randomIndices')[0]
+                : getProp('nextIndex') % getProp('colors').length
+            }
+
+          }
+          else if (getProp('collectiveIndexing')) {
+            theIndex = (getProp('nextIndex')) % getProp('colors').length
+          }
+          else if (getProp('randomStartIndex')) {
+            theIndex = Math.floor(Math.random() * getProp('colors').length)
+            getProp('randomIndices').push(theIndex)
+          }
+          else {
+            theIndex = 0
+          }
+        }
+
+        else {
+          theIndex = ++currentIndex % getProp('colors').length
+        }
+
+        currentIndex = theIndex
+        theStyle.nextIndex = currentIndex + 1
+
+        return theIndex
+      }
+
+      return {
+        getProp: getProp,
+        getIndex: getIndex,
+      }
+
+    }
+
+    const exportIndices = function() {
+      const result = {}
+      stylingDefinitions
+        .forEach(def => {
+          result[def.name] = def.stylings.randomIndices
+        })
+      return result
+    }
+
+    return {
+      defaultStyle: defaultStyle,
+      propAccessor: propAccessor,
+      exportIndices: exportIndices,
+    }
+  }
+
+  const renderSets = function(reordering, stylingDefinitions, stylingAssignments, randomIndices, numberedSets, theQuery=inputSyntax.query) {
+
+    const sa = stylingsAccessor(stylingDefinitions, randomIndices)
     const stylizedResults = Array(reordering.length)
+
     for (const [i, set] of reordering.entries()) {
 
-      const customRendering     = renderDirectives.find(rd => rd.name === i).directives
-
-      let theColors
-      if (customRendering.colors === undefined) {
-        theColors = options.colors
-      }
-      else {
-        theColors = customRendering.colors
-
-        absoluteIndexSave = absoluteIndex
-        absoluteIndex     = 0
-      }
-
-      const theFieldSeparator = customRendering.fieldSeparator === undefined
-        ? options.outputSyntax.fieldSeparator
-        : customRendering.fieldSeparator
-      const theFieldPadding  = customRendering.fieldPadding === undefined
-        ? options.fieldPadding
-        : customRendering.fieldPadding
-      const theCloseDelim = customRendering.closeDelim === undefined
-        ? options.outputSyntax.closeDelim
-        : customRendering.closeDelim
-      const theOpenDelim = customRendering.openDelim === undefined
-        ? options.outputSyntax.openDelim
-        : customRendering.openDelim
-
       const actualValues = []
+      const styleName = stylingAssignments[i]
+      const pa = sa.propAccessor(styleName)
 
-      const randomStartIndex = options.colors_random_start_index
-        ? Math.floor((randomIndices[i] || Math.random()) * theColors.length)
-        : 0
-
-      if (customRendering.display === 'sort') {
+      if (pa.getProp('display') === 'sort') {
         set.rendering.sort()
       }
-      else if (customRendering.display === 'orig') {
+      else if (pa.getProp('display') === 'orig') {
         set.rendering = numberedSets.find(v => v.name === i).elements
       }
 
       for (const [j, element] of set.rendering.entries()) {
         if (element[3] !== 'd') {
-          const theIndex    = ((options.colors_collective_indexing ? absoluteIndex++ : randomStartIndex + j) % theColors.length)
+          const theIndex = pa.getIndex()
 
-          const className   = `class="set-randomizer--element set-randomizer--element-index-${element[0]}-${element[1]}"`
+          const colorChoice = pa.getProp('colors')
+            ? ` color: ${pa.getProp('colors')[theIndex]};`
+            : ''
 
-          const colorChoice = theColors[theIndex] ? ` color: ${theColors[theIndex]};` : ''
-          const style       = `style="padding: 0px ${theFieldPadding}px;${colorChoice}"`
+          const className = `class="set-randomizer--element set-randomizer--element-index-${element[0]}-${element[1]}"`
+          const style = `style="padding: 0px ${pa.getProp('fieldPadding')}px;${colorChoice}"`
 
           actualValues.push(`<span ${className} ${style}>${element[2]}</span>`)
         }
       }
 
-      if (customRendering.display === 'none') {
+      if (pa.getProp('display') === 'none') {
         stylizedResults[set.order] = ''
       }
-      else if (actualValues.length === 0 || customRendering.display === 'empty') {
-        stylizedResults[set.order] = `${theOpenDelim}${options.outputSyntax.emptySet}${theCloseDelim}`
+      else if (actualValues.length === 0 || pa.getProp('display') === 'empty') {
+        stylizedResults[set.order] =
+          `${pa.getProp('openDelim')}` +
+          `${pa.getProp('emptySet')}` +
+          `${pa.getProp('closeDelim')}`
       }
       else {
-        stylizedResults[set.order] = `${theOpenDelim}${actualValues.join(theFieldSeparator)}${theCloseDelim}`
-      }
-
-      if (customRendering.colors !== undefined) {
-        absoluteIndex = absoluteIndexSave
+        stylizedResults[set.order] =
+          `${pa.getProp('openDelim')}` +
+          `${actualValues.join(pa.getProp('fieldSeparator'))}` +
+          `${pa.getProp('closeDelim')}`
       }
     }
 
@@ -139,7 +197,7 @@ export default function formatter(options) {
 
       replacement = replacement
         .replace(
-          `${options.inputSyntax.openDelim}${v}${options.inputSyntax.closeDelim}`,
+          `${inputSyntax.openDelim}${v}${inputSyntax.closeDelim}`,
           `${renderOutput}`
         )
     }
@@ -147,7 +205,6 @@ export default function formatter(options) {
     document.querySelector(theQuery).innerHTML = replacement
 
     if (theQuery === 'div#clozed') {
-
       const olParse = getOriginalStructure('div#original').flat()
 
       if (olParse.length > 0) {
@@ -164,6 +221,8 @@ export default function formatter(options) {
         renderSets(newReordering, renderDirectives, randomIndices, 'div#original')
       }
     }
+
+    return sa.exportIndices()
   }
 
   return {

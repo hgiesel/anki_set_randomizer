@@ -15,7 +15,7 @@ import {
 import {
   matchStructures,
   matchGeneratorValues,
-  matchRandomIndices,
+  reorderForRendering,
 } from './lib/matching.js'
 
 import {
@@ -25,13 +25,12 @@ import {
 } from './lib/sort.js'
 
 import {
-  escapeHtml,
-} from './lib/util.js'
-
-import {
   applySharedOrder
 } from './lib/reorder.js'
 
+import {
+  escapeHtml,
+} from './lib/util.js'
 
 if (window.Persistence && Persistence.isAvailable()) {
   mainBack()
@@ -39,7 +38,8 @@ if (window.Persistence && Persistence.isAvailable()) {
 
 function mainBack() {
   const inheritedOriginalStructure  = Persistence.getItem("AnkiSetRandomizerOriginalStructure")
-  const inheritedOptions            = Persistence.getItem("AnkiSetRandomizerOptions")
+  const inheritedInputSyntax        = Persistence.getItem("AnkiSetRandomizerInputSyntax")
+  const inheritedDefaultStyle       = Persistence.getItem("AnkiSetRandomizerDefaultStyle")
   const inheritedGeneratorValues    = Persistence.getItem("AnkiSetRandomizerGeneratorValues")
   const inheritedNewReorders        = Persistence.getItem("AnkiSetRandomizerNewReorders")
   const inheritedLastMinuteReorders = Persistence.getItem("AnkiSetRandomizerLastMinuteReorders")
@@ -48,7 +48,8 @@ function mainBack() {
   // invalid FrontSide will cause an invalid BackSide
   if (
     !inheritedOriginalStructure ||
-    !inheritedOptions ||
+    !inheritedInputSyntax ||
+    !inheritedDefaultStyle ||
     !inheritedGeneratorValues ||
     !inheritedNewReorders ||
     !inheritedLastMinuteReorders ||
@@ -57,7 +58,7 @@ function mainBack() {
     return
   }
 
-  const form = formatter(inheritedOptions)
+  const form = formatter(inheritedInputSyntax)
   const originalStructure = form.getOriginalStructure()
 
   if (originalStructure) {
@@ -66,8 +67,13 @@ function mainBack() {
 
     const [numberedSets, _]    = processNumberedSets(originalStructure, matchGeneratorValues(structureMatches, inheritedGeneratorValues))
     const sharedElementsGroups = processSharedElementsGroups(originalStructure)
-    const sharedOrderGroups    = processSharedOrderGroups(originalStructure)
-    const renderDirectives     = processRenderDirectives(originalStructure, sharedElementsGroups)
+    const sharedOrderGroups    = processSharedOrderGroups(originalStructure, sharedElementsGroups)
+    const commands             = processCommands(originalStructure, numberedSets, sharedElementsGroups)
+
+    const [
+      stylingDefinitions,
+      stylingAssignments,
+    ] = processRenderDirectives(originalStructure, inheritedDefaultStyle, sharedElementsGroups)
 
     const [newElements, newElementsCopy, newReorders] = generateRandomization(
       numberedSets,
@@ -87,11 +93,11 @@ function mainBack() {
     // numbered are sorted 0 -> n, then named are in order of appearance
     // modifies newElementsCopy (!)
     modifiedReorders
-      .forEach(sr => applySetReorder(sr, newElements, newElementsCopy))
+      .forEach(sr => applySetReorder(sr, newElements))
 
     //////////////////////////////////////////////////////////////////////////////
     // COMMANDS
-    const commands = processCommands(originalStructure, numberedSets, sharedElementsGroups)
+    commands
       .sort((a, b) => {
         if (a[3] === b[3]) { return 0 }
         if (a[3] === 'c') { return -1 }
@@ -99,9 +105,7 @@ function mainBack() {
         if (a[3] === 'm' && b[3] === 'c') { return 1 }
         if (a[3] === 'd') { return 1 }
       })
-
-    // modifies newElements
-    commands.forEach(cmd => applyCommand(cmd, newElements))
+      .forEach(cmd => applyCommand(cmd, newElements)) // modifies newElements
 
     //////////////////////////////////////////////////////////////////////////////
     const lastMinuteStructure = newElements
@@ -136,11 +140,10 @@ function mainBack() {
 
     //////////////////////////////////////////////////////////////////////////////
     form.renderSets(
-      lastMinuteElements
-      // import for collective color indexing
-      .map((v, i) => ({rendering: v, order: i})),
-      renderDirectives,
-      matchRandomIndices(structureMatches, inheritedRandomIndices),
+      reorderForRendering(structureMatches, lastMinuteElements),
+      stylingDefinitions,
+      stylingAssignments,
+      inheritedRandomIndices,
       numberedSets,
     )
   }

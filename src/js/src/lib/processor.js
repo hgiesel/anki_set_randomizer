@@ -1,5 +1,60 @@
 const namePattern = '[a-zA-Z_]\\w*'
 
+function getCorrespondingSets(
+  originalStructure,
+  namedSets,
+  absolutePos,
+  absolutePosFromEnd,
+  currentPos,
+  relativePos,
+  otherNamedSet,
+  otherNamedSetPos,
+) {
+  let correspondingSets
+
+  if (absolutePos) {
+    correspondingSets = [Number(absolutePos)]
+  }
+  else if (absolutePosFromEnd) {
+    const offset = Number(absolutePosFromEnd.slice(1))
+    correspondingSets = [originalStructure.length + offset - 1]
+  }
+  else if (relativePos) {
+    const idx = currentPos + Number(relativePos)
+
+    correspondingSets = originalStructure[idx]
+      ? [idx]
+      : []
+  }
+  else if (otherNamedSet) {
+    const foundSets = namedSets
+      .find(v => v.name === otherNamedSet)
+
+    const finalSets = foundSets
+      ? foundSets.sets
+      : []
+
+    if (foundSets && otherNamedSetPos) {
+      const idx = Number(otherNamedSetPos) >= 0
+        ? Number(otherNamedSetPos)
+        : originalStructure.length + Number(otherNamedSetPos) - 1
+
+      correspondingSets = finalSets[idx] >= 0
+        ? [finalSets[idx]]
+        : []
+
+    }
+    else {
+      correspondingSets = finalSets
+    }
+  }
+  else /* self-referential */ {
+    correspondingSets = [currentPos]
+  }
+
+  return correspondingSets
+}
+
 function generateRandomValue(min, max, extra, isReal) {
   const preValue = Math.random() * (max - min) + min
 
@@ -14,41 +69,38 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
   const generatorValues = []
 
   // get generatorSets
-  const generatorSetPattern = new RegExp(`^\\^(${namePattern})\\[(.*)\\]$`)
+  const generatorSetPattern = new RegExp(`^\\^(?:gen|g)\\((${namePattern})\\s*,\\s\\[(.*)\\]\\)$`)
   const generatorSets       = []
 
-  for (const [i, set] of originalStructure.entries()) {
-    for (const elem of set) {
-
-      let match
-      if (match = elem[2].match(generatorSetPattern)) {
-        generatorSets.push({
-          name: match[1],
-          elements: match[2].substr(1, match[2].length - 2).split(new RegExp(`['"],["']`)), // match[2].split(new RegExp('(?<="),(?=")')),
-        })
-      }
+  for (const elem of originalStructure.flat()) {
+    let match
+    if (match = elem[2].match(generatorSetPattern)) {
+      generatorSets.push({
+        name: match[1],
+        elements: match[2].substr(1, match[2].length - 2)
+        .split(new RegExp(`['"],["']`)),
+      })
     }
   }
 
-  const lastMinutePattern = new RegExp(`^\\^!!(?:${namePattern}\\?\\??)?`)
+  const lastMinutePattern = new RegExp(`^\\^(n|name)!!\\(\\)$`)
 
-  const uniquenessConstraintSymbol   = '\\$'
-  const uniquenessConstraintPattern =
-    `(?:(${namePattern})${uniquenessConstraintSymbol})?`
+  // const namePattern = '[a-zA-Z_]\\w*'
 
   const intPattern       = '\\d+'
   const realOrIntPattern = `${intPattern}(?:\\.\\d*)?`
   const realIntGenerator =
-    `(${realOrIntPattern}),(${realOrIntPattern})(?:,(${intPattern}))?`
+    `(${realOrIntPattern}):(${realOrIntPattern})(?::(${intPattern}))?`
 
   const positionSymbol  = ':'
   const positionPattern = `(?:${positionSymbol}(n(?:-\\d+)?|-\\d|\\d+))?`
 
   const generatorSymbol = '#'
   const generatorPattern = new RegExp(
-    `^\\^${uniquenessConstraintPattern}` +
+    `^\\^(?:pick|p)\\(` +
     `(?:${realIntGenerator}|` +
-    `(${namePattern})${positionPattern})${generatorSymbol}$`
+    `(${namePattern})${positionPattern})` +
+    `(?:\\s*,\\s*(${namePattern}))?\\)` // uniqueness constraint
   )
 
   const contentElementPattern = new RegExp('^[^\\^]')
@@ -70,17 +122,19 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
 
       else if (patternResult = elem[2].match(generatorPattern)) {
 
-        const uniquenessConstraintName = patternResult[1]
+        const uniquenessConstraintName = patternResult[6]
 
-        const minValue   = patternResult[2]
-        const maxValue   = patternResult[3]
-        const extraValue = patternResult[4]
+        const minValue   = patternResult[1]
+        const maxValue   = patternResult[2]
+        const extraValue = patternResult[3]
 
-        const generatorSetName  = patternResult[5]
-        const generatorSetIndex = Number(patternResult[6])
+        const generatorSetName  = patternResult[4]
+        const generatorSetIndex = Number(patternResult[5])
 
-        if (uniquenessConstraintName &&
-          !uniquenessSets.find(v => v.name === uniquenessConstraintName)) {
+        if (
+          uniquenessConstraintName &&
+          !uniquenessSets.find(v => v.name === uniquenessConstraintName)
+        ) {
           uniquenessSets.push({
             name: uniquenessConstraintName,
             values: []
@@ -186,7 +240,7 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
           if (uniquenessConstraintName) {
             uniquenessSets
               .find(v => v.name === uniquenessConstraintName)
-              .values.push(resultValue2)
+              .values.push(resultValue)
           }
 
           generatorValues.push(resultValue2)
@@ -210,86 +264,144 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
 }
 
 export function processSharedElementsGroups(originalStructure) {
+
+  const namedSetPattern = new RegExp(
+    `\\^(?:name|n)(!)?` +
+    `\\(` +
+    `(${namePattern})` +
+    `(?:` +
+    `\\s*,\\s*` +
+    `(?:` + // second arg
+    `(\\d+)|(n-\\d+)|((?:\\+|-)\\d+)|` + // numbered set
+    `(${namePattern})(?::(n-\\d+|-\\d|\\d+))?` + // named set arg
+    `)` +
+    `)?` +
+    `\\)$`
+  )
+
   const sharedElementsGroups = []
 
-  const renderDirectiveSymbol = '@'
-  const renderGroupSymbol     = '\\+'
-  const sharedOrderSymbol     = '\\?'
+  originalStructure
+    .flat()
+    .map(v => [...v, v[2].match(namedSetPattern)])
+    .filter(v => v[3])
+    // sort self-referring sets to beginning
+    .reduce((accu, v) => {
+      v[3][3] || v[3][4] || v[3][5] || v[3][6] || v[3][7]
+        ? accu.push(v)
+        : accu.unshift(v)
+      return accu
+    }, [])
+    .forEach(v => {
+      const [
+        _,
+        isLastMinute,
+        name,
+        absolutePos,
+        absolutePosFromEnd,
+        relativePos,
+        otherNamedSet,
+        otherNamedSetPos,
+      ] = v[3]
 
-  const maybeRenderDirective    = `(?:${namePattern}${renderGroupSymbol})?(?:(?:([a-zA-Z]+),.*?)?${renderDirectiveSymbol})*$`
-  const maybeSharedOrderPattern = `${namePattern}${sharedOrderSymbol}${sharedOrderSymbol}?`
+      const correspondingSets = getCorrespondingSets(
+        originalStructure,
+        sharedElementsGroups,
+        absolutePos,
+        absolutePosFromEnd,
+        v[0],
+        relativePos,
+        otherNamedSet,
+        otherNamedSetPos,
+      )
 
-  const namedSetPattern   = new RegExp(`^\\^(${namePattern})!!?(?:${maybeSharedOrderPattern}|${maybeRenderDirective})?$`)
-  const lastMinutePattern = new RegExp(`^\\^.*!!`)
+      let theSeg = sharedElementsGroups.find(v => v.name === name)
 
-  for (const elem of originalStructure.flat()) {
-
-    let patternResult
-
-    if (patternResult = elem[2].match(namedSetPattern)) {
-
-      const correspondingNumberedSet = elem[0]
-
-      if (!sharedElementsGroups.find(v => v.name === patternResult[1])) {
-        sharedElementsGroups.push({
-          name: patternResult[1],
+      if (!theSeg) {
+        const idx = sharedElementsGroups.push({
+          name: name,
           lastMinute: false,
-          sets: [correspondingNumberedSet]
+          sets: []
         })
+
+        theSeg = sharedElementsGroups[idx - 1]
       }
 
-      else {
-        sharedElementsGroups.find(v => v.name === patternResult[1])
-          .sets.push(correspondingNumberedSet)
-      }
+      theSeg.sets.push(...correspondingSets)
+      theSeg.sets.sort()
 
-      if (lastMinutePattern.test(elem[2])) {
-        sharedElementsGroups.find(v => v.name === patternResult[1])
-          .lastMinute = true
+      if (isLastMinute) {
+        theSeg.lastMinute = true
       }
-    }
-  }
+    })
 
   return sharedElementsGroups
 }
 
-export function processSharedOrderGroups(originalStructure) {
+export function processSharedOrderGroups(originalStructure, namedSets) {
   const sharedOrderGroups = []
 
-  const maybeNamedSetPattern = `(?:(${namePattern})!!?|!!?)?`
-  const sharedOrderPattern   = `^\\^${maybeNamedSetPattern}(${namePattern})\\?\\??$`
-  const lastMinutePattern    = new RegExp('\\?\\?$')
+  const sharedOrderPattern = new RegExp(
+    `\\^(?:order|ord|o)(!)?` +
+    `\\(` +
+    `(${namePattern})` +
+    `(?:` +
+    `\\s*,\\s*` +
+    `(?:` + // second arg
+    `(\\d+)|(n-\\d+)|((?:\\+|-)\\d+)|` + // numbered set
+    `(${namePattern})(?::(n-\\d+|-\\d|\\d+))?` + // named set arg
+    `)` +
+    `)?` +
+    `\\)$`
+  )
 
-  for (const elem of originalStructure.flat()) {
+  originalStructure
+    .flat()
+    .map(v => [...v, v[2].match(sharedOrderPattern)])
+    .filter(v => v[3])
+    .forEach(v => {
+      const [
+        _,
+        isLastMinute,
+        name,
+        absolutePos,
+        absolutePosFromEnd,
+        relativePos,
+        otherNamedSet,
+        otherNamedSetPos,
+      ] = v[3]
 
-    let patternResult
-    if (patternResult = new RegExp(sharedOrderPattern).exec(elem[2])) {
+      const correspondingSets = getCorrespondingSets(
+        originalStructure,
+        namedSets,
+        absolutePos,
+        absolutePosFromEnd,
+        v[0],
+        relativePos,
+        otherNamedSet,
+        otherNamedSetPos,
+      )
 
-      const correspondingSet     = patternResult[1] || elem[0]
-      const sharedOrderGroupName = patternResult[2]
+      let theSog = sharedOrderGroups.find(v => v.name === name)
 
-      if (!sharedOrderGroups.find(v => v.name === sharedOrderGroupName)) {
-        sharedOrderGroups.push({
-          name: sharedOrderGroupName,
-          sets: [correspondingSet],
-          // dictator: false, // I think this should be calculated at a later stage
+      if (!theSog) {
+        const idx = sharedOrderGroups.push({
+          name: name,
+          lastMinute: false,
+          sets: [],
+          dictator: false, // will be determined at a later stage
         })
+
+        theSog = sharedOrderGroups[idx - 1]
       }
 
-      else {
-        sharedOrderGroups
-          .find(sog => sog.name === sharedOrderGroupName)
-          .sets
-          .push(correspondingSet)
-      }
+      theSog.sets.push(...correspondingSets)
+      theSog.sets.sort()
 
-      if (lastMinutePattern.test(elem[2])) {
-        sharedOrderGroups
-          .find(sog => sog.name === sharedOrderGroupName)
-          .lastMinute = true
+      if (isLastMinute) {
+        theSog.lastMinute = true
       }
-    }
-  }
+    })
 
   return sharedOrderGroups
 }
@@ -363,110 +475,97 @@ export function processCommands(originalStructure, numberedSets, sharedElementsG
   const result = []
 
   const idxPattern      = `(\\d+|\\+\\d+|\\-\\d+|n(?:-\\d+)?|${namePattern})`
-
   const positionSymbol  = ':'
   const positionPattern = `${positionSymbol}(n(?:-\\d+)?|-\\d|\\d+)`
 
   const amountPattern   = '(\\d+)'
 
-  // (^^=^), 0 args: current set, 999 elements
-  // (^^n=^), 1 args: set n, 999 elements
-  // (^^n,m=^), 2 args: set n, m elements
-  const copySymbol    = '='
-  const moveSymbol    = '\\~'
-  const deleteSymbol  = '\\%'
-
   const mainRegex = new RegExp(
-    `^\\^` +
+    `^\\^(?:(c|copy)|(m|move)|(d|del|delete))\\(` +
     `(?:` +
     `${idxPattern}(?:${positionPattern})?` + // fromPosition
     `(?:` +
-    `,${amountPattern}` +
+    `\\s*,\\s*${amountPattern}` +
     `(?:` +
-    `,${idxPattern}(?:${positionPattern})?` + // toPosition
+    `\\s*,\\s*${idxPattern}(?:${positionPattern})?` + // toPosition
     `)?` +
     `)?` +
-    `)?` +
-    `(?:(${copySymbol})|(${moveSymbol})|(${deleteSymbol}))$`
+    `)?\\)$`
   )
 
-  for (const set of originalStructure) {
+  for (const elem of originalStructure.flat()) {
+    let patternResult
 
-    for (const elem of set) {
+    // pr[1]: copySymbol, pr[2]: moveSymbol, pr[3]: deleteSymbol
+    // pr[0]: all, pr[4]: fromIdx, pr[5]: fromPos, pr[6]: amount,
+    // pr[7]: toIdx, pr[8]: toPos,
+    if (patternResult = elem[2].match(mainRegex)) {
 
-      let patternResult
+      const cmdName = patternResult[1]
+        ? 'c'
+        : patternResult[2]
+        ? 'm'
+        : patternResult[3]
+        ? 'd'
+        : ''
 
-      // pr[0]: all, pr[1]: fromIdx, pr[2]: fromPos, pr[3]: amount,
-      // pr[4]: toIdx, pr[5]: toPos,
-      // pr[6]: copySymbol, pr[7]: moveSymbol, pr[8]: deleteSymbol
-      if (patternResult = elem[2].match(mainRegex)) {
+      const ip = indexProcessor(sharedElementsGroups)
 
-        const cmdName = patternResult[6]
-          ? 'c'
-          : patternResult[7]
-            ? 'm'
-            : patternResult[8]
-              ? 'd'
-              : ''
+      // is converted to a single numbered list in here
+      const toSetName = ip.processSetIndex(
+        patternResult[7] || elem[0],
+        elem[0],
+        originalStructure.length,
+      )
 
-        const ip = indexProcessor(sharedElementsGroups)
-
-        // is converted to a single numbered list in here
-        const toSetName = ip.processSetIndex(
-          patternResult[4] || elem[0],
-          elem[0],
-          originalStructure.length,
+      const toSetPosition = patternResult[8] // take defined value if defined
+        ? ip.processSetIndex(patternResult[8])
+        : patternResult[7] // otherwise take 0, if you defined a toSetName
+        ? 0
+        : numberedSets // otherwise, calculate its position in context of its idx
+      // using the the numbered sets
+        .find(v => v.name === toSetName[0])
+        .elements
+        .reduce((accu, v) => v[1] < elem[1]
+          ? accu + 1
+          : accu, 0
         )
 
-        const toSetPosition = patternResult[5] // take defined value if defined
-          ? ip.processSetIndex(patternResult[5])
-          : patternResult[4] // otherwise take 0, if you defined a toSetName
-            ? 0
-            : numberedSets // otherwise, calculate its position in context of its idx
-                           // using the the numbered sets
-              .find(v => v.name === toSetName[0])
-              .elements
-              .reduce((accu, v) => v[1] < elem[1]
-                ? accu + 1
-                : accu, 0
-              )
+      const [toSetNameNew, toSetPositionNew] = numberedSets
+        .filter(v => toSetName.includes(v.name))
+        .reduce((accu, sl, i, arr) => {
+          return accu[1] - (sl.elements.length + 1) < 0
+            ? [accu[0] || sl.name, accu[1]]
+            : [null, accu[1] - (sl.elements.length + 1)]
+        }, [null, toSetPosition])
 
-        const [toSetNameNew, toSetPositionNew] = numberedSets
-          .filter(v => toSetName.includes(v.name))
-          .reduce((accu, sl, i, arr) => {
-            return accu[1] - (sl.elements.length + 1) < 0
-              ? [accu[0] || sl.name, accu[1]]
-              : [null, accu[1] - (sl.elements.length + 1)]
-          }, [null, toSetPosition])
+      // will stay a list -> is further computed
+      // in applyCommand
+      const fromSetName = ip.processSetIndex(
+        patternResult[4] || toSetName,
+        elem[0],
+        originalStructure.length,
+      )
 
-        // will stay a list -> is further computed
-        // in applyCommand
-        const fromSetName = ip.processSetIndex(
-          patternResult[1] || toSetName,
-          elem[0],
-          originalStructure.length,
-        )
+      const fromSetPosition = ip.processPositionIndex(patternResult[5]) || 0
+      const fromSetAmount   = /\d/.test(patternResult[6])
+        ? Number(patternResult[6])
+        : 999
 
-        const fromSetPosition = ip.processPositionIndex(patternResult[2]) || 0
-        const fromSetAmount   = /\d/.test(patternResult[3])
-          ? Number(patternResult[3])
-          : 999
+      if (
+        fromSetName !== null &&
+        toSetNameNew !== null &&
+        fromSetAmount > 0
+      ) {
 
-        if (
-          fromSetName !== null &&
-          toSetNameNew !== null &&
-          fromSetAmount > 0
-        ) {
-
-          result.push([
-            fromSetName,
-            fromSetPosition,
-            fromSetAmount,
-            cmdName,
-            toSetNameNew,
-            toSetPositionNew,
-          ])
-        }
+        result.push([
+          fromSetName,
+          fromSetPosition,
+          fromSetAmount,
+          cmdName,
+          toSetNameNew,
+          toSetPositionNew,
+        ])
       }
     }
   }
@@ -474,154 +573,156 @@ export function processCommands(originalStructure, numberedSets, sharedElementsG
   return result
 }
 
-export function processRenderDirectives(originalStructure, sharedElementsGroups) {
-  const renderDirectives = []
+export function processRenderDirectives(originalStructure, defaultStyle, namedSets) {
 
-  const namedSetSymbol        = '!'
-  const renderGroupSymbol     = '\\+'
-  const renderDirectiveSymbol = '@'
+  const stylingDefinitions  = [
+    {
+      name: 'default',
+      stylings: defaultStyle,
+    },
+    {
+      name: 'none',
+      stylings: {
+        display: 'none',
+      },
+    }
+  ]
 
-  const namedSetPattern = `(${namePattern})${namedSetSymbol}`
-  const renderGroupPattern = `(${namePattern})${renderGroupSymbol}`
-  const renderDirectivePattern = `^\\^(?:(?:(${namePattern})${namedSetSymbol})?(${namePattern})${renderGroupSymbol})?((?:(?:[a-zA-Z]+,.*?)?${renderDirectiveSymbol})*)$`
+  const stylingDefinitionRegex = new RegExp(
+    `^\\^(?:style|s)\\(` +
+    `(${namePattern})` +
+    `\\s*,\\s` +
+    `(.*)` + // styling directives
+    `\\)$`
+  )
 
-  const renderGroups      = []
-  const renderAssignments = []
+  const afterColonRegex = new RegExp(':(.*)$')
 
-  for (const [i, set] of originalStructure.entries()) {
+  originalStructure
+    .flat()
+    .map(v => [...v, v[2].match(stylingDefinitionRegex)])
+    .filter(v => v[3])
+    .forEach(v => {
 
-    renderDirectives.push({
-      name: i,
-      directives: {},
+      const [
+        _,
+        name,
+        stylingDirectives,
+      ] = v[3]
+
+      let sd = stylingDefinitions.find(v => v.name === name)
+
+      if (!sd) {
+        const idx = stylingDefinitions.push({
+          name: name,
+          stylings: {}
+        })
+
+        sd = stylingDefinitions[idx - 1]
+      }
+
+      stylingDirectives
+        .split(',')
+        .map(v => v.trim())
+        .forEach(v => {
+
+          if (v.startsWith('od:') || v.startsWith('openDelim:')) {
+            sd.stylings['openDelim'] = v.match(afterColonRegex)[1]
+          }
+          else if (v.startsWith('cd:') || v.startsWith('closeDelim:')) {
+            sd.stylings['closeDelim'] = v.match(afterColonRegex)[1]
+          }
+          else if (v.startsWith('fs:') || v.startsWith('fieldSeparator:')) {
+            sd.stylings['fieldSeparator'] = v.match(afterColonRegex)[1]
+          }
+          else if (v.startsWith('fp:') || v.startsWith('fieldPadding:')) {
+            const value = Number(v.match(afterColonRegex)[1])
+            if (value >= 0) {
+              sd.stylings['fieldPadding'] = value
+            }
+          }
+
+          else if (v.startsWith('clrs:') || v.startsWith('colors:')) {
+            const colors = v.match(afterColonRegex)[1].split(':')
+            sd.stylings['colors'] = colors
+          }
+          else if (v.startsWith('ci:') || v.startsWith('collectiveIndexing:')) {
+            const value = v.match(afterColonRegex)[1]
+            const bool = value === 'true'
+              ? true
+              : value === 'false'
+                ? false
+                : null
+
+            if (typeof bool === 'boolean') {
+              sd.stylings['collectiveIndexing'] = bool
+            }
+          }
+          else if (v.startsWith('rsi:') || v.startsWith('randomStartIndex:')) {
+            const value = v.match(afterColonRegex)[1]
+            const bool = value === 'true'
+              ? true
+              : value === 'false'
+                ? false
+                : null
+
+            if (typeof bool === 'boolean') {
+              sd.stylings['randomStartIndex'] = bool
+            }
+          }
+
+          else if (v.startsWith('dp:') || v.startsWith('display:')) {
+            sd.stylings['display'] = v.match(afterColonRegex)[1]
+          }
+        })
     })
 
-    for (const elem of set) {
+  const stylingAssignments = []
 
-      let match
-      if (match = elem[2].match(renderDirectivePattern)) {
+  const stylingAssignmentRegex = new RegExp(
+    `^\\^(?:apply|app|a)\\(` +
+    `(${namePattern})` +
+    `(?:\\s*,\\s` +
+    `(?:` + // second arg
+    `(\\d+)|(n-\\d+)|((?:\\+|-)\\d+)|` + // numbered set
+    `(${namePattern})(?::(n-\\d+|-\\d|\\d+))?` + // named set arg
+    `)` +
+    `)?` +
+    `\\)$`
+  )
 
-        const namedSet    = match[1]
-        const renderGroup = match[2]
+  originalStructure
+    .flat()
+    .map(v => [...v, v[2].match(stylingAssignmentRegex)])
+    .filter(v => v[3])
+    .forEach(v => {
 
-        if (renderGroup) {
-          if (!renderGroups.find(v => v.name === renderGroup)) {
-            renderGroups.push({
-              name: renderGroup,
-              sets: []
-            })
-          }
+      const [
+        _,
+        stylingName,
+        absolutePos,
+        absolutePosFromEnd,
+        relativePos,
+        otherNamedSet,
+        otherNamedSetPos,
+      ] = v[3]
 
-          if (namedSet) {
-            renderGroups
-              .find(v => v.name === renderGroup)
-              .sets
-              .push(...sharedElementsGroups.find(v => v.name === namedSet).sets)
-          }
-          else {
-            renderGroups
-              .find(v => v.name === renderGroup)
-              .sets
-              .push(i)
-          }
-        }
+      if (stylingDefinitions.find(v => v.name === stylingName)) {
+        const correspondingSets = getCorrespondingSets(
+          originalStructure,
+          namedSets,
+          absolutePos,
+          absolutePosFromEnd,
+          v[0],
+          relativePos,
+          otherNamedSet,
+          otherNamedSetPos,
+        )
 
-        const renderStatements = match[3]
-          .split('@')
-          .slice(0, -1)
-
-        if (renderStatements.length > 0) {
-          renderAssignments.push({
-            name: renderGroup || i,
-            assignments: renderStatements
-            .map(v => v.length > 0 ? [v.split(',', 1)[0], v.split(/^.*?,/)[1]] : ['display', 'none'])
-          })
-        }
+        correspondingSets
+          .forEach(set => stylingAssignments[set] = stylingName)
       }
-    }
-  }
+    })
 
-  // fill renderdirectives
-  for (const assignment of renderAssignments
-    .sort((a,_) => (typeof a.name === 'number') ? 1 : -1)
-  ) {
-
-    const effectiveAssignments = []
-
-    for (const elem of assignment.assignments) {
-      switch (elem[0]) {
-        case 'openDelim':
-        case 'od':
-          effectiveAssignments.push({
-            name: 'openDelim',
-            value: elem[1],
-          })
-          break;
-
-        case 'closeDelim':
-        case 'cd':
-          effectiveAssignments.push({
-            name: 'closeDelim',
-            value: elem[1],
-          })
-          break;
-
-        case 'fieldSeparator':
-        case 'fs':
-          effectiveAssignments.push({
-            name: 'fieldSeparator',
-            value: elem[1],
-          })
-          break;
-
-        case 'fieldPadding':
-        case 'fp':
-
-          const theValue = Number(elem[1])
-
-          if (!Number.isNaN(theValue)) {
-            effectiveAssignments.push({
-              name: 'fieldPadding',
-              value: theValue,
-            })
-          }
-          break;
-
-        case 'colors':
-        case 'clrs':
-          effectiveAssignments.push({
-            name: 'colors',
-            value: elem[1].split(','),
-          })
-          break;
-
-        case 'display':
-          effectiveAssignments.push({
-            name: 'display',
-            value: elem[1]
-          })
-          break;
-      }
-    }
-
-    const executeAssignment = function(name, values) {
-      switch (typeof name) {
-
-        case 'number':
-          for (const v of values) {
-            renderDirectives.find(v => v.name === name).directives[v.name] = v.value
-          }
-          break;
-
-        case 'string':
-          for (const set of renderGroups.find(v => v.name === name).sets) {
-            executeAssignment(set, values)
-          }
-          break;
-      }
-    }
-
-    executeAssignment(assignment.name, effectiveAssignments)
-  }
-
-  return renderDirectives
+  return [stylingDefinitions, stylingAssignments]
 }

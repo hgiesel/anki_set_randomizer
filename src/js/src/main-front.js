@@ -21,32 +21,36 @@ import {
   escapeHtml,
 } from './lib/util.js'
 
+import {
+  reorderForRendering,
+} from './lib/matching.js'
+
 if (window.Persistence && Persistence.isAvailable()) {
   mainFront()
 }
 
 function mainFront() {
 
-  const options = {
+  const inputSyntax = {
     query: $$query,
-    colors: $$colors,
-    colors_collective_indexing: $$colors_collective_indexing,
-    colors_random_start_index: $$colors_random_start_index,
-    fieldPadding: $$field_padding,
-    inputSyntax: {
-      openDelim: $$input_syntax_open_delim,
-      closeDelim: $$input_syntax_close_delim,
-      fieldSeparator: $$input_syntax_field_separator,
-    },
-    outputSyntax: {
-      openDelim: $$output_syntax_open_delim,
-      closeDelim: $$output_syntax_close_delim,
-      fieldSeparator: $$output_syntax_field_separator,
-      emptySet: $$output_syntax_empty_set,
-    }
+    openDelim: $$input_syntax_open_delim,
+    closeDelim: $$input_syntax_close_delim,
+    fieldSeparator: $$input_syntax_field_separator,
   }
 
-  const testQuery = document.querySelector(options.query)
+  const defaultStyle = {
+    colors: $$colors,
+    collectiveIndexing: $$colors_collective_indexing,
+    randomStartIndex: $$colors_random_start_index,
+
+    fieldPadding: $$field_padding,
+    openDelim: $$output_syntax_open_delim,
+    closeDelim: $$output_syntax_close_delim,
+    fieldSeparator: $$output_syntax_field_separator,
+    emptySet: $$output_syntax_empty_set,
+  }
+
+  const testQuery = document.querySelector(inputSyntax.query)
 
   // protect against invalid query or {{FrontSide}}
   if (!testQuery || !testQuery.innerHTML ||
@@ -55,7 +59,7 @@ function mainFront() {
     return
   }
 
-  const form = formatter(options)
+  const form = formatter(inputSyntax)
   const originalStructure = form.getOriginalStructure()
 
   if (originalStructure) {
@@ -66,7 +70,13 @@ function mainFront() {
     ] = processNumberedSets(originalStructure, [])
 
     const sharedElementsGroups = processSharedElementsGroups(originalStructure)
-    const sharedOrderGroups    = processSharedOrderGroups(originalStructure)
+    const sharedOrderGroups    = processSharedOrderGroups(originalStructure, sharedElementsGroups)
+    const commands             = processCommands(originalStructure, numberedSets, sharedElementsGroups)
+
+    const [
+      stylingDefinitions,
+      stylingAssignments,
+    ] = processRenderDirectives(originalStructure, defaultStyle, sharedElementsGroups)
 
     const [newElements, newElementsCopy, newReorders] = generateRandomization(
       numberedSets,
@@ -77,12 +87,11 @@ function mainFront() {
     // numbered are sorted 0 -> n, then named are in order of appearance
     // modifies newElementsCopy (!)
     newReorders
-      .forEach(sr => applySetReorder(sr, newElements, newElementsCopy))
+      .forEach(sr => applySetReorder(sr, newElements))
 
     //////////////////////////////////////////////////////////////////////////////
-    // COMMANDS
-    // are applied last to first
-    const commands = processCommands(originalStructure, numberedSets, sharedElementsGroups)
+    commands
+      // are applied last to first
       .sort((a, b) => {
         if (a[3] === b[3]) { return 0 }
         if (a[3] === 'c') { return -1 }
@@ -90,9 +99,7 @@ function mainFront() {
         if (a[3] === 'm' && b[3] === 'c') { return 1 }
         if (a[3] === 'd') { return 1 }
       })
-
-    // modifies newElements
-    commands.forEach(cmd => applyCommand(cmd, newElements))
+      .forEach(cmd => applyCommand(cmd, newElements)) // modifies newElements
 
     //////////////////////////////////////////////////////////////////////////////
     // LAST MINUTE
@@ -119,26 +126,26 @@ function mainFront() {
       .forEach(sr => applySetReorder(sr, lastMinuteElements, lastMinuteElementsCopy))
 
     //////////////////////////////////////////////////////////////////////////////
-    const renderDirectives = processRenderDirectives(originalStructure, sharedElementsGroups)
-
-    const randomIndices = new Array(lastMinuteElements.length)
-      .fill(0).map(_ => Math.random())
-
-    form.renderSets(
-      lastMinuteElements
-      // import for collective color indexing
-      .map((v, i) => ({rendering: v, order: i})), renderDirectives, randomIndices, numberedSets)
+    const randomIndices = form.renderSets(
+      reorderForRendering([], lastMinuteElements),
+      stylingDefinitions,
+      stylingAssignments,
+      {}, // randomIndices
+      numberedSets
+    )
 
     //////////////////////////////////////////////////////////////////////////////
     Persistence.removeItem("AnkiSetRandomizerOriginalStructure")
-    Persistence.removeItem("AnkiSetRandomizerOptions")
+    Persistence.removeItem("AnkiSetRandomizerInputSyntax")
+    Persistence.removeItem("AnkiSetRandomizerDefaultStyle")
     Persistence.removeItem("AnkiSetRandomizerGeneratorValues")
     Persistence.removeItem("AnkiSetRandomizerNewReorders")
     Persistence.removeItem("AnkiSetRandomizerLastMinuteReorders")
     Persistence.removeItem("AnkiSetRandomizerRandomIndices")
 
-    Persistence.setItem("AnkiSetRandomizerOptions", options)
     Persistence.setItem("AnkiSetRandomizerOriginalStructure", originalStructure)
+    Persistence.setItem("AnkiSetRandomizerInputSyntax", inputSyntax)
+    Persistence.setItem("AnkiSetRandomizerDefaultStyle", defaultStyle)
     Persistence.setItem("AnkiSetRandomizerGeneratorValues", generatorValues || [])
     Persistence.setItem("AnkiSetRandomizerNewReorders", newReorders || [])
     Persistence.setItem("AnkiSetRandomizerLastMinuteReorders", lastMinuteReorders || [])
