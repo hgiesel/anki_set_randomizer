@@ -2,14 +2,20 @@ import formatter from './lib/formatter.js'
 
 import {
   processNumberedSets,
+} from './lib/processors/numbered.js'
+
+import {
   processSharedElementsGroups,
   processSharedOrderGroups,
+} from './lib/processors/randomization.js'
+
+import {
   processRenderDirectives,
-} from './lib/processor.js'
+} from './lib/processors/stylings.js'
 
 import {
   processCommands,
-} from './lib/commands.js'
+} from './lib/processors/commands.js'
 
 import {
   generateRandomization,

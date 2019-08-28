@@ -1,12 +1,15 @@
+import {
+  namePattern,
+} from './util.js'
+
 export function processCommands(originalStructure, numberedSets, sharedElementsGroups) {
   const result = []
 
-  const namePattern   = '[a-zA-Z_]\\w*'
   const idxRegex      = `(?:(\\d+)|((?:\\+|-)\\d+)|n(-\\d+)|(${namePattern}))`
   const positionRegex = ':(?:\\+?(\\d+)|n?(-\\d+))'
 
   const mainRegex = new RegExp(
-    `^\\^(?:(c|copy)|(m|move)|(d|del|delete))\\(` +
+    `^\\$(?:(c|copy)|(m|move)|(d|del|delete))\\(` +
     `(?:` +
     `(\\d+)` + // amount
     `(?:` +
