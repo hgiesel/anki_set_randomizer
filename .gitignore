@@ -4,3 +4,4 @@ node_modules/
 meta.json
 .DS_Store
 .envrc
+*.ankiaddon
