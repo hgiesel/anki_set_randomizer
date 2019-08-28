@@ -52,30 +52,110 @@ function sliceWithLengths(elems, lengths) {
   return result
 }
 
-export function applySetReorder(sr, elems) {
-  switch (typeof sr.name) {
-    case 'number':
-      elems[sr.name] = sortWithIndices(elems[sr.name], sr.order)
-      break
+export function applySetReorder(srs, elems) {
+  // sort by size of sets to be reordered
+  const sortedSrs = srs.slice(0).sort(
+    (a, b) => {
+      if (a.sets.length > b.sets.length) {
+        return -1
+      }
+      else if (a.sets.length < b.sets.length) {
+        return 1
+      }
+      else {
+        if (typeof a.name === 'string') {
+          return -1
+        }
+        else {
+          return 1
+        }
+      }
+    })
 
-    case 'string':
-      const flatSaveElems = sr.sets.map(v => elems[v]).flat()
-      sliceWithLengths(sortWithIndices(flatSaveElems, sr.order), sr.setLengths)
+  const appliedSrs = []
+
+  for (const sr of sortedSrs) {
+
+    const alreadySorted = appliedSrs
+      .reduce(
+        (accu, v) => accu || sr.sets.every(srv => v.includes(srv)),
+        false
+      )
+
+    if (!alreadySorted) {
+      const flatSaveElems = sr
+        .sets
+        .map(v => elems[v])
+        .flat()
+
+      sliceWithLengths(
+        sortWithIndices(flatSaveElems, sr.order),
+        sr.setLengths
+      )
         .forEach((v, i) => {
           elems[sr.sets[i]] = v
         })
-      break
+
+      appliedSrs.push(sr.sets)
+    }
   }
+}
+
+export function applyInheritedSetReorder(newReorders, inheritedNewReorders, structureMatches) {
+  const modifiedReorders = []
+
+  for (const reorder of newReorders) {
+    let match
+
+    // numbered sets
+    if (match = structureMatches.find(v => reorder.name === v.to)) {
+      modifiedReorders.push(inheritedNewReorders.find(v => v.name === match.from))
+    }
+
+    // named sets
+    else if (match = inheritedNewReorders.find(v => reorder.name === v.name)) {
+
+      modifiedReorders.push({
+        name: reorder.name,
+        length: reorder.length,
+        sets: reorder.sets,
+        setLengths: reorder.setLengths,
+        order: complementArrays(match.order, reorder.order),
+        lastMinute: reorder.lastMinute,
+      })
+    }
+
+    // new sets
+    else {
+      modifiedReorders.push(reorder)
+    }
+  }
+
+  return modifiedReorders
 }
 
 // values states include 'n', 'c', 'd'
 // cmds states include 'c', 'd', 'm'
-// cmd = [0:fromSet, 1:fromPosition, 2:fromAmount, 3:cmdName, 4:toSet, 5:toPosition, 6:contentElementCount]
-export function applyCommand(cmd, elems) {
+// cmd = [0:cmdType, 1: amount, 2:fromPosition, 3:fromAmount, 4:toSet, 5:toPosition]
+export function applyCommands(cmds, elems) {
+  const cmdType = 0
 
-  const fromSet             = cmd[0]
-  const fromPosition        = cmd[1]
-  const cmdName             = cmd[3]
+  cmds
+    .sort((a, b) => {
+      if (a[cmdType] === b[cmdType]) { return 0 }
+      if (a[cmdType] === 'c') { return -1 }
+      if (a[cmdType] === 'm' && b[cmdType] === 'd') { return -1 }
+      if (a[cmdType] === 'm' && b[cmdType] === 'c') { return 1 }
+      if (a[cmdType] === 'd') { return 1 }
+    })
+    .forEach(cmd => applyCommand(cmd, elems)) // modifies newElements
+}
+
+function applyCommand(cmd, elems) {
+
+  const cmdName             = cmd[0]
+  const fromSet             = cmd[2]
+  const fromPosition        = cmd[3]
   const toSet               = cmd[4]
   const contentElementCount = cmd[5]
 
@@ -105,7 +185,7 @@ export function applyCommand(cmd, elems) {
 
   const capturedElements = []
 
-  let elemAmount = cmd[2]
+  let elemAmount = cmd[1]
 
   for (const elem of theElems) {
     const elemType = elem[3]
@@ -128,7 +208,8 @@ export function applyCommand(cmd, elems) {
   // .splice(pos, amount, replacement) -> deleted_values
   // .splice(n, 0) : does nothing
   // .splice(bigger_than_arr, m) : does nothing
-  capturedElements.forEach(v => v.splice(3, 1, 'c'))
+  capturedElements
+    .forEach(v => v.splice(3, 1, 'c'))
 
   // insert commands to new position
   if ((cmdName === 'c' || cmdName === 'm') && capturedElements.length > 0) {
@@ -154,39 +235,4 @@ export function applyCommand(cmd, elems) {
 
   // rotate back
   rotate(theElems, -fromPosition)
-}
-
-export function applyInheritedSetReorder(newReorders, inheritedNewReorders, structureMatches) {
-  const modifiedReorders = []
-
-  for (const reorder of newReorders) {
-    let match
-
-    if ((typeof reorder.name) === 'string') {
-      if (match = inheritedNewReorders.find(v => reorder.name === v.name)) {
-
-        modifiedReorders.push({
-          name: reorder.name,
-          length: reorder.length,
-          sets: reorder.sets,
-          setLengths: reorder.setLengths,
-          order: complementArrays(match.order, reorder.order),
-          lastMinute: reorder.lastMinute,
-        })
-
-      }
-      else {
-        modifiedReorders.push(reorder)
-      }
-    }
-
-    else if (match = structureMatches.find(v => reorder.name === v.to)) {
-      modifiedReorders.push(inheritedNewReorders.find(v => v.name === match.from))
-    }
-    else {
-      modifiedReorders.push(reorder)
-    }
-  }
-
-  return modifiedReorders
 }

@@ -2,3 +2,5 @@
 node_modules/
 *.log
 meta.json
+.DS_Store
+.envrc

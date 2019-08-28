@@ -18,6 +18,7 @@ SetRandomizerSettings = namedtuple('SetRandomizerSettings', [
     'input_syntax_open_delim',       # str
     'input_syntax_close_delim',      # str
     'input_syntax_field_separator',  # str
+
     'output_syntax_open_delim',      # str
     'output_syntax_close_delim',     # str
     'output_syntax_field_separator', # str
@@ -32,25 +33,41 @@ def deserialize_configs(model_names, configs_settings_list):
         False,
         'div#set-randomizer-container', True,
         ['orange', 'olive', 'maroon', 'aqua', 'fuchsia'], False, False,
-        4,
-        '(^', '^)', '::',
-        '〔', '〕', '', '…',
+        2,
+        '[[', ']]', '::',
+        '〔', '〕', ' ', '…',
         True,
     )
 
-    CLOZE_OVERLAPPER_DEFAULT_SETTINGS = SetRandomizerSettings(
+    DEFAULT_SETTINGS_CLOZE = SetRandomizerSettings(
+        False,
+        'div#set-randomizer-container', True,
+        ['orange', 'olive', 'maroon', 'aqua', 'fuchsia'], False, False,
+        2,
+        '<<', '>>', ';;',
+        '〔', '〕', ' ', '…',
+        True,
+    )
+
+    DEFAULT_SETTINGS_CLOZE_OVERLAPPER = SetRandomizerSettings(
         False,
         'div#clozed', False,
         ['orange', 'olive', 'maroon', 'aqua', 'fuchsia'], False, False,
-        4,
-        '(^', '^)', '::',
-        '〔', '〕', '', '…',
+        2,
+        '<<', '>>', ';;',
+        '〔', '〕', ' ', '…',
         True,
     )
 
     model_configs = []
 
     for model_name in model_names:
+
+        default_model = (DEFAULT_SETTINGS
+                if not 'Cloze' in model_name
+                else (DEFAULT_SETTINGS_CLOZE_OVERLAPPER
+                    if model_name == 'Cloze (overlapping)'
+                    else DEFAULT_SETTINGS_CLOZE))
 
         found = list(filter(
             lambda v: v['model_name'] == model_name,
@@ -64,20 +81,13 @@ def deserialize_configs(model_names, configs_settings_list):
                 if key2:
                     return (theFound[key][key2]
                             if key in theFound and key2 in theFound[key]
-                            else getattr(
-                                getattr(DEFAULT_SETTINGS
-                                if not model_name == 'Cloze (overlapping)'
-                                else CLOZE_OVERLAPPER_DEFAULT_SETTINGS, key), key2)
+                            else getattr(getattr(default_model, key), key2)
                             )
                 else:
                     return (theFound[key]
                             if key in theFound
-                            else getattr(
-                                DEFAULT_SETTINGS
-                                if not model_name == 'Cloze (overlapping)'
-                                else CLOZE_OVERLAPPER_DEFAULT_SETTINGS, key)
+                            else getattr(default_model, key)
                             )
-
 
             model_configs.append({
                 "name": model_name,
@@ -106,11 +116,10 @@ def deserialize_configs(model_names, configs_settings_list):
             })
 
         else:
+
             model_configs.append({
                 "name": model_name,
-                "settings": (DEFAULT_SETTINGS
-                             if not model_name == 'Cloze (overlapping)'
-                             else CLOZE_OVERLAPPER_DEFAULT_SETTINGS)
+                "settings": default_model
             })
 
     return model_configs

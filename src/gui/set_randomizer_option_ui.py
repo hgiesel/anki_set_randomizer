@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'set_randomizer_option.ui'
+# Form implementation generated from reading ui file './set_randomizer_option.ui'
 #
 # Created by: PyQt5 UI code generator 5.13.0
 #
@@ -137,7 +137,9 @@ class Ui_SetRandomizerOptionDialog(object):
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'.SF NS Text\'; font-size:13pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Anki SetRandomizer</span> was developed by <a href=\"https://github.com/hgiesel\"><span style=\" text-decoration: underline; color:#0000ff;\">Henrik Giesel (hgiesel)</span></a>.</p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Anki SetRandomizer</span> was developed by <a href=\"https://github.com/hgiesel\"><span style=\" text-decoration: underline; color:#0000ff;\">Henrik Giesel (hgiesel)</span></a>. <br />🐇 If you like my work, consider supporting me on <a href=\"https://ko-fi.com/Z8Z2129VR\"><span style=\" text-decoration: underline; color:#0000ff;\">Ko-Fi</span></a>. 🐇</p>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">Anki Persistence</span> was developed by <a href=\"https://github.com/SimonLammer/anki-persistence\"><span style=\" text-decoration: underline; color:#0000ff;\">Simmon Lammer</span></a>.<br /></p>\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">For more information about how to use Anki SetRandomizer, you should check out <a href=\"https://github.com/hgiesel/anki-set-randomizer/tree/master\"><span style=\" text-decoration: underline; color:#0000ff;\">the docs</span></a>.</p></body></html>"))
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">For more information about how to use Anki SetRandomizer, you should check out <a href=\"https://github.com/hgiesel/anki-set-randomizer/tree/master\"><span style=\" text-decoration: underline; color:#0000ff;\">the docs</span></a>.</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Thanks to reddit user u/im__aarkay for testing it on AnkiDroid.</p></body></html>"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_about), _translate("SetRandomizerOptionDialog", "About"))

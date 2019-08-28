@@ -13,10 +13,19 @@ function shuffle(array) {
   return array;
 }
 
+function detectOrderDictator(sog, setReorders) {
+  return sog.sets.map(v => ({
+    name: v,
+    length: setReorders.find(w => w.name === v).length
+  })).reduce((accu, v) => accu.length < v.length ? v : accu).name
+}
+
 export function reorderNumberedSets(numberedSets) {
   return numberedSets.map(v => ({
     name: v.name,
     length: v.elements.length,
+    sets: [v.name],
+    setLengths: [v.elements.length],
     order: shuffle([...new Array(v.elements.length).keys()]),
     lastMinute: v.lastMinute,
   }))
@@ -45,17 +54,12 @@ export function reorderSharedElementsGroups(sharedElementsGroups, numberedSets) 
   })
 }
 
-function detectOrderDictator(sog, setReorders) {
-  return sog.sets.map(v => ({
-    name: v,
-    length: setReorders.find(w => w.name === v).length
-  })).reduce((accu, v) => accu.length < v.length ? v : accu).name
-}
-
 export function applySharedOrder(sog, setReorders) {
 
-  const dictator      = detectOrderDictator(sog, setReorders)
-  const dictatorOrder = setReorders.find(v => v.name === dictator).order
+  const dictator = detectOrderDictator(sog, setReorders)
+  sog.dictator = dictator
+
+  const dictatorOrder = setReorders.find(v => v.name === sog.dictator).order
 
   for (const set of sog.sets) {
 
@@ -75,3 +79,4 @@ export function applySharedOrder(sog, setReorders) {
 
   return setReorders
 }
+

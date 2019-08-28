@@ -5,17 +5,21 @@ import {
   processSharedElementsGroups,
   processSharedOrderGroups,
   processRenderDirectives,
-  processCommands,
 } from './lib/processor.js'
 
 import {
-  applyCommand,
-  applySetReorder,
-} from './lib/sort.js'
+  processCommands,
+} from './lib/commands.js'
 
 import {
   generateRandomization,
+  shareOrder,
 } from './lib/randomize.js'
+
+import {
+  applySetReorder,
+  applyCommands,
+} from './lib/sort.js'
 
 import {
   escapeHtml,
@@ -78,28 +82,16 @@ function mainFront() {
       stylingAssignments,
     ] = processRenderDirectives(originalStructure, defaultStyle, sharedElementsGroups)
 
-    const [newElements, newElementsCopy, newReorders] = generateRandomization(
+    const [newElements, newReorders] = generateRandomization(
       numberedSets,
       sharedElementsGroups,
-      sharedOrderGroups,
     )
 
     // numbered are sorted 0 -> n, then named are in order of appearance
     // modifies newElementsCopy (!)
-    newReorders
-      .forEach(sr => applySetReorder(sr, newElements))
-
-    //////////////////////////////////////////////////////////////////////////////
-    commands
-      // are applied last to first
-      .sort((a, b) => {
-        if (a[3] === b[3]) { return 0 }
-        if (a[3] === 'c') { return -1 }
-        if (a[3] === 'm' && b[3] === 'd') { return -1 }
-        if (a[3] === 'm' && b[3] === 'c') { return 1 }
-        if (a[3] === 'd') { return 1 }
-      })
-      .forEach(cmd => applyCommand(cmd, newElements)) // modifies newElements
+    shareOrder(newReorders, sharedOrderGroups)
+    applySetReorder(newReorders, newElements)
+    applyCommands(commands, newElements)
 
     //////////////////////////////////////////////////////////////////////////////
     // LAST MINUTE
@@ -113,17 +105,18 @@ function mainFront() {
         lastMinute: numberedSets[i].lastMinute
       }))
 
-    const [lastMinuteElements, lastMinuteElementsCopy, lastMinuteReorders] = generateRandomization(
+    const [lastMinuteElements, lastMinuteReorders] = generateRandomization(
       lastMinuteNumberedSets,
       sharedElementsGroups,
-      sharedOrderGroups.filter(v => v.lastMinute),
     )
 
     // numbered are sorted 0 -> n, then named are in order of appearance
-    // modifies elementsCopy (!)
-    lastMinuteReorders
-      .filter(v => v.lastMinute)
-      .forEach(sr => applySetReorder(sr, lastMinuteElements, lastMinuteElementsCopy))
+    shareOrder(lastMinuteReorders, sharedOrderGroups.filter(v => v.lastMinute))
+    applySetReorder(
+      lastMinuteReorders
+      .filter(v => v.lastMinute),
+      lastMinuteElements
+    )
 
     //////////////////////////////////////////////////////////////////////////////
     const randomIndices = form.renderSets(
@@ -135,20 +128,15 @@ function mainFront() {
     )
 
     //////////////////////////////////////////////////////////////////////////////
-    Persistence.removeItem("AnkiSetRandomizerOriginalStructure")
-    Persistence.removeItem("AnkiSetRandomizerInputSyntax")
-    Persistence.removeItem("AnkiSetRandomizerDefaultStyle")
-    Persistence.removeItem("AnkiSetRandomizerGeneratorValues")
-    Persistence.removeItem("AnkiSetRandomizerNewReorders")
-    Persistence.removeItem("AnkiSetRandomizerLastMinuteReorders")
-    Persistence.removeItem("AnkiSetRandomizerRandomIndices")
-
-    Persistence.setItem("AnkiSetRandomizerOriginalStructure", originalStructure)
-    Persistence.setItem("AnkiSetRandomizerInputSyntax", inputSyntax)
-    Persistence.setItem("AnkiSetRandomizerDefaultStyle", defaultStyle)
-    Persistence.setItem("AnkiSetRandomizerGeneratorValues", generatorValues || [])
-    Persistence.setItem("AnkiSetRandomizerNewReorders", newReorders || [])
-    Persistence.setItem("AnkiSetRandomizerLastMinuteReorders", lastMinuteReorders || [])
-    Persistence.setItem("AnkiSetRandomizerRandomIndices", randomIndices || [])
+    Persistence.removeItem("SRdata")
+    Persistence.setItem("SRdata", [
+      originalStructure,
+      inputSyntax,
+      defaultStyle,
+      generatorValues || [],
+      newReorders || [],
+      lastMinuteReorders || [],
+      randomIndices || [],
+    ])
   }
 }

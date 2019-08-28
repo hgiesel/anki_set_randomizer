@@ -5,6 +5,7 @@
 import {
   escapeString,
   escapeHtml,
+  treatNewlines,
 } from './util'
 
 export default function formatter(inputSyntax) {
@@ -12,7 +13,7 @@ export default function formatter(inputSyntax) {
   let _rawStructure = {}
   const exprString =
     `${escapeString(inputSyntax.openDelim)}` +
-    `(.*?)` +
+    `((?:.|\\n|\\r)*?)` +
     `${escapeString(inputSyntax.closeDelim)}`
 
   const getRawStructure = function(theQuery=inputSyntax.query) {
@@ -165,9 +166,16 @@ export default function formatter(inputSyntax) {
             : ''
 
           const className = `class="set-randomizer--element set-randomizer--element-index-${element[0]}-${element[1]}"`
-          const style = `style="padding: 0px ${pa.getProp('fieldPadding')}px;${colorChoice}"`
+          const blockDisplay = pa.getProp('display') === 'block'
+            ? ' display: block;'
+            : ''
 
-          actualValues.push(`<span ${className} ${style}>${element[2]}</span>`)
+          const style = `style="padding: 0px ${pa.getProp('fieldPadding')}px;${colorChoice}${blockDisplay}"`
+          const theValue = pa.getProp('display') === 'block'
+            ? `<record ${className} ${style}><div>${treatNewlines(element[2])}</div></record>`
+            : `<record ${className} ${style}>${element[2]}</record>`
+
+          actualValues.push(theValue)
         }
       }
 

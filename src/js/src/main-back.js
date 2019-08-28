@@ -5,12 +5,11 @@ import {
   processSharedElementsGroups,
   processSharedOrderGroups,
   processRenderDirectives,
-  processCommands,
 } from './lib/processor.js'
 
 import {
-  generateRandomization,
-} from './lib/randomize.js'
+  processCommands,
+} from './lib/commands.js'
 
 import {
   matchStructures,
@@ -19,14 +18,15 @@ import {
 } from './lib/matching.js'
 
 import {
-  applyCommand,
+  applyCommands,
   applySetReorder,
   applyInheritedSetReorder,
 } from './lib/sort.js'
 
 import {
-  applySharedOrder
-} from './lib/reorder.js'
+  generateRandomization,
+  shareOrder,
+} from './lib/randomize.js'
 
 import {
   escapeHtml,
@@ -37,13 +37,15 @@ if (window.Persistence && Persistence.isAvailable()) {
 }
 
 function mainBack() {
-  const inheritedOriginalStructure  = Persistence.getItem("AnkiSetRandomizerOriginalStructure")
-  const inheritedInputSyntax        = Persistence.getItem("AnkiSetRandomizerInputSyntax")
-  const inheritedDefaultStyle       = Persistence.getItem("AnkiSetRandomizerDefaultStyle")
-  const inheritedGeneratorValues    = Persistence.getItem("AnkiSetRandomizerGeneratorValues")
-  const inheritedNewReorders        = Persistence.getItem("AnkiSetRandomizerNewReorders")
-  const inheritedLastMinuteReorders = Persistence.getItem("AnkiSetRandomizerLastMinuteReorders")
-  const inheritedRandomIndices      = Persistence.getItem("AnkiSetRandomizerRandomIndices")
+  const [
+    inheritedOriginalStructure,
+    inheritedInputSyntax,
+    inheritedDefaultStyle,
+    inheritedGeneratorValues,
+    inheritedNewReorders,
+    inheritedLastMinuteReorders,
+    inheritedRandomIndices,
+  ] = Persistence.getItem("SRdata")
 
   // invalid FrontSide will cause an invalid BackSide
   if (
@@ -75,37 +77,24 @@ function mainBack() {
       stylingAssignments,
     ] = processRenderDirectives(originalStructure, inheritedDefaultStyle, sharedElementsGroups)
 
-    const [newElements, newElementsCopy, newReorders] = generateRandomization(
+    const [newElements, newReorders] = generateRandomization(
       numberedSets,
       sharedElementsGroups,
-      sharedOrderGroups,
     )
 
+    // will require sharedOrderGroups...
+    // I don't know how it should otherwise be calculated
     const modifiedReorders = applyInheritedSetReorder(
       newReorders,
       inheritedNewReorders,
       structureMatches,
     )
 
-    // modifies modifiedReorders (!)
-    sharedOrderGroups.forEach(sog => applySharedOrder(sog, modifiedReorders))
-
     // numbered are sorted 0 -> n, then named are in order of appearance
-    // modifies newElementsCopy (!)
-    modifiedReorders
-      .forEach(sr => applySetReorder(sr, newElements))
-
-    //////////////////////////////////////////////////////////////////////////////
-    // COMMANDS
-    commands
-      .sort((a, b) => {
-        if (a[3] === b[3]) { return 0 }
-        if (a[3] === 'c') { return -1 }
-        if (a[3] === 'm' && b[3] === 'd') { return -1 }
-        if (a[3] === 'm' && b[3] === 'c') { return 1 }
-        if (a[3] === 'd') { return 1 }
-      })
-      .forEach(cmd => applyCommand(cmd, newElements)) // modifies newElements
+    // modifies reorders (!)
+    shareOrder(modifiedReorders, sharedOrderGroups)
+    applySetReorder(modifiedReorders, newElements)
+    applyCommands(commands, newElements) // modifies newElements
 
     //////////////////////////////////////////////////////////////////////////////
     const lastMinuteStructure = newElements
@@ -114,13 +103,12 @@ function mainBack() {
     const lastMinuteNumberedSets = processNumberedSets(lastMinuteStructure, [])[0]
       .map((v, i) => ({name: v.name, elements: v.elements, lastMinute: numberedSets[i].lastMinute}))
 
-    const lastMinuteSharedOrderGroups = sharedOrderGroups.filter(v => v.lastMinute)
+    const lastMinuteSharedOrderGroups = sharedOrderGroups
+      .filter(v => v.lastMinute)
 
-    const [lastMinuteElements, lastMinuteElementsCopy, lastMinuteReorders] = generateRandomization(
+    const [lastMinuteElements, lastMinuteReorders] = generateRandomization(
       lastMinuteNumberedSets,
       sharedElementsGroups,
-      lastMinuteSharedOrderGroups,
-      true,
     )
 
     const modifiedLastMinuteReorders = applyInheritedSetReorder(
@@ -129,14 +117,14 @@ function mainBack() {
       structureMatches,
     )
 
-    // modifies modifiesReorders (!)
-    lastMinuteSharedOrderGroups.forEach(sog => applySharedOrder(sog, modifiedLastMinuteReorders))
-
     // numbered are sorted 0 -> n, then named are in order of appearance
-    // modifies elementsCopy (!)
-    modifiedLastMinuteReorders
-      .filter(v => v.lastMinute)
-      .forEach(sr => applySetReorder(sr, lastMinuteElements, lastMinuteElementsCopy))
+    // modifies reorders (!)
+    shareOrder(modifiedLastMinuteReorders, lastMinuteSharedOrderGroups)
+    applySetReorder(
+      modifiedLastMinuteReorders
+        .filter(v => v.lastMinute),
+      lastMinuteElements
+    )
 
     //////////////////////////////////////////////////////////////////////////////
     form.renderSets(

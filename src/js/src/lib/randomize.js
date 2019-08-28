@@ -10,10 +10,10 @@ function initializeNumberedSets(numberedSets) {
     .map(v => v.elements)
     .map(u => u.map(w => [w[0], w[1], w[2], 'n']))
 }
+
 export function generateRandomization(
   numberedSets,
   sharedElementsGroups,
-  sharedOrderGroups,
 ) {
 
   const elements     = initializeNumberedSets(numberedSets)
@@ -24,7 +24,14 @@ export function generateRandomization(
     reorderSharedElementsGroups(sharedElementsGroups, numberedSets),
   ].flat()
 
+  return [elements, setReorders]
+}
+
+export function shareOrder(
+  setReorders,
+  sharedOrderGroups,
+) {
   // modifies setReorders (!)
-  sharedOrderGroups.forEach(sog => applySharedOrder(sog, setReorders))
-  return [elements, elementsCopy, setReorders]
+  sharedOrderGroups
+    .forEach(sog => applySharedOrder(sog, setReorders))
 }
