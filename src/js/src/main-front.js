@@ -1,148 +1,77 @@
-import formatter from './lib/formatter.js'
+import {
+  saveData,
+} from './save.js'
 
 import {
-  processNumberedSets,
-} from './lib/processors/numbered.js'
+  main,
+} from './main.js'
 
-import {
-  processSharedElementsGroups,
-  processSharedOrderGroups,
-} from './lib/processors/randomization.js'
 
-import {
-  processRenderDirectives,
-} from './lib/processors/stylings.js'
+document.addEventListener("DOMContentLoaded", function() {
+  if (window.Persistence && Persistence.isAvailable()) {
+    mainFront()
+  }
+})
 
-import {
-  processCommands,
-} from './lib/processors/commands.js'
+function getNullData() {
 
-import {
-  generateRandomization,
-  shareOrder,
-} from './lib/randomize.js'
-
-import {
-  applySetReorder,
-  applyCommands,
-} from './lib/sort.js'
-
-import {
-  escapeHtml,
-} from './lib/util.js'
-
-import {
-  reorderForRendering,
-} from './lib/matching.js'
-
-if (window.Persistence && Persistence.isAvailable()) {
-  mainFront()
+  return [
+    [/* originalStructure */],
+    [/* generatorValues */],
+    [/* reorders */],
+    [/* reordersSecond */],
+    {/* randomIndices */}
+  ]
 }
 
 function mainFront() {
 
   const inputSyntax = {
-    query: $$query,
-    openDelim: $$input_syntax_open_delim,
-    closeDelim: $$input_syntax_close_delim,
-    fieldSeparator: $$input_syntax_field_separator,
+    query: $$is_query,
+    openDelim: $$is_open_delim,
+    closeDelim: $$is_close_delim,
+    fieldSeparator: $$is_field_separator,
+    isRegex: $$is_is_regex,
   }
 
   const defaultStyle = {
-    colors: $$colors,
-    collectiveIndexing: $$colors_collective_indexing,
-    randomStartIndex: $$colors_random_start_index,
+    openDelim: $$ds_open_delim,
+    closeDelim: $$ds_close_delim,
+    emptySet: $$ds_empty_set,
 
-    fieldPadding: $$field_padding,
-    openDelim: $$output_syntax_open_delim,
-    closeDelim: $$output_syntax_close_delim,
-    fieldSeparator: $$output_syntax_field_separator,
-    emptySet: $$output_syntax_empty_set,
+    fieldPadding: $$ds_field_padding,
+    fieldSeparator: $$ds_field_separator,
+
+    colors: $$ds_colors,
+    collectiveIndexing: $$ds_collective_indexing,
+    randomStartIndex: $$ds_random_start_index,
   }
 
-  const testQuery = document.querySelector(inputSyntax.query)
+  const theSaveData = inputSyntax.query
+    .map((v, i) => ({
+      query: v,
+      openDelim: inputSyntax.openDelim[i],
+      closeDelim: inputSyntax.closeDelim[i],
+      fieldSeparator: inputSyntax.fieldSeparator[i],
+      isRegex: inputSyntax.isRegex[i],
+    }))
+    .reduce((accu, v) => {
 
-  // protect against invalid query or {{FrontSide}}
-  if (!testQuery || !testQuery.innerHTML ||
-      testQuery.innerHTML.includes('SET RANDOMIZER FRONT TEMPLATE') ||
-      testQuery.innerHTML.includes('SET RANDOMIZER BACK TEMPLATE')) {
-    return
-  }
+      const saveData = main(
+        true,
+        v,
+        defaultStyle,
+        ...accu[1],
+      )
 
-  const form = formatter(inputSyntax)
-  const originalStructure = form.getOriginalStructure()
+      return [
+        (accu[0].push([v, defaultStyle, ...saveData]), accu[0]),
+        saveData,
+      ]
+    }, [
+      [/* SRData to be */],
+      getNullData(),
+    ])[0]
 
-  if (originalStructure) {
-
-    const [
-      numberedSets,
-      generatorValues,
-    ] = processNumberedSets(originalStructure, [])
-
-    const sharedElementsGroups = processSharedElementsGroups(originalStructure)
-    const sharedOrderGroups    = processSharedOrderGroups(originalStructure, sharedElementsGroups)
-    const commands             = processCommands(originalStructure, numberedSets, sharedElementsGroups)
-
-    const [
-      stylingDefinitions,
-      stylingAssignments,
-    ] = processRenderDirectives(originalStructure, defaultStyle, sharedElementsGroups)
-
-    const [newElements, newReorders] = generateRandomization(
-      numberedSets,
-      sharedElementsGroups,
-    )
-
-    // numbered are sorted 0 -> n, then named are in order of appearance
-    // modifies newElementsCopy (!)
-    shareOrder(newReorders, sharedOrderGroups)
-    applySetReorder(newReorders, newElements)
-    applyCommands(commands, newElements)
-
-    //////////////////////////////////////////////////////////////////////////////
-    // LAST MINUTE
-    const lastMinuteStructure = newElements
-      .map(set => set.filter(elem => elem[3] !== 'd'))
-
-    const lastMinuteNumberedSets = processNumberedSets(lastMinuteStructure, [])[0]
-      .map((v, i) => ({
-        name: v.name,
-        elements: v.elements,
-        lastMinute: numberedSets[i].lastMinute
-      }))
-
-    const [lastMinuteElements, lastMinuteReorders] = generateRandomization(
-      lastMinuteNumberedSets,
-      sharedElementsGroups,
-    )
-
-    // numbered are sorted 0 -> n, then named are in order of appearance
-    shareOrder(lastMinuteReorders, sharedOrderGroups.filter(v => v.lastMinute))
-    applySetReorder(
-      lastMinuteReorders
-      .filter(v => v.lastMinute),
-      lastMinuteElements
-    )
-
-    //////////////////////////////////////////////////////////////////////////////
-    const randomIndices = form.renderSets(
-      reorderForRendering([], lastMinuteElements),
-      stylingDefinitions,
-      stylingAssignments,
-      {}, // randomIndices
-      numberedSets
-    )
-
-    //////////////////////////////////////////////////////////////////////////////
-    Persistence.removeItem("SRdata")
-    Persistence.setItem("SRdata", [
-      originalStructure,
-      inputSyntax,
-      defaultStyle,
-      generatorValues || [],
-      newReorders || [],
-      lastMinuteReorders || [],
-      randomIndices || [],
-    ])
-  }
+  saveData(theSaveData)
 }

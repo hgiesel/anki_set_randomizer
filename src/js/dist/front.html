@@ -4,45 +4,27 @@
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width'>
     <title>anki-set-randomizer FRONT</title>
-
-    <style>
-body {
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  color: #333;
-  background-color: #666;
-  font-weight: 500;
-}
-div {
-  font-size: 34px;
-}
-h1 {
-  text-align: center;
-}
-    </style>
-
-    <script>
-$$query = 'div#set-randomizer-container'
-$$colors = ['red', 'lime', 'blue', 'cyan', 'magenta', 'yellow']
-$$colors_collective_indexing = true
-$$colors_random_start_index = false
-$$field_padding = 10
-$$input_syntax_open_delim = '[['
-$$input_syntax_close_delim = ']]'
-$$input_syntax_field_separator = '::'
-$$output_syntax_open_delim = '\u3014'
-$$output_syntax_close_delim = '\u3015'
-$$output_syntax_field_separator = ''
-$$output_syntax_empty_set = '…'
-    </script>
-
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+    <script src='options.js'></script>
     <script src='anki-persistence.js'></script>
+    <script src='front.js'></script>
   </head>
 
   <body>
     <h1>anki-set-randomizer FRONT</h1>
-    <div id="set-randomizer-container">
-    </div>
-  </body>
 
-  <script src='front.js'></script>
+    <div id="set-randomizer-container">
+      [[$n(n1)::abc::def::ghi::jkl::mno]] [test[abc]]
+    </div>
+
+    <div>
+      I am not changed [[meh]]
+    </div>
+
+    <div id="set-randomizer-container-2">
+      Yeah! [[But::I::am]]!
+      [test[$n(n1)::abc::def::ghi::jkl::mno]] [test[abc]]
+    </div>
+
+  </body>
 </html>

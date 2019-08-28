@@ -117,8 +117,6 @@ export function processCommands(originalStructure, numberedSets, sharedElementsG
     }
   }
 
-  console.log(result)
-
   return result
 }
 

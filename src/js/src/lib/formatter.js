@@ -10,46 +10,104 @@ import {
 
 export default function formatter(inputSyntax) {
 
-  let _rawStructure = {}
+  // the original NodeList
+  const _htmlContent  = {}
+  const getHtml = function(theQuery=inputSyntax.query) {
+    if (_htmlContent[theQuery]) {
+      return _htmlContent[theQuery]
+    }
+    else {
+      const theHtml = document.querySelectorAll(theQuery)
+
+      return _htmlContent[theQuery] = theHtml
+    }
+  }
+
+  let isValid     = true
+  let isContained = false
+
   const exprString =
     `${escapeString(inputSyntax.openDelim)}` +
     `((?:.|\\n|\\r)*?)` +
     `${escapeString(inputSyntax.closeDelim)}`
 
+  const elemDelim = '$$$$$D$E$L$I$M$$$$$'
+
+  // a single big string with inserted elemDelims
+  const _rawStructure = {}
   const getRawStructure = function(theQuery=inputSyntax.query) {
     if (_rawStructure[theQuery]) {
       return _rawStructure[theQuery]
     }
 
     else {
-      const theElement = document.querySelector(theQuery)
-      const theBody = theElement ? theElement.innerHTML : ''
+      const theHtml = getHtml(theQuery)
 
-      const rawStructure = []
-      const exprRegex    = RegExp(exprString, 'gm')
-
-      let m = exprRegex.exec(theBody)
-      while (m) {
-        rawStructure.push(m[1])
-        m = exprRegex.exec(theBody)
+      if (!theHtml || theHtml.length === 0) {
+        isValid = false
+        return []
       }
 
-      return _rawStructure[theQuery] = rawStructure
+      const theRawStructure = [...theHtml]
+        .map(v => v.innerHTML)
+        .join(elemDelim)
+
+      if (
+        theRawStructure.includes('SET RANDOMIZER FRONT TEMPLATE') ||
+        theRawStructure.includes('SET RANDOMIZER BACK TEMPLATE')
+      ) {
+        isContained = true
+      }
+
+      return _rawStructure[theQuery] = theRawStructure
     }
   }
 
-  const getOriginalStructure = function(theQuery=inputSyntax.query) {
-    const splitResults = []
-
-    for (const [i, group] of getRawStructure(theQuery).entries()) {
-      const splitGroup = group
-        .split(inputSyntax.fieldSeparator)
-        .map((v, j) => [i, j, v])
-
-      splitResults.push(splitGroup)
+  // the found sets in the text
+  const _foundStructure = {}
+  const getFoundStructure = function(theQuery=inputSyntax.query) {
+    if (_foundStructure[theQuery]) {
+      return _foundStructure[theQuery]
     }
 
-    return splitResults
+    else {
+      const theFoundStructure = []
+
+      const theRawStructure = getRawStructure(theQuery)
+      const exprRegex = RegExp(exprString, 'gm')
+
+      let m = exprRegex.exec(theRawStructure)
+
+      while (m) {
+        theFoundStructure.push(m[1])
+        m = exprRegex.exec(theRawStructure)
+      }
+
+      return _foundStructure[theQuery] = theFoundStructure
+    }
+  }
+
+  // 2d list of elements in the form of [[i, j, element]]
+  const _originalStructure = {}
+  const getOriginalStructure = function(theQuery=inputSyntax.query) {
+    if (_originalStructure[theQuery]) {
+      return _originalStructure[theQuery]
+    }
+
+    else {
+      const theOriginalStructure = []
+      const theFoundStructure = getFoundStructure(theQuery)
+
+      for (const [i, group] of theFoundStructure.entries()) {
+        const splitGroup = group
+          .split(inputSyntax.fieldSeparator)
+          .map((elem, j) => [i, j, elem, /* TODO 'n' */])
+
+        theOriginalStructure.push(splitGroup)
+      }
+
+      return _originalStructure[theQuery] = theOriginalStructure
+    }
   }
 
   const stylingsAccessor = function(stylingDefinitions, randomIndices) {
@@ -125,10 +183,12 @@ export default function formatter(inputSyntax) {
 
     const exportIndices = function() {
       const result = {}
+
       stylingDefinitions
         .forEach(def => {
           result[def.name] = def.stylings.randomIndices
         })
+
       return result
     }
 
@@ -196,21 +256,21 @@ export default function formatter(inputSyntax) {
       }
     }
 
-    const theElement = document.querySelector(theQuery)
-    let replacement = theElement ? theElement.innerHTML : ''
+    let theRawStructure = getRawStructure(theQuery)
 
-    for (const [i, v] of getRawStructure(theQuery).entries()) {
-
-      const renderOutput = stylizedResults[i]
-
-      replacement = replacement
+    for (const [i, value] of getFoundStructure(theQuery).entries()) {
+      theRawStructure = theRawStructure
         .replace(
-          `${inputSyntax.openDelim}${v}${inputSyntax.closeDelim}`,
-          `${renderOutput}`
+          `${inputSyntax.openDelim}${value}${inputSyntax.closeDelim}`,
+          `${stylizedResults[i]}`
         )
     }
 
-    document.querySelector(theQuery).innerHTML = replacement
+    const theHtml = getHtml(theQuery)
+
+    theRawStructure
+      .split(elemDelim)
+      .forEach((v, i) => theHtml[i].innerHTML = v)
 
     if (theQuery === 'div#clozed') {
       const olParse = getOriginalStructure('div#original').flat()
@@ -236,5 +296,6 @@ export default function formatter(inputSyntax) {
   return {
     getOriginalStructure: getOriginalStructure,
     renderSets: renderSets,
+    isValid: isValid,
   }
 }

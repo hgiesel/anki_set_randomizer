@@ -50,7 +50,7 @@ def remove_model_template(model):
 def update_model_template(model, settings):
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
-    with io.open(f'{dir_path}/../js/dist/front.js', mode='r', encoding='utf-8') as template_front:
+    with io.open(f'{dir_path}/../js/dist/front-final.js', mode='r', encoding='utf-8') as template_front:
         js_front = BetterTemplate(template_front.read()).substitute(
             query=json.dumps(settings.css_query) if not settings.css_query_auto_generate else json.dumps("div#set-randomizer-container"),
             colors=json.dumps(settings.css_colors),
@@ -66,7 +66,7 @@ def update_model_template(model, settings):
             output_syntax_empty_set=json.dumps(settings.output_syntax_empty_set),
         )
 
-    with io.open(f'{dir_path}/../js/dist/back.js', mode='r', encoding='utf-8') as template_back:
+    with io.open(f'{dir_path}/../js/dist/back-final.js', mode='r', encoding='utf-8') as template_back:
         js_back = template_back.read()
 
     with io.open(f'{dir_path}/../js/dist/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:

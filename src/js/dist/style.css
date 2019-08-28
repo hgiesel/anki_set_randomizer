@@ -1,0 +1,13 @@
+
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #333;
+  background-color: #666;
+  font-weight: 500;
+}
+div {
+  font-size: 34px;
+}
+h1 {
+  text-align: center;
+}

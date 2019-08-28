@@ -5,6 +5,7 @@ import {
 } from './reorder'
 
 
+// TODO I think I can delete this
 function initializeNumberedSets(numberedSets) {
   return numberedSets
     .map(v => v.elements)

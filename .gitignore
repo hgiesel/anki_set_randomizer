@@ -1,7 +1,12 @@
 # Dependency directories
 node_modules/
-*.log
-meta.json
 .DS_Store
 .envrc
+*.log
+
+meta.json
 *.ankiaddon
+
+# Compiled js output, I only wanna use final-front.js and final-back.js
+front.js
+back.js
