@@ -26,11 +26,6 @@ export default function formatter(inputSyntax) {
   let isValid     = true
   let isContained = false
 
-  const exprString =
-    `${escapeString(inputSyntax.openDelim)}` +
-    `((?:.|\\n|\\r)*?)` +
-    `${escapeString(inputSyntax.closeDelim)}`
-
   const elemDelim = '$$$$$D$E$L$I$M$$$$$'
 
   // a single big string with inserted elemDelims
@@ -45,7 +40,7 @@ export default function formatter(inputSyntax) {
 
       if (!theHtml || theHtml.length === 0) {
         isValid = false
-        return []
+        return _rawStructure[theQuery] = ''
       }
 
       const theRawStructure = [...theHtml]
@@ -63,6 +58,15 @@ export default function formatter(inputSyntax) {
     }
   }
 
+  const exprString =
+    (inputSyntax.isRegex
+      ? inputSyntax.openDelim
+      : escapeString(inputSyntax.openDelim)) +
+    `((?:.|\\n|\\r)*?)` +
+    (inputSyntax.isRegex
+      ? inputSyntax.closeDelim
+      : escapeString(inputSyntax.closeDelim))
+
   // the found sets in the text
   const _foundStructure = {}
   const getFoundStructure = function(theQuery=inputSyntax.query) {
@@ -74,7 +78,16 @@ export default function formatter(inputSyntax) {
       const theFoundStructure = []
 
       const theRawStructure = getRawStructure(theQuery)
-      const exprRegex = RegExp(exprString, 'gm')
+
+      let exprRegex
+
+      try {
+        exprRegex = RegExp(exprString, 'gm')
+      }
+      catch {
+        isValid = false
+        return _foundStructure[theQuery] = []
+      }
 
       let m = exprRegex.exec(theRawStructure)
 
@@ -100,7 +113,9 @@ export default function formatter(inputSyntax) {
 
       for (const [i, group] of theFoundStructure.entries()) {
         const splitGroup = group
-          .split(inputSyntax.fieldSeparator)
+          .split(inputSyntax.isRegex
+            ? new RegExp(inputSyntax.fieldSeparator)
+            : inputSyntax.fieldSeparator)
           .map((elem, j) => [i, j, elem, /* TODO 'n' */])
 
         theOriginalStructure.push(splitGroup)
@@ -261,7 +276,9 @@ export default function formatter(inputSyntax) {
     for (const [i, value] of getFoundStructure(theQuery).entries()) {
       theRawStructure = theRawStructure
         .replace(
-          `${inputSyntax.openDelim}${value}${inputSyntax.closeDelim}`,
+          (inputSyntax.isRegex
+            ? new RegExp(`${inputSyntax.openDelim}${escapeString(value)}${inputSyntax.closeDelim}`)
+            : `${inputSyntax.openDelim}${value}${inputSyntax.closeDelim}`),
           `${stylizedResults[i]}`
         )
     }
