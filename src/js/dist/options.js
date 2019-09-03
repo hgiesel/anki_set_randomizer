@@ -1,15 +1,32 @@
-$$is_query           = ['div#set-randomizer-container, div#set-randomizer-container', 'div#set-randomizer-container-2']
-$$is_open_delim      = ['[[', '[test[']
-$$is_close_delim     = [']]', ']]']
-$$is_field_separator = ['::', '::']
-$$is_is_regex        = [false, false]
+$$options = [
+  {
+    inputSyntax: {
+      cssSelector: 'div#set-randomizer-container',
+      openDelim: '[[',
+      closeDelim: ']]',
+      fieldSeparator: '::',
+      isRegex: false,
+    },
 
-$$ds_colors              = ['red', 'lime', 'blue', 'cyan', 'magenta', 'yellow']
-$$ds_collective_indexing = true
-$$ds_random_start_index  = false
+    defaultStyle: {
+      openDelim: '\u3014',
+      closeDelim: '\u3015',
+      emptySet: '…',
 
-$$ds_open_delim      = '\u3014'
-$$ds_close_delim     = '\u3015'
-$$ds_field_separator = ' '
-$$ds_field_padding   = 10
-$$ds_empty_set       = '…'
+      fieldPadding: 2,
+      fieldSeparator: ' ',
+
+      colors: {
+        values: ['lightgreen', 'green', 'darkgreen'],
+        collectiveIndexing: true,
+        randomStartIndex: false,
+      },
+
+      classes: {
+        values: [],
+        collectiveIndexing: true,
+        randomStartIndex: false,
+      }
+    },
+  },
+]

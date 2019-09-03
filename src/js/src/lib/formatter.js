@@ -12,14 +12,14 @@ export default function formatter(inputSyntax) {
 
   // the original NodeList
   const _htmlContent  = {}
-  const getHtml = function(theQuery=inputSyntax.query) {
-    if (_htmlContent[theQuery]) {
-      return _htmlContent[theQuery]
+  const getHtml = function(theSelector=inputSyntax.cssSelector) {
+    if (_htmlContent[theSelector]) {
+      return _htmlContent[theSelector]
     }
     else {
-      const theHtml = document.querySelectorAll(theQuery)
+      const theHtml = document.querySelectorAll(theSelector)
 
-      return _htmlContent[theQuery] = theHtml
+      return _htmlContent[theSelector] = theHtml
     }
   }
 
@@ -30,17 +30,17 @@ export default function formatter(inputSyntax) {
 
   // a single big string with inserted elemDelims
   const _rawStructure = {}
-  const getRawStructure = function(theQuery=inputSyntax.query) {
-    if (_rawStructure[theQuery]) {
-      return _rawStructure[theQuery]
+  const getRawStructure = function(theSelector=inputSyntax.cssSelector) {
+    if (_rawStructure[theSelector]) {
+      return _rawStructure[theSelector]
     }
 
     else {
-      const theHtml = getHtml(theQuery)
+      const theHtml = getHtml(theSelector)
 
       if (!theHtml || theHtml.length === 0) {
         isValid = false
-        return _rawStructure[theQuery] = ''
+        return _rawStructure[theSelector] = ''
       }
 
       const theRawStructure = [...theHtml]
@@ -54,7 +54,7 @@ export default function formatter(inputSyntax) {
         isContained = true
       }
 
-      return _rawStructure[theQuery] = theRawStructure
+      return _rawStructure[theSelector] = theRawStructure
     }
   }
 
@@ -69,15 +69,15 @@ export default function formatter(inputSyntax) {
 
   // the found sets in the text
   const _foundStructure = {}
-  const getFoundStructure = function(theQuery=inputSyntax.query) {
-    if (_foundStructure[theQuery]) {
-      return _foundStructure[theQuery]
+  const getFoundStructure = function(theSelector=inputSyntax.cssSelector) {
+    if (_foundStructure[theSelector]) {
+      return _foundStructure[theSelector]
     }
 
     else {
       const theFoundStructure = []
 
-      const theRawStructure = getRawStructure(theQuery)
+      const theRawStructure = getRawStructure(theSelector)
 
       let exprRegex
 
@@ -86,7 +86,7 @@ export default function formatter(inputSyntax) {
       }
       catch {
         isValid = false
-        return _foundStructure[theQuery] = []
+        return _foundStructure[theSelector] = []
       }
 
       let m = exprRegex.exec(theRawStructure)
@@ -96,20 +96,20 @@ export default function formatter(inputSyntax) {
         m = exprRegex.exec(theRawStructure)
       }
 
-      return _foundStructure[theQuery] = theFoundStructure
+      return _foundStructure[theSelector] = theFoundStructure
     }
   }
 
   // 2d list of elements in the form of [[i, j, element]]
   const _originalStructure = {}
-  const getOriginalStructure = function(theQuery=inputSyntax.query) {
-    if (_originalStructure[theQuery]) {
-      return _originalStructure[theQuery]
+  const getOriginalStructure = function(theSelector=inputSyntax.cssSelector) {
+    if (_originalStructure[theSelector]) {
+      return _originalStructure[theSelector]
     }
 
     else {
       const theOriginalStructure = []
-      const theFoundStructure = getFoundStructure(theQuery)
+      const theFoundStructure = getFoundStructure(theSelector)
 
       for (const [i, group] of theFoundStructure.entries()) {
         const splitGroup = group
@@ -121,7 +121,7 @@ export default function formatter(inputSyntax) {
         theOriginalStructure.push(splitGroup)
       }
 
-      return _originalStructure[theQuery] = theOriginalStructure
+      return _originalStructure[theSelector] = theOriginalStructure
     }
   }
 
@@ -141,37 +141,41 @@ export default function formatter(inputSyntax) {
         ? stylingDefinitions.find(v => v.name === styleName).stylings
         : theDefaultStyle
 
-      const getProp = function(propName) {
+      const getProp = function(propName, propName2) {
 
-        return theStyle[propName] !== undefined
-          ? theStyle[propName]
-          : theDefaultStyle[propName]
+        return propName2 === undefined
+          ? theStyle[propName] !== undefined
+            ? theStyle[propName]
+            : theDefaultStyle[propName]
+          : theStyle[propName] === undefined || theStyle[propName][propName2] === undefined
+            ? theDefaultStyle[propName][propName2]
+            : theStyle[propName][propName2]
       }
 
       let currentIndex
 
-      const getIndex = function() {
+      const getColorIndex = function() {
 
         let theIndex
         if (currentIndex === undefined) {
-          if (getProp('collectiveIndexing') && getProp('randomStartIndex')) {
+          if (getProp('colors', 'collectiveIndexing') && getProp('colors', 'randomStartIndex')) {
 
-            if (getProp('randomIndices').length === 0) {
-              theIndex = Math.floor(Math.random() * getProp('colors').length)
+            if (getProp('colors', 'randomIndices').length === 0) {
+              theIndex = Math.floor(Math.random() * getProp('colors', 'values').length)
               getProp('randomIndices').push(theIndex)
             }
             else {
               theIndex = getProp('nextIndex') === 0
                 ? getProp('randomIndices')[0]
-                : getProp('nextIndex') % getProp('colors').length
+                : getProp('nextIndex') % getProp('colors', 'values').length
             }
 
           }
-          else if (getProp('collectiveIndexing')) {
-            theIndex = (getProp('nextIndex')) % getProp('colors').length
+          else if (getProp('colors', 'collectiveIndexing')) {
+            theIndex = (getProp('nextIndex')) % getProp('colors', 'values').length
           }
-          else if (getProp('randomStartIndex')) {
-            theIndex = Math.floor(Math.random() * getProp('colors').length)
+          else if (getProp('colors', 'randomStartIndex')) {
+            theIndex = Math.floor(Math.random() * getProp('colors', 'values').length)
             getProp('randomIndices').push(theIndex)
           }
           else {
@@ -180,7 +184,7 @@ export default function formatter(inputSyntax) {
         }
 
         else {
-          theIndex = ++currentIndex % getProp('colors').length
+          theIndex = ++currentIndex % getProp('colors', 'values').length
         }
 
         currentIndex = theIndex
@@ -191,7 +195,7 @@ export default function formatter(inputSyntax) {
 
       return {
         getProp: getProp,
-        getIndex: getIndex,
+        getColorIndex: getColorIndex,
       }
 
     }
@@ -214,7 +218,7 @@ export default function formatter(inputSyntax) {
     }
   }
 
-  const renderSets = function(reordering, stylingDefinitions, stylingAssignments, randomIndices, numberedSets, theQuery=inputSyntax.query) {
+  const renderSets = function(reordering, stylingDefinitions, stylingAssignments, randomIndices, numberedSets, theSelector=inputSyntax.cssSelector) {
 
     const sa = stylingsAccessor(stylingDefinitions, randomIndices)
     const stylizedResults = Array(reordering.length)
@@ -234,10 +238,10 @@ export default function formatter(inputSyntax) {
 
       for (const [j, element] of set.rendering.entries()) {
         if (element[3] !== 'd') {
-          const theIndex = pa.getIndex()
+          const theIndex = pa.getColorIndex()
 
-          const colorChoice = pa.getProp('colors')
-            ? ` color: ${pa.getProp('colors')[theIndex]};`
+          const colorChoice = pa.getProp('colors', 'values')
+            ? ` color: ${pa.getProp('colors', 'values')[theIndex]};`
             : ''
 
           const className = `class="set-randomizer--element set-randomizer--element-index-${element[0]}-${element[1]}"`
@@ -271,9 +275,9 @@ export default function formatter(inputSyntax) {
       }
     }
 
-    let theRawStructure = getRawStructure(theQuery)
+    let theRawStructure = getRawStructure(theSelector)
 
-    for (const [i, value] of getFoundStructure(theQuery).entries()) {
+    for (const [i, value] of getFoundStructure(theSelector).entries()) {
       theRawStructure = theRawStructure
         .replace(
           (inputSyntax.isRegex
@@ -283,13 +287,13 @@ export default function formatter(inputSyntax) {
         )
     }
 
-    const theHtml = getHtml(theQuery)
+    const theHtml = getHtml(theSelector)
 
     theRawStructure
       .split(elemDelim)
       .forEach((v, i) => theHtml[i].innerHTML = v)
 
-    if (theQuery === 'div#clozed') {
+    if (theSelector === 'div#clozed') {
       const olParse = getOriginalStructure('div#original').flat()
 
       if (olParse.length > 0) {

@@ -59,7 +59,6 @@ export function main(
 
     //////////////////////////////////////////////////////////////////////////////
     // FIRST RANDOMIZATION
-
     const [numberedSets, generatorValues] = processNumberedSets(
       originalStructure,
       matchGeneratorValues(
@@ -88,7 +87,6 @@ export function main(
 
     //////////////////////////////////////////////////////////////////////////////
     // SECOND RANDOMIZATION
-
     const [numberedSetsSecond, _] = processNumberedSets(
       elements.map(set => set.filter(elem => elem[3] !== 'd')),
       [],

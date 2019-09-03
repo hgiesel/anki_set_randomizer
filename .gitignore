@@ -7,6 +7,6 @@ node_modules/
 meta.json
 *.ankiaddon
 
-# Compiled js output, I only wanna use final-front.js and final-back.js
+# Compiled js output
 front.js
 back.js
