@@ -15,32 +15,48 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
   const result          = []
   const generatorValues = []
 
-  // get generatorSets
-  const generatorSetPattern = new RegExp(
+  const positionSymbol  = ':'
+  const positionPattern = `${positionSymbol}(n(?:-\\d+)?|-\\d|\\d+)`
+
+  const evaluators = []
+  const valueSets = []
+
+  const evaluatorPattern = new RegExp(
+    `^\\$(?:evaluate|eval|e)\\(` +
+    `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)` +
+    `(?:\\s*,\\s*(${namePattern}))?\\)` // uniqueness constraint
+  )
+
+  // get value sets
+  const valueSetPattern = new RegExp(
     `^\\$(?:generate|gen|g)\\(` +
     `(${namePattern})\\s*,\\s*` +
     `\\[((?:.|\\n|\\r)*)\\]` +
     `\\)`, 'm')
 
-  const generatorTokens = '(?:\'((?:.|\\n|\\r)*?[^\\\\])\'|"((?:.|\\n|\\r)*?[^\\\\])")'
-  const generatorSets   = []
+  // get value sets
+  const valueSetShortcutPattern = new RegExp(
+    `^\\$(${namePattern})(?!\\()(\\W)((?:.|\\n|\\r)*)`
+  )
 
   const singleQuotePattern = new RegExp(`\\\\'`, 'g')
   const doubleQuotePattern = new RegExp(`\\\\"`, 'g')
   const newLinePattern = new RegExp(`\\\\n`, 'g')
   const catchPattern = new RegExp(`\\\\.`, 'g')
 
+  const valueSetTokens = '(?:\'((?:.|\\n|\\r)*?[^\\\\])\'|"((?:.|\\n|\\r)*?[^\\\\])")'
+
   for (const elem of originalStructure.flat()) {
     let match
 
-    if (match = elem[2].match(generatorSetPattern)) {
-
+    if (match = elem[2].match(valueSetPattern)) {
       const elements = []
 
-      const generatorTokensRegex = new RegExp(generatorTokens, 'g')
-      let contentMatch           = generatorTokensRegex.exec(elem[2])
+      const valueSetTokensRegex = new RegExp(valueSetTokens, 'gm')
+      let contentMatch = valueSetTokensRegex.exec(elem[2])
 
       while (contentMatch) {
+
         if (contentMatch[1]) {
           elements.push(contentMatch[1]
             .replace(singleQuotePattern, "'")
@@ -56,13 +72,36 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
           )
         }
 
-        contentMatch           = generatorTokensRegex.exec(elem[2])
+        contentMatch = valueSetTokensRegex.exec(elem[2])
       }
 
-      generatorSets.push({
+      valueSets.push({
         name: match[1],
         elements: elements,
+        idx: 0,
+        set: elem[0],
+        pos: elem[1],
       })
+    }
+
+    else if (match = elem[2].match(valueSetShortcutPattern)) {
+      valueSets.push({
+        name: match[1],
+        elements: match[3]
+          .replace(new RegExp(`\\\\${match[2]}`, 'g'))
+          .replace(newLinePattern, '<br/>')
+          .replace(catchPattern, (x) => x.slice(1))
+          .split(match[2]),
+        idx: 0,
+        set: elem[0],
+        pos: elem[1],
+      })
+    }
+
+    else if (match = elem[2].match(evaluatorPattern)) {
+      if (match[1]) {
+        evaluators.push([match[1], match[2] || "*", match[3] || '*'])
+      }
     }
   }
 
@@ -73,14 +112,10 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
   const realIntGenerator =
     `(${realOrIntPattern}):(${realOrIntPattern})(?::(${intPattern}))?`
 
-  const positionSymbol  = ':'
-  const positionPattern = `(?:${positionSymbol}(n(?:-\\d+)?|-\\d|\\d+))?`
-
-  const generatorSymbol = '#'
   const generatorPattern = new RegExp(
     `^\\$(?:pick|p)\\(` +
     `(?:${realIntGenerator}|` +
-    `(${namePattern})${positionPattern})` +
+    `(${namePattern})(?:${positionPattern})?)` +
     `(?:\\s*,\\s*(${namePattern}))?\\)` // uniqueness constraint
   )
 
@@ -226,6 +261,30 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
 
           generatorValues.push(resultValue2)
           contentElements.push(resultValue2)
+        }
+      }
+
+      else if (valueSetPattern.test(elem[2]) || valueSetShortcutPattern.test(elem[2])) {
+        const revEvaluators = evaluators.reverse()
+        console.log( revEvaluators )
+
+        const vs = valueSets.find(e => e.set === elem[0] && e.pos === elem[1])
+
+        if (vs) {
+          const theEval = revEvaluators
+            .find(ev => ev[0] === vs.name && (ev[1] === vs.idx || ev[1] === '*'))
+          console.log(vs)
+
+          if (theEval) {
+
+            const resultValue = [elem[0], elem[1], vs.elements[theEval === '*'
+              ? Math.floor(Math.random() * vs.elements.length)
+              : theEval[2]
+            ]]
+
+            generatorValues.push(resultValue)
+            contentElements.push(resultValue)
+          }
         }
       }
 

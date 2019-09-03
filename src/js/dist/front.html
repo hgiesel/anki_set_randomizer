@@ -13,7 +13,12 @@
     <h1>anki-set-randomizer FRONT</h1>
 
     <div id="set-randomizer-container">
-      [[abc::def]]
+      [[abc::def]] <br>
+
+      [[$gen(foo, ['abc', 'def'])]] <br>
+      [[$bar|abc|def|ghi::test]] <br>
+      [[$eval(foo:0:0)]] <br>
+      [[$eval(bb:0)]] <br>
     </div>
 
     <script src='front.js'></script>

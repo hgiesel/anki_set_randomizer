@@ -192,7 +192,7 @@ INPUT_SYNTAX_CLOZE_OL = SRInputSyntax('div#clozed', '<<', '>>', ';;', False)
 SCRIPTNAME = path.dirname(path.realpath(__file__))
 
 # initialize default type
-with open(path.join(SCRIPTNAME, 'config.json'), encoding='utf-8') as config:
+with open(path.join(SCRIPTNAME, '../../config.json'), encoding='utf-8') as config:
 
     def access_func(elem, key1, key2=None, key3=None):
         return (elem[key1][key2][key3]

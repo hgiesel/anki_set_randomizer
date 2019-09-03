@@ -1,0 +1,14 @@
+= Generators
+
+Generators are the first things that are evaluated in SR. Generators include the
+following three commands:
+
+. *value sets*
+. *picking values*, with `pick()`
+. *evaluating value sets*, with `eval()`
+
+----
+<pre><code>
+[[$vs1|item1|item2]]
+</code><pre>
+----
