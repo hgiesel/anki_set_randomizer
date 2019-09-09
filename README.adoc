@@ -28,12 +28,12 @@ now.
 
 ==== link:https://ankiweb.net/shared/info/1491702369[Sequence Inserter]
 * can generate random integers and choose random elements from predefined sets
-* does not work on Mobile or 2.1
+* does not work on Mobile, or 2.1
 
 ==== link:https://ankiweb.net/shared/info/1484572887[Field Modifier: Random Item]
 * picks a random item from a Field
-* does not work on Mobile
+* does not work on Mobile, or 2.1
 
 ==== link:https://ankiweb.net/shared/info/413154037[Multiple Choice]
-* uses multiple fields, to contain several items
+* uses multiple fields, to contain several items, coloring the right choice in green
 * does not work on Mobile
