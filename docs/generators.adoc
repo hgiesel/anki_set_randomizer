@@ -9,22 +9,7 @@ include the following three commands:
 
 == Value sets
 
-.test
+Test 
 ++++
-<pre><code>[[$vs1|item1|item2]]</code><pre>
-++++
-
-* test
-
-.test2
-++++
-<script src="../src/js/dist/front.js"></script>
-<pre><code>[[$vs1|item1|item2]]</code><pre>
-++++
-
-* test
-
-.test3
-++++
-<pre><code>[[$vs1|item1|item2]]</code><pre>
+include::../src/js/dist/front.html[]
 ++++
