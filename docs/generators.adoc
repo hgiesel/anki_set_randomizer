@@ -9,7 +9,6 @@ include the following three commands:
 
 == Value sets
 
-Test 
 ++++
-include::../src/js/dist/front.html[]
+<iframe src="../src/js/dist/front.html"></iframe>
 ++++
