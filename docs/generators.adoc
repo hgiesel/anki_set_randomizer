@@ -10,16 +10,5 @@ include the following three commands:
 == Value sets
 
 ++++
-<pre><code>[[$vs1|item1|item2]]</code><pre>
+<iframe src="../src/js/dist/front.html"></iframe>
 ++++
-
-++++
-<script src="../src/js/dist/front.js"></script>
-<pre><code>[[$vs1|item1|item2]]</code><pre>
-++++
-
-++++
-<pre><code>[[$vs1|item1|item2]]</code><pre>
-++++
-
-
