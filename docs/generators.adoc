@@ -1,4 +1,5 @@
 = Generators
+:toc: macro
 
 Generators are the meta elements that are first evaluated in SR. Generators
 include the following three commands:
@@ -20,9 +21,8 @@ If you utilize generators sets, you have more control
 over where you want them the text elements to appear in the first place.
 
 ++++
-include::examples/generators-1.html
+include::examples/generators-1.html[]
 ++++
-
 
 == Picking from value sets
 
@@ -32,6 +32,10 @@ Syntax for picking:
 $pick(value_set[, uniqueness_constraint])
 ----
 
+++++
+include::examples/generators-2.html[]
+++++
+
 == Evaluating value sets
 
 ----
@@ -40,4 +44,10 @@ $eval(value_set[, uniqueness_constraint])
 
 == Generating numerical values
 
+
 == Uniqueness constraints
+
+If you don't want to generate a single element multiple times when picking at
+random, you can also define uniqueness constraints. Uniqueness constraints
+record elements you've generated and will trigger a second generation, if you
+happen to generate an element twice.
