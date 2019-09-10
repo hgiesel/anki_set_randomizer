@@ -1,21 +1,29 @@
 = Anki Set Randomizer
 
 ++++
+<div>
 <b>Set Randomizer</b> allows you to define randomized sets and much more. It supports all platforms that <a href="https://github.com/SimonLammer/anki-persistence" rel="nofollow">Anki Persistence</a> supports. This includes AnkiMobile, AnkiDroid, and AnkiWeb. It also supports all note types, including Cloze and even Glutanimate's <a href="https://ankiweb.net/shared/info/969733775" rel="nofollow">Cloze Overlapper</a>.
+</div>
 
+<div>
 <b>Installing Set Randomizer</b>:
 Just installing the add-on won't affect your note types at all. You have to manually enable Set Randomizer to use its functionality.
 Under "Tools" in the menu bar, you will find a new option "Set Randomizer Options...". Here you can define which note types should utilize randomized sets, and where the randomized sets are located via a CSS query. If you're not confident in Web programming, you can also auto-generate a query. You can also define the default styling of the sets. Confirming the dialogue will paste the randomization engine in the form of JavaScript into the selected note types. You can confirm this by checking out the note type under "Tools &gt; Manage Note Types", selecting your note type, and pressing "Cards...". You will be able to find the Set Randomizer JavaScript in each card type, in both the front and the back template. Don't change these templates, and especially don't remove the comments, as they are used for updating and removing Set Randomizer!
+</div>
 
+<div>
 <b>Removing Set Randomizer</b>:
 To remove the Set Randomizer JavaScript, go to "Tools &gt; Set Randomizer Options...", and uncheck "Enable Randomized Sets" for the note types for which you wish to remove Set Randomizer. Confirming the dialogue will remove the JavaScript from the templates. If you wish to remove the add-on completely, make sure you first uncheck the "Enable Randomized Sets" checkbox for all your note types.
+</div>
 
+<div>
 <b>Using Set Randomizer</b>:
 In note types for which you enabled Set Randomizer, you can now use a special syntax to create randomized sets. This syntax looks like this: <code>[[apple::banana::cherry]]</code>. This would create a randomized list of the items "apple", "banana", and "cherry". However this is only the tip of the iceberg. SR has a ton of features, so many in fact, that I created an <a href="https://raw.githubusercontent.com/hgiesel/anki-set-randomizer/master/Set_Randomizer_Demo_Deck.apkg" rel="nofollow">Anki deck, which serves as an introduction and tutorial to SR</a>. This deck works without installing the add-on, so if you want to have a glance at the features, before installing the add-on, you can do that, too.
+</div>
 
+<div>
 If you have any issues, or question, consider <a href="https://github.com/hgiesel/anki-set-randomizer" rel="nofollow">writing an issue on GitHub</a>, <a href="https://www.reddit.com/user/hgiesel" rel="nofollow">contacting me on Reddit</a>, or <a href="mailto:hengiesel@gmail.com">writing me a plain old email</a>.
-
-If you like <b>Set Randomizer</b>, don't forget to leave a thumbs up! If you like to support my work, you can <a href="https://ko-fi.com/hgiesel" rel="nofollow">buy me a coffee</a>.<Paste>
+</div>
 ++++
 
 == Related Add-ons
