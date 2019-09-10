@@ -453,10 +453,10 @@ include the following three commands:</p>
 <p><strong>value sets</strong></p>
 </li>
 <li>
-<p><strong>picking values</strong>, with <code>pick()</code></p>
+<p><strong>picking values</strong>, with <code>$pick()</code></p>
 </li>
 <li>
-<p><strong>evaluating value sets</strong>, with <code>eval()</code></p>
+<p><strong>evaluating value sets</strong>, with <code>$eval()</code></p>
 </li>
 </ol>
 </div>
@@ -482,13 +482,24 @@ include::examples/generators-1.html
 <div class="sect1">
 <h2 id="_picking_from_value_sets">Picking from value sets</h2>
 <div class="sectionbody">
-
+<div class="paragraph">
+<p>Syntax for picking:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$pick(value_set[, uniqueness_constraint])</pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_evaluating_value_sets">Evaluating value sets</h2>
 <div class="sectionbody">
-
+<div class="listingblock">
+<div class="content">
+<pre>$eval(value_set[, uniqueness_constraint])</pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -506,7 +517,7 @@ include::examples/generators-1.html
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-09-10 02:27:39 +0200
+Last updated 2019-09-10 02:39:18 +0200
 </div>
 </div>
 </body>
