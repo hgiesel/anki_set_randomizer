@@ -4,8 +4,8 @@ Generators are the meta elements that are first evaluated in SR. Generators
 include the following three commands:
 
 . *value sets*
-. *picking values*, with `pick()`
-. *evaluating value sets*, with `eval()`
+. *picking values*, with `$pick()`
+. *evaluating value sets*, with `$eval()`
 
 toc::[]
 
@@ -26,7 +26,17 @@ include::examples/generators-1.html
 
 == Picking from value sets
 
+Syntax for picking:
+
+----
+$pick(value_set[, uniqueness_constraint])
+----
+
 == Evaluating value sets
+
+----
+$eval(value_set[, uniqueness_constraint])
+----
 
 == Generating numerical values
 
