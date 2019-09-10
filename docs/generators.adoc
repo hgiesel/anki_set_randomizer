@@ -10,5 +10,5 @@ include the following three commands:
 == Value sets
 
 ++++
-<iframe src="../src/js/dist/front.html"></iframe>
+<iframe src="examples/generators-1.html"></iframe>
 ++++
