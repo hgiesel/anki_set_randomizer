@@ -1,0 +1,4 @@
+= Introduction to Set Randomizer
+
+
+link:generators.html[Generators]

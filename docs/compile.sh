@@ -1,1 +1,1 @@
-asciidoctor generators.adoc -a stylesheet=style.css
+asciidoctor {index,generators}.adoc -a stylesheet=style.css

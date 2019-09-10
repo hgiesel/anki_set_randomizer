@@ -1,14 +1,5 @@
 = Generators
-:toc: macro
-
-Generators are the meta elements that are first evaluated in SR. Generators
-include the following three commands:
-
-. *value sets*
-. *picking values*, with `$pick()`
-. *evaluating value sets*, with `$eval()`
-
-toc::[]
+:toc:
 
 == Value sets
 
