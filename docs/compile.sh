@@ -1,1 +1,1 @@
-asciidoctor {index,generators}.adoc -a stylesheet=style.css
+asciidoctor {index}.adoc chapters/{generators,first-randomization,commands,second-randomization,commands}.adoc

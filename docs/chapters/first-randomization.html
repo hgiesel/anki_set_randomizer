@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<title>Generators</title>
+<title>First randomziation</title>
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
 /* Uncomment @import statement to use as custom stylesheet */
@@ -467,128 +467,14 @@ div#example::before {
 </head>
 <body class="article">
 <div id="header">
-<h1>Generators</h1>
-<div id="toc" class="toc">
-<div id="toctitle">Table of Contents</div>
-<ul class="sectlevel1">
-<li><a href="#_value_sets">Value sets</a></li>
-<li><a href="#_picking_from_value_sets">Picking from value sets</a></li>
-<li><a href="#_evaluating_value_sets">Evaluating value sets</a></li>
-<li><a href="#_generating_numerical_values">Generating numerical values</a></li>
-<li><a href="#_uniqueness_constraints">Uniqueness constraints</a></li>
-</ul>
-</div>
+<h1>First randomziation</h1>
 </div>
 <div id="content">
-<div class="sect1">
-<h2 id="_value_sets">Value sets</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Generators sets are a way of defining text elements without automatically
-displaying them.</p>
-</div>
-<div class="paragraph">
-<p>If you define inline elements, like e.g.  <code>[[alligator::bear:cat]</code>,
-you often have to copy, move, or delete in order to achieve what you want.
-If you utilize generators sets, you have more control
-over where you want them the text elements to appear in the first place.</p>
-</div>
-<!doctype html>
-<html>
-  <head lang='en'>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width'>
-    <title>Generators example 1</title>
-    <link rel="stylesheet" type="text/css" href="style.css"/>
-    <script src='examples/anki-persistence.js'></script>
-    <script src='examples/options.js'></script>
-  </head>
 
-  <body>
-    <div id="container">
-      <div id="syntax">
-        [[$vs1|alligator|bear|cat]]
-      </div>
-
-      <div id="example">
-        [[$vs1|alligator|bear|cat]]
-      </div>
-    </div>
-
-    <script src='examples/example.js'></script>
-  </body>
-</html>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_picking_from_value_sets">Picking from value sets</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Syntax for picking:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>$pick(value_set[, uniqueness_constraint])</pre>
-</div>
-</div>
-<!doctype html>
-<html>
-  <head lang='en'>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width'>
-    <title>Generators example 1</title>
-    <link rel="stylesheet" type="text/css" href="style.css"/>
-    <script src='examples/anki-persistence.js'></script>
-    <script src='examples/options.js'></script>
-  </head>
-
-  <body>
-    <div id="container">
-      <div id="syntax">
-        [[$vs1|alligator|bear|cat]] [[$pick(vs1)]]
-      </div>
-
-      <div id="example">
-        [[$vs1|alligator|bear|cat]] [[$pick(vs1)]]
-      </div>
-    </div>
-
-    <script src='examples/example.js'></script>
-  </body>
-</html>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_evaluating_value_sets">Evaluating value sets</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="content">
-<pre>$eval(value_set[, uniqueness_constraint])</pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_generating_numerical_values">Generating numerical values</h2>
-<div class="sectionbody">
-
-</div>
-</div>
-<div class="sect1">
-<h2 id="_uniqueness_constraints">Uniqueness constraints</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>If you don&#8217;t want to generate a single element multiple times when picking at
-random, you can also define uniqueness constraints. Uniqueness constraints
-record elements you&#8217;ve generated and will trigger a second generation, if you
-happen to generate an element twice.</p>
-</div>
-</div>
-</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-09-10 03:43:58 +0200
+Last updated 2019-09-26 23:31:10 +0200
 </div>
 </div>
 </body>
