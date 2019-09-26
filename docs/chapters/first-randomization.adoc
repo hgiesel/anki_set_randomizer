@@ -1,3 +1,4 @@
 = First randomziation
 :stylesheet: ../style.css
 :toc:
+:sectnums:

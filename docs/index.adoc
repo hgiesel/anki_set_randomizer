@@ -1,8 +1,8 @@
 = Introduction to Set Randomizer
 :stylesheet: style.css
 
-. link:chapters/generators.html[Generators]
-. link:chapters/first-randomization.html[First randomization]
-. link:chapters/commands.html[Commands]
-. link:chapters/second-randomization.html[Second randomization]
-. link:chapters/styling[Styling]
+. <<chapters/generators.adoc,Generators>>
+. <<chapters/first-randomization.adoc,First randomization>>
+. <<chapters/commands.adoc,Commands>>
+. <<chapters/second-randomization.adoc,Second randomization>>
+. <<chapters/styling.adoc,Styling>>

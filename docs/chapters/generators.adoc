@@ -1,6 +1,7 @@
 = Generators
 :stylesheet: ../style.css
 :toc:
+:sectnums:
 
 == Value sets
 

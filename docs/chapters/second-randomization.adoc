@@ -1,3 +1,4 @@
 = Second randomization
 :stylesheet: ../style.css
 :toc:
+:sectnums:
