@@ -451,18 +451,6 @@ div#container {
   word-wrap: break-word;
 }
 
-div#syntax::before {
-  content: "Syntax:";
-  font-family: serif;
-  font-style: italic;
-}
-
-div#example::before {
-  content: "Example output:";
-  font-family: serif;
-  font-style: italic;
-}
-
 </style>
 </head>
 <body class="article">
@@ -471,30 +459,30 @@ div#example::before {
 <div id="toc" class="toc">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#Value_Sets">1. Value Sets</a></li>
-<li><a href="#Defining_Value_Sets">2. Defining Value Sets</a></li>
-<li><a href="#Picking_From_Value_Sets">3. Picking From Value Sets</a></li>
-<li><a href="#Evaluating_Value_Sets">4. Evaluating Value Sets</a></li>
-<li><a href="#Generating_Numerical_Values">5. Generating Numerical Values</a></li>
-<li><a href="#Uniqueness_Constraints">6. Uniqueness Constraints</a></li>
+<li><a href="#_value_sets">1. Value Sets</a></li>
+<li><a href="#_defining_value_sets">2. Defining Value Sets</a></li>
+<li><a href="#_picking_from_value_sets">3. Picking From Value Sets</a></li>
+<li><a href="#_evaluating_value_sets">4. Evaluating Value Sets</a></li>
+<li><a href="#_generating_numerical_values">5. Generating Numerical Values</a></li>
+<li><a href="#_uniqueness_constraints">6. Uniqueness Constraints</a></li>
 </ul>
 </div>
 </div>
 <div id="content">
 <div class="sect1">
-<h2 id="Value_Sets">1. Value Sets</h2>
+<h2 id="_value_sets"><a class="anchor" href="#_value_sets"></a>1. Value Sets</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Generators sets allow you to define text elements without automatically displaying them.</p>
 </div>
 <div class="paragraph">
-<p>If you define inline elements, like e.g.  <code>[[alligator::bear:cat]</code>, you often have to copy, move, or delete in order to achieve what you want.
+<p>If you define inline elements, like e.g.  <code>[[alligator::bear::cat]</code>, you often have to copy, move, or delete in order to achieve what you want.
 If you utilize generators sets, you have more control over where you want them the text elements to appear in the first place.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="Defining_Value_Sets">2. Defining Value Sets</h2>
+<h2 id="_defining_value_sets"><a class="anchor" href="#_defining_value_sets"></a>2. Defining Value Sets</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Value sets start with a <strong>dollar sign</strong>, which is followed by the value set name.
@@ -506,8 +494,7 @@ Then follows the list of <strong>values</strong>, delimited by the delimiter.</p
   <head lang='en'>
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width'>
-    <title>Generators example 1</title>
-    <link rel="stylesheet" type="text/css" href="../style.css"/>
+    <title>Generators example 10</title>
     <script src='../anki-persistence.js'></script>
     <script src='../options.js'></script>
   </head>
@@ -519,7 +506,7 @@ Then follows the list of <strong>values</strong>, delimited by the delimiter.</p
       </div>
 
       <div id="example">
-        [[$v1|alligator|bear|cat]] [[$vs2,alligator,bear,cat]]
+        {{$v1|alligator|bear|cat}} {{$vs2,alligator,bear,cat}}
       </div>
     </div>
 
@@ -531,26 +518,35 @@ Then follows the list of <strong>values</strong>, delimited by the delimiter.</p
 The second value set is named <code>vs2</code>, and uses the <code>,</code> character as its delimiter.
 Both sets have the values "alligator", "bear", and "cat".</p>
 </div>
+<div class="paragraph">
+<p>There are two ways to interact with value sets:
+. <a href="#Picking_From_Value_Sets">Picking</a>
+. <a href="#Evaluating_Value_Sets">Evaluating</a></p>
+</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="Picking_From_Value_Sets">3. Picking From Value Sets</h2>
+<h2 id="_picking_from_value_sets"><a class="anchor" href="#_picking_from_value_sets"></a>3. Picking From Value Sets</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Syntax for picking:</p>
+<p>Picking from a value set will generate an element anywhere in the document.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>$pick(value_set[, uniqueness_constraint])</pre>
+<pre>$pick([count, ]value_set[, uniqueness_constraint])</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Defining a <code>count</code> will pick <em>count</em> elements.
+For more on <code>uniqueness_constraint</code>, refer to <a href="#Uniqueness_Constraints">Uniqueness
+Constraints</a>.</p>
 </div>
 <!doctype html>
 <html>
   <head lang='en'>
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width'>
-    <title>Generators example 1</title>
-    <link rel="stylesheet" type="text/css" href="../style.css"/>
+    <title>Generators example 20</title>
     <script src='../anki-persistence.js'></script>
     <script src='../options.js'></script>
   </head>
@@ -572,36 +568,44 @@ Both sets have the values "alligator", "bear", and "cat".</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="Evaluating_Value_Sets">4. Evaluating Value Sets</h2>
+<h2 id="_evaluating_value_sets"><a class="anchor" href="#_evaluating_value_sets"></a>4. Evaluating Value Sets</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Evaluating a value set will generate an element in the place of the original value set.</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre>$eval(value_set[, uniqueness_constraint])</pre>
+<pre>$eval([count, ]value_set[, uniqueness_constraint])</pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Defining a <code>count</code> will pick <em>count</em> elements.
+For more on <code>uniqueness_constraint</code>, refer to <a href="#Uniqueness_Constraints">Uniqueness
+Constraints</a>.</p>
+</div>
+
 </div>
 </div>
 <div class="sect1">
-<h2 id="Generating_Numerical_Values">5. Generating Numerical Values</h2>
+<h2 id="_generating_numerical_values"><a class="anchor" href="#_generating_numerical_values"></a>5. Generating Numerical Values</h2>
 <div class="sectionbody">
 
 </div>
 </div>
 <div class="sect1">
-<h2 id="Uniqueness_Constraints">6. Uniqueness Constraints</h2>
+<h2 id="_uniqueness_constraints"><a class="anchor" href="#_uniqueness_constraints"></a>6. Uniqueness Constraints</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If you don&#8217;t want to generate a single element multiple times when picking at
-random, you can also define uniqueness constraints. Uniqueness constraints
-record elements you&#8217;ve generated and will trigger a second generation, if you
-happen to generate an element twice.</p>
+<p>If you don&#8217;t want to generate a single element multiple times when picking at random, you can also define uniqueness constraints.
+Uniqueness constraints record elements you&#8217;ve generated and will trigger a second generation, if you happen to generate an element twice.</p>
 </div>
+
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-09-27 00:09:14 +0200
+Last updated 2019-09-27 01:00:18 +0200
 </div>
 </div>
 </body>
