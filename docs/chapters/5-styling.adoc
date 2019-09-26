@@ -1,8 +1,12 @@
 = Styling
 :stylesheet: ../style.css
-:toc:
+:toc: macro
 :sectnums:
 :sectanchors:
 :idprefix:
 
-link:../index.html[GO BACK HERE]
+<< link:../index.html[BACK TO TABLE OF CONTENTS]
+
+toc::[]
+
+<< link:../index.html[BACK TO TABLE OF CONTENTS]

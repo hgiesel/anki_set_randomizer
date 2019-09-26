@@ -1,13 +1,13 @@
 = Generators
 :stylesheet: ../style.css
-:toc:
+:toc: macro
 :sectnums:
 :sectanchors:
 :idprefix:
 
-*link:../index.html[GO BACK HERE]*
+<< link:../index.html[BACK TO TABLE OF CONTENTS]
 
-link:../index.html[GO BACK HERE]
+toc::[]
 
 == Value Sets
 
@@ -78,3 +78,5 @@ Uniqueness constraints record elements you've generated and will trigger a secon
 ++++
 include::examples/generators/example-50.html[]
 ++++
+
+<< link:../index.html[BACK TO TABLE OF CONTENTS]

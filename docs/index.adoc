@@ -4,8 +4,8 @@
 :idprefix:
 :sectanchors:
 
-== link:chapters/generators.html[Generators]
-== link:chapters/first-randomization.html[First randomization]
-== link:chapters/commands.html[Commands]
-== link:chapters/second-randomization.html[Second randomization]
-== link:chapters/styling.html[Styling]
+== link:chapters/1-generators.html[Generators]
+== link:chapters/2-first-randomization.html[First randomization]
+== link:chapters/3-commands.html[Commands]
+== link:chapters/4-second-randomization.html[Second randomization]
+== link:chapters/5-styling.html[Styling]

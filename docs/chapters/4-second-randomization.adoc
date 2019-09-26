@@ -1,8 +1,18 @@
 = Second randomization
 :stylesheet: ../style.css
-:toc:
+:toc: macro
 :sectnums:
 :sectanchors:
 :idprefix:
 
-link:../index.html[GO BACK HERE]
+<< link:../index.html[BACK TO TABLE OF CONTENTS]
+
+toc::[]
+
+== Second Randomization
+
+== Named Sets
+
+== Order Constraints
+
+<< link:../index.html[BACK TO TABLE OF CONTENTS]
