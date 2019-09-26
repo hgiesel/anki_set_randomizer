@@ -1,6 +1,7 @@
 = Introduction to Set Randomizer
 :stylesheet: style.css
 :sectnums:
+:sectanchors:
 
 == link:chapters/generators.html[Generators]
 == link:chapters/first-randomization.html[First randomization]
