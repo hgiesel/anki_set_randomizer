@@ -1,4 +1,0 @@
-= Styling
-:stylesheet: ../style.css
-:toc:
-:sectnums:

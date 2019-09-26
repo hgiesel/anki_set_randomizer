@@ -3,6 +3,11 @@
 :toc:
 :sectnums:
 :sectanchors:
+:idprefix:
+
+*link:../index.html[GO BACK HERE]*
+
+link:../index.html[GO BACK HERE]
 
 == Value Sets
 
@@ -26,8 +31,9 @@ The second value set is named `vs2`, and uses the `,` character as its delimiter
 Both sets have the values "alligator", "bear", and "cat".
 
 There are two ways to interact with value sets:
-. <<Picking_From_Value_Sets,Picking>>
-. <<Evaluating_Value_Sets,Evaluating>>
+
+. <<picking_from_value_sets,Picking>>
+. <<evaluating_value_sets,Evaluating>>
 
 == Picking From Value Sets
 
@@ -38,7 +44,7 @@ $pick([count, ]value_set[, uniqueness_constraint])
 ----
 
 Defining a `count` will pick _count_ elements.
-For more on `uniqueness_constraint`, refer to <<Uniqueness_Constraints,Uniqueness
+For more on `uniqueness_constraint`, refer to <<uniqueness_constraints,Uniqueness
 Constraints>>.
 
 ++++

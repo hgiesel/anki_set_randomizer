@@ -1,1 +1,1 @@
-= Live link:here[https://hgiesel.github.io/anki-set-randomizer/]
+= Live link:https://hgiesel.github.io/anki-set-randomizer[here]!
