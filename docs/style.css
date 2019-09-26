@@ -441,15 +441,3 @@ div#container {
   display: block;
   word-wrap: break-word;
 }
-
-div#syntax::before {
-  content: "Syntax:";
-  font-family: serif;
-  font-style: italic;
-}
-
-div#example::before {
-  content: "Example output:";
-  font-family: serif;
-  font-style: italic;
-}

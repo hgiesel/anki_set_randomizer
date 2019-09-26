@@ -4,6 +4,6 @@
 
 == link:chapters/generators.html[Generators]
 == link:chapters/first-randomization.html[First randomization]
-== link:chapters/commands.adoc[Commands]
-== link:chapters/second-randomization.adoc[Second randomization]
-== link:chapters/styling.adoc[Styling]
+== link:chapters/commands.html[Commands]
+== link:chapters/second-randomization.html[Second randomization]
+== link:chapters/styling.html[Styling]

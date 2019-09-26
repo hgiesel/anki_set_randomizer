@@ -2,8 +2,8 @@
 :stylesheet: ../style.css
 :toc:
 :sectnums:
+:sectanchors:
 
-[[Value_Sets]]
 == Value Sets
 
 Generators sets allow you to define text elements without automatically displaying them.
@@ -11,7 +11,6 @@ Generators sets allow you to define text elements without automatically displayi
 If you define inline elements, like e.g.  `[[alligator::bear:cat]`, you often have to copy, move, or delete in order to achieve what you want.
 If you utilize generators sets, you have more control over where you want them the text elements to appear in the first place.
 
-[[Defining_Value_Sets]]
 == Defining Value Sets
 
 Value sets start with a *dollar sign*, which is followed by the value set name.
@@ -26,7 +25,6 @@ The first value set is named `v1`, and uses the `|` character as its delimiter.
 The second value set is named `vs2`, and uses the `,` character as its delimiter.
 Both sets have the values "alligator", "bear", and "cat".
 
-[[Picking_From_Value_Sets]]
 == Picking From Value Sets
 
 Syntax for picking:
@@ -39,18 +37,15 @@ $pick(value_set[, uniqueness_constraint])
 include::examples/generators/example-20.html[]
 ++++
 
-[[Evaluating_Value_Sets]]
 == Evaluating Value Sets
 
 ----
 $eval(value_set[, uniqueness_constraint])
 ----
 
-[[Generating_Numerical_Values]]
 == Generating Numerical Values
 
 
-[[Uniqueness_Constraints]]
 == Uniqueness Constraints
 
 If you don't want to generate a single element multiple times when picking at
