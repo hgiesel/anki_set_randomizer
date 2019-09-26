@@ -14,9 +14,9 @@ If you utilize generators sets, you have more control over where you want them t
 [[Defining_Value_Sets]]
 == Defining Value Sets
 
-Value sets start with a dollar sign, which is followed by the value set name.
-After this follows a delimiter, which will be used to delimit all following values.
-Then follows the list of values.
+Value sets start with a *dollar sign*, which is followed by the value set name.
+After this follows the *delimiter*, which is used to delimit all the values of the value set.
+Then follows the list of *values*, delimited by the delimiter.
 
 ++++
 include::examples/generators/example-10.html[]
@@ -24,6 +24,7 @@ include::examples/generators/example-10.html[]
 
 The first value set is named `v1`, and uses the `|` character as its delimiter.
 The second value set is named `vs2`, and uses the `,` character as its delimiter.
+Both sets have the values "alligator", "bear", and "cat".
 
 [[Picking_From_Value_Sets]]
 == Picking From Value Sets
