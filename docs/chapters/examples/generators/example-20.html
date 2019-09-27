@@ -1,24 +1,13 @@
-<!doctype html>
-<html>
-  <head lang='en'>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width'>
-    <title>Generators example 20</title>
-    <script src='../anki-persistence.js'></script>
-    <script src='../options.js'></script>
-  </head>
+<div id="container-20">
+  <div class="syntax" style="display: block;">
+    {{$vs1|alligator|bear|cat}} {{$pick(vs1)}}
+  </div>
 
-  <body>
-    <div id="container">
-      <div id="syntax">
-        [[$vs1|alligator|bear|cat]] [[$pick(vs1)]]
-      </div>
+  <div class="example" style="display: none;">
+    [[$vs1|alligator|bear|cat]] [[$pick(vs1)]]
+  </div>
 
-      <div id="example">
-        [[$vs1|alligator|bear|cat]] [[$pick(vs1)]]
-      </div>
-    </div>
-
-    <script src='../example.js'></script>
-  </body>
-</html>
+  <div class="buttonControl">
+    <button type = "button" onclick="toggle(20)">Evaluate!</button>
+  </div>
+</div>

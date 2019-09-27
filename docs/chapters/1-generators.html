@@ -434,13 +434,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 
-div#container {
+[id^="container"] {
   background: #f4f4f4;
   border: 1px solid #ddd;
   border-left: 3px solid #f36d33;
   color: #666;
   page-break-inside: avoid;
-  font-family: "Courier", monospace;
+  font-family: "Lucida Console", Monaco, monospace;
   font-size: 15px;
   line-height: 1.6;
   margin-bottom: 1.6em;
@@ -474,6 +474,23 @@ div#container {
 <li><a href="#uniqueness_constraints">6. Uniqueness Constraints</a></li>
 </ul>
 </div>
+<script src='../anki-persistence.js'></script>
+<script src='../options.js'></script>
+<script>
+  function toggle(num) {
+    const syntax  = document.querySelector(`#container-${num} .syntax`)
+    const example = document.querySelector(`#container-${num} .example`)
+
+    if (syntax.style.display === 'none') {
+      syntax.style.display = 'block'
+        example.style.display = 'none'
+    }
+    else {
+      syntax.style.display = 'none'
+        example.style.display = 'block'
+    }
+  }
+</script>
 </div>
 </div>
 <div class="sect1">
@@ -496,37 +513,27 @@ If you utilize generators sets, you have more control over where you want them t
 After this follows the <strong>delimiter</strong>, which is used to delimit all the values of the value set.
 Then follows the list of <strong>values</strong>, delimited by the delimiter.</p>
 </div>
-<!doctype html>
-<html>
-  <head lang='en'>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width'>
-    <title>Generators example 10</title>
-    <script src='../anki-persistence.js'></script>
-    <script src='../options.js'></script>
-  </head>
+<div id="container-10">
+  <div class="syntax" style="display: block;">
+    [[$v1|alligator|bear|cat]] [[$vs2,alligator,bear,cat]]
+  </div>
 
-  <body>
-    <div id="container">
-      <div id="syntax">
-        [[$v1|alligator|bear|cat]] [[$vs2,alligator,bear,cat]]
-      </div>
+  <div class="example" style="display: none;">
+    {{$v1|alligator|bear|cat}} {{$vs2,alligator,bear,cat}}
+  </div>
 
-      <div id="example">
-        {{$v1|alligator|bear|cat}} {{$vs2,alligator,bear,cat}}
-      </div>
-    </div>
-
-    <script src='../example.js'></script>
-  </body>
-</html>
+  <div class="buttonControl">
+    <button type = "button" onclick="toggle(10)">Evaluate!</button>
+  </div>
+</div>
 <div class="paragraph">
 <p>The first value set is named <code>v1</code>, and uses the <code>|</code> character as its delimiter.
 The second value set is named <code>vs2</code>, and uses the <code>,</code> character as its delimiter.
 Both sets have the values "alligator", "bear", and "cat".</p>
 </div>
 <div class="paragraph">
-<p>There are two ways to interact with value sets:</p>
+<p>By themselves, value sets evaluate to empty sets.
+There are two ways to interact with value sets:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -556,30 +563,19 @@ Both sets have the values "alligator", "bear", and "cat".</p>
 For more on <code>uniqueness_constraint</code>, refer to <a href="#uniqueness_constraints">Uniqueness
 Constraints</a>.</p>
 </div>
-<!doctype html>
-<html>
-  <head lang='en'>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width'>
-    <title>Generators example 20</title>
-    <script src='../anki-persistence.js'></script>
-    <script src='../options.js'></script>
-  </head>
+<div id="container-20">
+  <div class="syntax" style="display: block;">
+    {{$vs1|alligator|bear|cat}} {{$pick(vs1)}}
+  </div>
 
-  <body>
-    <div id="container">
-      <div id="syntax">
-        [[$vs1|alligator|bear|cat]] [[$pick(vs1)]]
-      </div>
+  <div class="example" style="display: none;">
+    [[$vs1|alligator|bear|cat]] [[$pick(vs1)]]
+  </div>
 
-      <div id="example">
-        [[$vs1|alligator|bear|cat]] [[$pick(vs1)]]
-      </div>
-    </div>
-
-    <script src='../example.js'></script>
-  </body>
-</html>
+  <div class="buttonControl">
+    <button type = "button" onclick="toggle(20)">Evaluate!</button>
+  </div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -618,12 +614,13 @@ Uniqueness constraints record elements you&#8217;ve generated and will trigger a
 <div class="paragraph">
 <p>&lt;&lt; <a href="../index.html">BACK TO TABLE OF CONTENTS</a></p>
 </div>
+<script src='../example.js'></script>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-09-27 01:40:03 +0200
+Last updated 2019-09-27 02:46:26 +0200
 </div>
 </div>
 </body>

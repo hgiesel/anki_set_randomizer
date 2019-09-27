@@ -1,9 +1,9 @@
 $$options = [
   {
     inputSyntax: {
-      cssSelector: 'div#example',
-      openDelim: '[[',
-      closeDelim: ']]',
+      cssSelector: '.example',
+      openDelim: '{{',
+      closeDelim: '}}',
       fieldSeparator: '::',
       isRegex: false,
     },

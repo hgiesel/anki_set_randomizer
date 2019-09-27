@@ -9,6 +9,26 @@
 
 toc::[]
 
+++++
+<script src='../anki-persistence.js'></script>
+<script src='../options.js'></script>
+<script>
+  function toggle(num) {
+    const syntax  = document.querySelector(`#container-${num} .syntax`)
+    const example = document.querySelector(`#container-${num} .example`)
+
+    if (syntax.style.display === 'none') {
+      syntax.style.display = 'block'
+        example.style.display = 'none'
+    }
+    else {
+      syntax.style.display = 'none'
+        example.style.display = 'block'
+    }
+  }
+</script>
+++++
+
 == Value Sets
 
 Generators sets allow you to define text elements without automatically displaying them.
@@ -30,6 +50,7 @@ The first value set is named `v1`, and uses the `|` character as its delimiter.
 The second value set is named `vs2`, and uses the `,` character as its delimiter.
 Both sets have the values "alligator", "bear", and "cat".
 
+By themselves, value sets evaluate to empty sets.
 There are two ways to interact with value sets:
 
 . <<picking_from_value_sets,Picking>>
@@ -80,3 +101,7 @@ include::examples/generators/example-50.html[]
 ++++
 
 << link:../index.html[BACK TO TABLE OF CONTENTS]
+
+++++
+<script src='../example.js'></script>
+++++

@@ -9,7 +9,7 @@ const production = !process.env.ROLLUP_WATCH;
 export default {
   input: 'src/main-front.js',
   output: {
-    file: '../../docs/chapters/examples/example.js',
+    file: '../../docs/example.js',
     format: 'iife', // immediately-invoked function expression — suitable for <script> tags
     // sourcemap: true
   },
