@@ -54,3 +54,5 @@ export function getCorrespondingSets(
 
   return correspondingSets
 }
+
+export const star = {"star":true}

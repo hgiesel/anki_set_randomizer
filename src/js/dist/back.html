@@ -6,22 +6,29 @@
     <title>anki-set-randomizer BACK</title>
     <link rel="stylesheet" type="text/css" href="style.css"/>
     <script src='anki-persistence.js'></script>
-    <script src='back.js'></script>
   </head>
 
   <body>
     <h1>anki-set-randomizer BACK</h1>
+
+
+
     <div id="set-randomizer-container">
-      [[$n(n1)::abc::def::ghi::jkl::mno]] [test[abc]]
+      [[abc::def]] <br>
+
+      [[$gen(foo, ['abc', 'def', 'ghi'])::test]] <br>
+      [[$bar|abc|def|ghi::test]] <br>
+
+      [[$pick(foo:0)]] <br>
+      [[$eval(foo:0:0)]] <br>
+      [[$eval(bar:0:0)]] <br>
     </div>
 
-    <div>
-      I am not changed [[meh]]
-    </div>
 
-    <div id="set-randomizer-container-2">
-      Yeah! [[But::I::am]]!
-      [test[$n(n1)::abc::def::ghi::jkl::mno]] [test[abc]]
-    </div>
+
+    <br><br>
+    <script src='back.js'></script>
+    <div><a href="./front.html">Go to front!</a></div>
+    <div><a href="./options.js">Go to options!</a></div>
   </body>
 </html>

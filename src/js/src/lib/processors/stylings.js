@@ -4,7 +4,7 @@ import {
 } from './util.js'
 
 export function processRenderDirectives(originalStructure, defaultStyle, namedSets) {
-  const stylingDefinitions  = [
+  const styleDefinitions  = [
     {
       name: 'default',
       stylings: defaultStyle,
@@ -26,7 +26,7 @@ export function processRenderDirectives(originalStructure, defaultStyle, namedSe
     },
   ]
 
-  const stylingDefinitionRegex = new RegExp(
+  const styleRegex = new RegExp(
     `^\\$(?:style|s)\\(` +
     `(${namePattern})` +
     `\\s*,\\s` +
@@ -38,7 +38,7 @@ export function processRenderDirectives(originalStructure, defaultStyle, namedSe
 
   originalStructure
     .flat()
-    .map(v => [...v, v[2].match(stylingDefinitionRegex)])
+    .map(v => [...v, v[2].match(styleRegex)])
     .filter(v => v[3])
     .forEach(v => {
 
@@ -48,15 +48,15 @@ export function processRenderDirectives(originalStructure, defaultStyle, namedSe
         stylingDirectives,
       ] = v[3]
 
-      let sd = stylingDefinitions.find(v => v.name === name)
+      let sd = styleDefinitions.find(v => v.name === name)
 
       if (!sd) {
-        const idx = stylingDefinitions.push({
+        const idx = styleDefinitions.push({
           name: name,
           stylings: {}
         })
 
-        sd = stylingDefinitions[idx - 1]
+        sd = styleDefinitions[idx - 1]
       }
 
       stylingDirectives
@@ -81,9 +81,19 @@ export function processRenderDirectives(originalStructure, defaultStyle, namedSe
           }
 
           else if (v.startsWith('clrs:') || v.startsWith('colors:')) {
-            const colors = v.match(afterColonRegex)[1].split(':')
-            sd.stylings['colors'] = colors
+            sd.stylings['colors'] = v.match(afterColonRegex)[1].split(':')
           }
+          else if (v.startsWith('clss:') || v.startsWith('classes:')) {
+            sd.stylings['classes'] = v.match(afterColonRegex)[1].split(':')
+          }
+
+          else if (v.startsWith('rclrs:') || v.startsWith('ruleColors:')) {
+            sd.stylings['ruleColors'] = v.match(afterColonRegex)[1].split(':')
+          }
+          else if (v.startsWith('rclss:') || v.startsWith('ruleClasses:')) {
+            sd.stylings['ruleClasses'] = v.match(afterColonRegex)[1].split(':')
+          }
+
           else if (v.startsWith('ci:') || v.startsWith('collectiveIndexing:')) {
             const value = v.match(afterColonRegex)[1]
             const bool = value === 'true'
@@ -115,10 +125,23 @@ export function processRenderDirectives(originalStructure, defaultStyle, namedSe
         })
     })
 
-  const stylingAssignments = []
+  const styleApplications = []
+  const styleRules = []
 
-  const stylingAssignmentRegex = new RegExp(
+  const applyRegex = new RegExp(
     `^\\$(?:apply|app|a)\\(` +
+    `(${namePattern})` +
+    `(?:\\s*,\\s` +
+    `(?:` + // second arg
+    `(\\d+)|(n-\\d+)|((?:\\+|-)\\d+)|` + // numbered set
+    `(${namePattern})(?::(\\d+|n?-\\d+))?` + // named set arg
+    `)` +
+    `)?` +
+    `\\)$`
+  )
+
+  const ruleRegex = new RegExp(
+    `^\\$(?:rule|r)\\(` +
     `(${namePattern})` +
     `(?:\\s*,\\s` +
     `(?:` + // second arg
@@ -131,7 +154,7 @@ export function processRenderDirectives(originalStructure, defaultStyle, namedSe
 
   originalStructure
     .flat()
-    .map(v => [...v, v[2].match(stylingAssignmentRegex)])
+    .map(v => [...v, v[2].match(applyRegex)])
     .filter(v => v[3])
     .forEach(v => {
 
@@ -145,7 +168,7 @@ export function processRenderDirectives(originalStructure, defaultStyle, namedSe
         otherNamedSetPos,
       ] = v[3]
 
-      if (stylingDefinitions.find(v => v.name === stylingName)) {
+      if (styleDefinitions.find(v => v.name === stylingName)) {
         const correspondingSets = getCorrespondingSets(
           originalStructure,
           namedSets,
@@ -158,9 +181,9 @@ export function processRenderDirectives(originalStructure, defaultStyle, namedSe
         )
 
         correspondingSets
-          .forEach(set => stylingAssignments[set] = stylingName)
+          .forEach(set => styleApplications[set] = stylingName)
       }
     })
 
-  return [stylingDefinitions, stylingAssignments]
+  return [styleDefinitions, styleApplications, styleRules]
 }

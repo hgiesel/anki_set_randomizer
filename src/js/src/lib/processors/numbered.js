@@ -1,5 +1,6 @@
 import {
   namePattern,
+  star,
 } from './util.js'
 
 function generateRandomValue(min, max, extra, isReal) {
@@ -12,98 +13,214 @@ function generateRandomValue(min, max, extra, isReal) {
 
 // also processes generator patterns
 export function processNumberedSets(originalStructure, preGeneratedValues) {
-  const result          = []
-  const generatorValues = []
 
-  const positionSymbol  = ':'
-  const positionPattern = `${positionSymbol}(n(?:-\\d+)?|-\\d|\\d+)`
+  const [
+    evaluators,
+  ] = evalEvaluations(originalStructure)
 
+  const [
+    valueSets,
+    valueSetResolutions,
+    uniquenessConstraints,
+  ] = evalValueSets(originalStructure, evaluators)
+
+  const [
+    result,
+    generatedValues,
+  ] = evalPicks(originalStructure, valueSets, valueSetResolutions, uniquenessConstraints, preGeneratedValues)
+
+  return [result, generatedValues, valueSets]
+}
+
+const sharedRegexes = {
+  positionPattern:  `:(?:(n(?:-\\d+)?|-\\d|\\d+)|(\\*))`,
+}
+
+function evalEvaluations(originalStructure) {
   const evaluators = []
-  const valueSets = []
 
   const evaluatorPattern = new RegExp(
     `^\\$(?:evaluate|eval|e)\\(` +
-    `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)` +
-    `(?:\\s*,\\s*(${namePattern}))?\\)` // uniqueness constraint
+    `(?:\\s*(\\d+)\\s*,\\s*)?` + // count
+    `(?:(${namePattern})(?:(?:${sharedRegexes.positionPattern})?${sharedRegexes.positionPattern})?)` +
+    `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
   )
 
-  // get value sets
+  for (const elem of originalStructure.flat()) {
+    let match
+
+    // evaluations
+    if (match = elem[2].match(evaluatorPattern)) {
+
+      const count = match[1]
+      const valueSetName = match[2]
+
+      const maybeNumberSetIndex = Number(match[3])
+      const maybeNumberValueIndex = Number(match[5])
+
+      const uniquenessConstraint = match[7]
+
+      evaluators.push([
+        valueSetName,
+        !Number.isNaN(maybeNumberSetIndex) ? maybeNumberSetIndex : star,
+        !Number.isNaN(maybeNumberValueIndex) ? maybeNumberValueIndex : star,
+        count != undefined ? Number(count) : 1,
+        uniquenessConstraint,
+      ])
+    }
+  }
+
+  return [
+    evaluators,
+  ]
+}
+
+function evalValueSets(originalStructure, evaluators) {
+  const valueSets = {}
+  const valueSetResolutions = []
+  const uniquenessConstraints = []
+
   const valueSetPattern = new RegExp(
-    `^\\$(?:generate|gen|g)\\(` +
-    `(${namePattern})\\s*,\\s*` +
-    `\\[((?:.|\\n|\\r)*)\\]` +
-    `\\)`, 'm')
-
-  // get value sets
-  const valueSetShortcutPattern = new RegExp(
-    `^\\$(${namePattern})(?!\\()(\\W)((?:.|\\n|\\r)*)`
+    `^\\$(\\$)?(${namePattern})(?!\\()(\\W)((?:.|\\n|\\r)*)`
   )
 
+  const valueSetTokens = '(?:\'((?:.|\\n|\\r)*?[^\\\\])\'|"((?:.|\\n|\\r)*?[^\\\\])")'
+
+  // modifies evaluators !!!!!
+  evaluators.reverse()
+
+  // get value sets
   const singleQuotePattern = new RegExp(`\\\\'`, 'g')
   const doubleQuotePattern = new RegExp(`\\\\"`, 'g')
   const newLinePattern = new RegExp(`\\\\n`, 'g')
   const catchPattern = new RegExp(`\\\\.`, 'g')
 
-  const valueSetTokens = '(?:\'((?:.|\\n|\\r)*?[^\\\\])\'|"((?:.|\\n|\\r)*?[^\\\\])")'
-
   for (const elem of originalStructure.flat()) {
     let match
 
+    // value set shortcut
     if (match = elem[2].match(valueSetPattern)) {
-      const elements = []
+      const valueSetName     = match[2]
+      const isSelfEvaluating = match[1] === '$' ? true : false
 
-      const valueSetTokensRegex = new RegExp(valueSetTokens, 'gm')
-      let contentMatch = valueSetTokensRegex.exec(elem[2])
-
-      while (contentMatch) {
-
-        if (contentMatch[1]) {
-          elements.push(contentMatch[1]
-            .replace(singleQuotePattern, "'")
-            .replace(newLinePattern, '<br/>')
-            .replace(catchPattern, (x) => x.slice(1))
-          )
-        }
-        else if (contentMatch[2]) {
-          elements.push(contentMatch[2]
-            .replace(doubleQuotePattern, '"')
-            .replace(newLinePattern, '<br/>')
-            .replace(catchPattern, (x) => x.slice(1))
-          )
-        }
-
-        contentMatch = valueSetTokensRegex.exec(elem[2])
-      }
-
-      valueSets.push({
-        name: match[1],
-        elements: elements,
-        idx: 0,
-        set: elem[0],
-        pos: elem[1],
-      })
-    }
-
-    else if (match = elem[2].match(valueSetShortcutPattern)) {
-      valueSets.push({
-        name: match[1],
-        elements: match[3]
-          .replace(new RegExp(`\\\\${match[2]}`, 'g'))
+      const values = match[4]
+        .split(new RegExp(`(?<!\\\\)\\${match[3]}`, 'g'))
+        .map(v => v
+          .replace(new RegExp(`\\${match[3]}`, 'g'), match[3])
           .replace(newLinePattern, '<br/>')
           .replace(catchPattern, (x) => x.slice(1))
-          .split(match[2]),
-        idx: 0,
+        )
+
+      const valueSetIndex = (valueSets[valueSetName] || (valueSets[valueSetName] = [])).push({
+        name: valueSetName,
+        idx: valueSets[valueSetName] ? valueSets[valueSetName].length : 0,
+        values: values,
         set: elem[0],
         pos: elem[1],
-      })
-    }
+      }) - 1
 
-    else if (match = elem[2].match(evaluatorPattern)) {
-      if (match[1]) {
-        evaluators.push([match[1], match[2] || "*", match[3] || '*'])
+      const foundEvaluator = evaluators.find(v =>
+        ((v[0] === valueSetName && v[1] === valueSetIndex) ||
+          (v[0] === valueSetName && v[1] === star) ||
+          (v[0] === star && v[1] === valueSetIndex) ||
+          (v[0] === star && v[1] === star) && (v[2] === star || v[2] < values.length))
+      )
+
+      const resolvedValues = []
+      let wasStar
+
+      if (foundEvaluator) {
+        wasStar = foundEvaluator[2] === star ? true : false
+
+        for (let i = 0; i < foundEvaluator[3]; i++) {
+
+          let theValue = `%%${valueSetName}%%${valueSetIndex}%%${
+            foundEvaluator[2] !== star ? foundEvaluator[2] : Math.floor(Math.random() * values.length)
+          }%%`
+
+          const uniquenessConstraintName = foundEvaluator[4]
+
+          if (uniquenessConstraintName) {
+
+            if (!uniquenessConstraints.find(v => v.name === uniquenessConstraintName)) {
+              uniquenessConstraints.push({
+                name: uniquenessConstraintName,
+                values: []
+              })
+            }
+
+            let countIdx = 0
+            const countIdxMax = 1000
+
+            const uc = uniquenessConstraints
+              .find(v => v.name === uniquenessConstraintName)
+              .values
+
+            while (uc.includes(theValue) && countIdx < countIdxMax) {
+
+              theValue = `%%${valueSetName}%%${valueSetIndex}%%${
+                Math.floor(Math.random() * values.length)
+              }%%`
+
+              if (foundEvaluator[2] !== star) {
+                countIdx = countIdxMax
+              }
+              else {
+                countIdx++
+              }
+            }
+
+            if (countIdx === countIdxMax) {
+              theValue = null
+            }
+            else {
+              uniquenessConstraints
+                .find(v => v.name === uniquenessConstraintName)
+                .values
+                .push(theValue)
+            }
+          }
+
+          if (theValue !== null) {
+            resolvedValues.push(theValue)
+          }
+        }
+      }
+
+      else if (isSelfEvaluating) {
+        // even though technically it is star, the result is still predictable
+        wasStar = false
+
+        resolvedValues.push(...Array.from(
+          valueSets[valueSetName][valueSetIndex].values.keys(),
+          idx => `%%${valueSetName}%%${valueSetIndex}%%${idx}`,
+        ))
+      }
+
+      if (resolvedValues.length > 0) {
+        valueSetResolutions.push([
+          elem[0],
+          elem[1],
+          resolvedValues,
+          wasStar,
+        ])
       }
     }
   }
+
+  console.log(valueSetResolutions)
+
+  return [
+    valueSets,
+    valueSetResolutions,
+    uniquenessConstraints,
+  ]
+}
+
+function evalPicks(originalStructure, valueSets, valueSetResolutions, uniquenessConstraints, preGeneratedValues) {
+
+  const result = []
+  const generatedValues = []
 
   const lastMinutePattern = new RegExp(`^\\$(n|name)!\\(\\)$`)
 
@@ -112,16 +229,15 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
   const realIntGenerator =
     `(${realOrIntPattern}):(${realOrIntPattern})(?::(${intPattern}))?`
 
-  const generatorPattern = new RegExp(
+  const pickPattern = new RegExp(
     `^\\$(?:pick|p)\\(` +
+    `(?:\\s*(\\d+)\\s*,\\s*)?` + // count
     `(?:${realIntGenerator}|` +
-    `(${namePattern})(?:${positionPattern})?)` +
-    `(?:\\s*,\\s*(${namePattern}))?\\)` // uniqueness constraint
+    `(?:(${namePattern})(?:(?:${sharedRegexes.positionPattern})?${sharedRegexes.positionPattern})?)?)` +
+    `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
   )
 
   const contentElementPattern = new RegExp('^[^\\$]')
-
-  const uniquenessSets = []
 
   for (const [i, set] of originalStructure.entries()) {
 
@@ -130,63 +246,87 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
 
     for (const elem of set) {
 
-      let patternResult
+      let match
+      const setIndex  = elem[0]
+      const elemIndex = elem[1]
 
       if (lastMinutePattern.test(elem[2])) {
         lastMinute = true
       }
 
-      else if (patternResult = elem[2].match(generatorPattern)) {
+      else if (match = valueSetResolutions.find(v => v[0] === setIndex && v[1] === elemIndex)) {
 
-        const uniquenessConstraintName = patternResult[6]
+        let theElements
+        let maybePregeneratedValues
+        if (maybePregeneratedValues = preGeneratedValues
+          .find(v =>
+            v[0] === setIndex &&
+            v[1] === elemIndex)) {
+          theElements = maybePregeneratedValue[2]
+        }
+        else {
+          theElements = match
+        }
 
-        const minValue   = patternResult[1]
-        const maxValue   = patternResult[2]
-        const extraValue = patternResult[3]
+        contentElements.push(...match[2].map(v => [match[0], match[1], v]))
 
-        const generatorSetName  = patternResult[4]
-        const generatorSetIndex = Number(patternResult[5])
+        if (match[3]) {
+          generatedValues.push(...theElements)
+        }
+      }
+
+      else if (match = elem[2].match(pickPattern)) {
+
+        const count =
+          match[1] !== undefined
+          ? Number(match[1]) : 1
+
+        const uniquenessConstraintName = match[9]
+
+        const minValue   = match[2]
+        const maxValue   = match[3]
+        const extraValue = match[4]
+
+        const valueSetName       = match[5]
+        const maybeValueSetSetIndex   = Number(match[6])
+        const maybeValueSetValueIndex = Number(match[8])
+
+        const valueSetSetIndex = !Number.isNaN(maybeValueSetSetIndex)
+        ? maybeValueSetSetIndex
+        : match[7] ? star : 0
+
+        const valueSetValueIndex = !Number.isNaN(maybeValueSetValueIndex)
+        ? maybeValueSetValueIndex
+        : star
 
         if (
           uniquenessConstraintName &&
-          !uniquenessSets.find(v => v.name === uniquenessConstraintName)
+          !uniquenessConstraints.find(v => v.name === uniquenessConstraintName)
         ) {
-          uniquenessSets.push({
+          uniquenessConstraints.push({
             name: uniquenessConstraintName,
             values: []
           })
         }
 
-        const setIndex  = elem[0]
-        const elemIndex = elem[1]
-
-        let resultValue
+        const resultValues = []
 
         let maybePregeneratedValue
         if (maybePregeneratedValue = preGeneratedValues
-          .find(v => v[0] === setIndex && v[1] === elemIndex)) {
-          resultValue = maybePregeneratedValue[2]
+          .find(v =>
+            v[0] === setIndex &&
+            v[1] === elemIndex)) {
+          resultValues = maybePregeneratedValue[2]
         }
 
-        else if (minValue && maxValue) {
-          // generate a random integer or real number
-          const isReal = minValue.includes('.') || maxValue.includes('.')
+        else {
 
-          resultValue = generateRandomValue(
-            Number(minValue),
-            Number(maxValue),
-            Number(extraValue),
-            isReal,
-          )
+          for (let i = 0; i < count; i++) {
+            let resultValue
 
-          if (uniquenessConstraintName) {
-            let countIdx = 0
-            const countIdxMax = 1000
-
-            while (uniquenessSets
-              .find(v => v.name === uniquenessConstraintName)
-              .values.includes(resultValue)
-              && countIdx < countIdxMax) {
+            if (minValue && maxValue /* number pick */) {
+              // generate a random integer or real number
+              const isReal = minValue.includes('.') || maxValue.includes('.')
 
               resultValue = generateRandomValue(
                 Number(minValue),
@@ -195,96 +335,95 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
                 isReal,
               )
 
-              countIdx++
-            }
+              if (uniquenessConstraintName) {
+                let countIdx = 0
+                const countIdxMax = 1000
 
-            if (countIdx == countIdxMax) {
-              resultValue = null
-            }
-          }
-        }
+                while (uniquenessConstraints
+                  .find(v => v.name === uniquenessConstraintName)
+                  .values.includes(resultValue)
+                  && countIdx < countIdxMax) {
 
-        else {
-          // generator set name
+                  resultValue = generateRandomValue(
+                    Number(minValue),
+                    Number(maxValue),
+                    Number(extraValue),
+                    isReal,
+                  )
 
-          const foundGeneratorSet = generatorSets
-            .find(v => v.name === generatorSetName)
+                  countIdx++
+                }
 
-          if (foundGeneratorSet) {
-
-            resultValue = typeof generatorSetIndex !== 'number' || Number.isNaN(generatorSetIndex)
-              ? foundGeneratorSet.elements[Math.floor(Math.random() * foundGeneratorSet.elements.length)]
-              : generatorSetIndex >= 0
-                ? foundGeneratorSet.elements[
-                  foundGeneratorSet.elements.length <= generatorSetIndex
-                    ? null // foundGeneratorSet.elements.length - 1
-                    : generatorSetIndex
-                ]
-                : foundGeneratorSet.elements[
-                  foundGeneratorSet.elements.length + generatorSetIndex < 0
-                    ? null // 0
-                    : foundGeneratorSet.elements.length + generatorSetIndex
-                ]
-
-            if (uniquenessConstraintName) {
-              let countIdx = 0
-              const countIdxMax = 1000
-
-              while (uniquenessSets
-                .find(v => v.name === uniquenessConstraintName)
-                .values.includes(resultValue)
-                && countIdx < countIdxMax) {
-
-                const idx   = Math.floor(Math.random() * foundGeneratorSet.elements.length)
-                resultValue = foundGeneratorSet.elements[idx]
-
-                countIdx++
-              }
-
-              if (countIdx == countIdxMax) {
-                resultValue = null
+                if (countIdx == countIdxMax) {
+                  resultValue = null
+                }
               }
             }
+
+            else /* value set pick */ {
+
+              const foundValueSet = valueSets[
+                valueSetName === star
+                ? Object.keys(valueSets)[Math.floor(Math.random() * valueSets.length)]
+                : valueSetName
+              ]
+
+              const vidx = valueSetSetIndex === star
+                ? Math.floor(Math.random() * valueValueSet.length)
+                : valueSetSetIndex
+
+              const foundValueSubSet = foundValueSet && foundValueSet.length > 0
+                ? foundValueSet[vidx]
+                : null
+
+              if (foundValueSubSet) {
+                if (valueSetValueIndex === star) {
+                  const randomIndex = Math.floor(Math.random() * foundValueSubSet.values.length)
+                  resultValue = `%%${foundValueSubSet.name}%%${vidx}%%${randomIndex}%%`
+                }
+                else {
+                  resultValue = `%%${foundValueSubSet.name}%%${vidx}%%${valueSetValueIndex}%%`
+                }
+              }
+
+              if (resultValue && uniquenessConstraintName) {
+                let countIdx = 0
+                const countIdxMax = 1000
+
+                while (uniquenessConstraints
+                  .find(v => v.name === uniquenessConstraintName)
+                  .values.includes(resultValue)
+                  && countIdx < countIdxMax) {
+
+                  const idx   = Math.floor(Math.random() * foundValueSubSet.values.length)
+                  resultValue = foundValueSubSet.values[idx]
+
+                  countIdx++
+                }
+
+                if (countIdx == countIdxMax) {
+                  resultValue = null
+                }
+              }
+            }
+
+            if (resultValue) {
+              if (uniquenessConstraintName) {
+                uniquenessConstraints
+                  .find(v => v.name === uniquenessConstraintName)
+                  .values
+                  .push(resultValue)
+              }
+
+              resultValues.push(resultValue)
+            }
           }
-        }
-        // else -> no element can be generated
-        // get resultValue2
 
-        if (resultValue) {
-          const resultValue2 = [setIndex, elemIndex, resultValue]
-
-          if (uniquenessConstraintName) {
-            uniquenessSets
-              .find(v => v.name === uniquenessConstraintName)
-              .values.push(resultValue)
+          if (valueSetSetIndex === star || valueSetValueIndex === star) {
+            generatedValues.push([setIndex, elemIndex, resultValues])
           }
 
-          generatorValues.push(resultValue2)
-          contentElements.push(resultValue2)
-        }
-      }
-
-      else if (valueSetPattern.test(elem[2]) || valueSetShortcutPattern.test(elem[2])) {
-        const revEvaluators = evaluators.reverse()
-        console.log( revEvaluators )
-
-        const vs = valueSets.find(e => e.set === elem[0] && e.pos === elem[1])
-
-        if (vs) {
-          const theEval = revEvaluators
-            .find(ev => ev[0] === vs.name && (ev[1] === vs.idx || ev[1] === '*'))
-          console.log(vs)
-
-          if (theEval) {
-
-            const resultValue = [elem[0], elem[1], vs.elements[theEval === '*'
-              ? Math.floor(Math.random() * vs.elements.length)
-              : theEval[2]
-            ]]
-
-            generatorValues.push(resultValue)
-            contentElements.push(resultValue)
-          }
+          contentElements.push(...resultValues.map(v => [setIndex, elemIndex, v]))
         }
       }
 
@@ -300,6 +439,8 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
     })
   }
 
-  return [result, generatorValues]
+  return [
+    result,
+    generatedValues,
+  ]
 }
-
