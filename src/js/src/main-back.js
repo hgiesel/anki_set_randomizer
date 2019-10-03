@@ -1,5 +1,6 @@
 import {
   getData,
+  createWarning,
 } from './save.js'
 
 import {
@@ -12,4 +13,7 @@ if (window.Persistence && Persistence.isAvailable()) {
   for (const compilation of srData) {
     main(false, ...compilation)
   }
+}
+else {
+  createWarning()
 }

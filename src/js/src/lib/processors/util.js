@@ -1,5 +1,19 @@
-export const namePattern = '[a-zA-Z_]\\w*'
+export const namePattern     = '[a-zA-Z_][a-zA-Z0-9_\\-]*'
+export const positionPattern = `:(?:(n(?:-\\d+)?|-\\d|\\d+)|(\\*))`
 
+export const star = {"star":true}
+
+export function partitionList(list, spacing) {
+    const output = []
+
+    for (let i = 0; i < list.length; i += spacing) {
+        output[output.length] = list.slice(i, i + spacing)
+    }
+
+    return output
+}
+
+// evaluates named set args in $n(), $o(), or $a()
 export function getCorrespondingSets(
   originalStructure,
   namedSets,
@@ -54,5 +68,3 @@ export function getCorrespondingSets(
 
   return correspondingSets
 }
-
-export const star = {"star":true}

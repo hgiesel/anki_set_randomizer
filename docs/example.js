@@ -8,6 +8,84 @@
     Persistence.setItem(dataName, theSaveData);
   }
 
+  function createWarning() {
+    const warningDiv = document.createElement('div');
+    warningDiv.innerText = 'Anki-Set-Randomizer: Anki-Persistence not found!';
+    warningDiv.style.cssText = 'width: 100%; height: 100%; background-color: white; color: red;';
+    document.body.appendChild(warningDiv);
+  }
+
+  const namePattern     = '[a-zA-Z_][a-zA-Z0-9_\\-]*';
+  const positionPattern = `:(?:(n(?:-\\d+)?|-\\d|\\d+)|(\\*))`;
+
+  const star = {"star":true};
+
+  function partitionList(list, spacing) {
+      const output = [];
+
+      for (let i = 0; i < list.length; i += spacing) {
+          output[output.length] = list.slice(i, i + spacing);
+      }
+
+      return output
+  }
+
+  // evaluates named set args in $n(), $o(), or $a()
+  function getCorrespondingSets(
+    originalStructure,
+    namedSets,
+    absolutePos,
+    absolutePosFromEnd,
+    currentPos,
+    relativePos,
+    otherNamedSet,
+    otherNamedSetPos,
+  ) {
+    let correspondingSets;
+
+    if (absolutePos) {
+      correspondingSets = [Number(absolutePos)];
+    }
+    else if (absolutePosFromEnd) {
+      const offset = Number(absolutePosFromEnd.slice(1));
+      correspondingSets = [originalStructure.length + offset - 1];
+    }
+    else if (relativePos) {
+      const idx = currentPos + Number(relativePos);
+
+      correspondingSets = originalStructure[idx]
+        ? [idx]
+        : [];
+    }
+    else if (otherNamedSet) {
+      const foundSets = namedSets
+        .find(v => v.name === otherNamedSet);
+
+      const finalSets = foundSets
+        ? foundSets.sets
+        : [];
+
+      if (foundSets && otherNamedSetPos) {
+        const idx = Number(otherNamedSetPos) >= 0
+          ? Number(otherNamedSetPos)
+          : originalStructure.length + Number(otherNamedSetPos) - 1;
+
+        correspondingSets = finalSets[idx] >= 0
+          ? [finalSets[idx]]
+          : [];
+
+      }
+      else {
+        correspondingSets = finalSets;
+      }
+    }
+    else /* self-referential */ {
+      correspondingSets = [currentPos];
+    }
+
+    return correspondingSets
+  }
+
   function escapeString(str) {
     return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
   }
@@ -131,31 +209,119 @@
       }
     };
 
-    const stylingsAccessor = function(stylingDefinitions, randomIndices) {
+    const valuePicker = function(valueSets, styleRules) {
 
-      const defaultStyle = stylingDefinitions.find(v => v.name === 'default').stylings;
+      const valueRegex = new RegExp('%%(.+)%%(\\d+)%%(\\d+)%%');
 
-      stylingDefinitions
+      const pickStyle = function(elements) {
+
+        for (let i = elements.length - 1; i >= 0 ;i--) {
+
+          let m;
+          if (m = elements[i].match(valueRegex)) {
+            const valueSetName = m[1];
+            const valueSubSet  = Number(m[2]);
+            const valueIndex   = Number(m[3]);
+
+            const theValue = styleRules.find(v =>
+              (v[1] == star || v[1] === valueSetName) &&
+              (v[2] == star || v[2] === valueSubSet) &&
+              (v[3] == star || v[3] === valueIndex)
+            );
+
+            if (theValue !== undefined) {
+              return theValue[0]
+            }
+
+          }
+        }
+
+        return null
+      };
+
+      const pickValue = function(name, colorRules, classRules) {
+
+        const m = name.match(valueRegex);
+
+        if (!m) {
+          return name
+        }
+
+        const valueSetName = m[1];
+        const valueSubSet  = Number(m[2]);
+        const valueIndex   = Number(m[3]);
+
+        let theValue;
+        try {
+          theValue = valueSets[valueSetName][valueSubSet].values[valueIndex];
+          if (theValue === undefined) {
+            throw 'error'
+          }
+        }
+        catch {
+          return null
+        }
+
+        const theColor = colorRules ? colorRules.find(v =>
+          (v[1] == star || v[1] === valueSetName) &&
+          (v[2] == star || v[2] === valueSubSet) &&
+          (v[3] == star || v[3] === valueIndex)) : null;
+
+        const theClass = classRules ? classRules.find(v =>
+          (v[1] == star || v[1] === valueSetName) &&
+          (v[2] == star || v[2] === valueSubSet) &&
+          (v[3] == star || v[3] === valueIndex)) : null;
+
+        const theColorCss = theColor ? ` style="color: ${theColor[0]}"` : '';
+        const theClassCss = theClass ? ` class="${theClass[0]}"` : '';
+
+        const result = `<span${theColorCss}${theClassCss}>${theValue}</span>`;
+
+        return result
+      };
+
+      return {
+        pickStyle: pickStyle,
+        pickValue: pickValue,
+      }
+    };
+
+    const stylingsAccessor = function(styleDefinitions, randomIndices) {
+
+      const defaultStyle = styleDefinitions.find(v => v.name === 'default').stylings;
+
+      styleDefinitions
         .forEach(def => {
           def.stylings.randomIndices = randomIndices[def.name] || [];
           def.stylings.nextIndex = 0;
         });
 
-      const propAccessor = function(styleName, theDefaultStyle=defaultStyle) {
+      const propAccessor = function(styleName, ruleStyleName=null, theDefaultStyle=defaultStyle) {
 
         const theStyle = styleName
-          ? stylingDefinitions.find(v => v.name === styleName).stylings
+          ? styleDefinitions.find(v => v.name === styleName).stylings
+          : theDefaultStyle;
+
+        const theRuleStyle = ruleStyleName
+          ? styleDefinitions.find(v => v.name === ruleStyleName).stylings
           : theDefaultStyle;
 
         const getProp = function(propName, propName2) {
 
-          return propName2 === undefined
-            ? theStyle[propName] !== undefined
-              ? theStyle[propName]
-              : theDefaultStyle[propName]
-            : theStyle[propName] === undefined || theStyle[propName][propName2] === undefined
-              ? theDefaultStyle[propName][propName2]
-              : theStyle[propName][propName2]
+          const result = propName2 === undefined
+            ? theRuleStyle[propName] !== undefined
+              ? theRuleStyle[propName]
+              : theStyle[propName] !== undefined
+                ? theStyle[propName]
+                : theDefaultStyle[propName]
+
+            : theRuleStyle[propName] !== undefined && theRuleStyle[propName][propName2] !== undefined
+              ? theRuleStyle[propName][propName2]
+              : theStyle[propName] === undefined || theStyle[propName][propName2] === undefined
+                ? theStyle[propName][propName2]
+                : theDefaultStyle[propName][propName2];
+
+          return result
         };
 
         let currentIndex;
@@ -209,7 +375,7 @@
       const exportIndices = function() {
         const result = {};
 
-        stylingDefinitions
+        styleDefinitions
           .forEach(def => {
             result[def.name] = def.stylings.randomIndices;
           });
@@ -224,16 +390,30 @@
       }
     };
 
-    const renderSets = function(reordering, stylingDefinitions, stylingAssignments, randomIndices, numberedSets, theSelector=inputSyntax.cssSelector) {
+    const renderSets = function(
+      reordering,
+      styleDefinitions,
+      styleAssignments,
+      styleRules,
+      randomIndices,
+      valueSets,
+      numberedSets,
+      theSelector=inputSyntax.cssSelector
+    ) {
 
-      const sa = stylingsAccessor(stylingDefinitions, randomIndices);
+      const sa = stylingsAccessor(styleDefinitions, randomIndices);
+      const vp = valuePicker(valueSets, styleRules);
+
       const stylizedResults = Array(reordering.length);
 
       for (const [i, set] of reordering.entries()) {
 
         const actualValues = [];
-        const styleName = stylingAssignments[i];
-        const pa = sa.propAccessor(styleName);
+        const styleName = styleAssignments[i];
+        const pa = sa.propAccessor(styleName, vp.pickStyle(set
+          .rendering
+          .map(v => v[2])
+        ));
 
         if (pa.getProp('display') === 'sort') {
           set.rendering.sort();
@@ -256,11 +436,17 @@
               : '';
 
             const style = `style="padding: 0px ${pa.getProp('fieldPadding')}px;${colorChoice}${blockDisplay}"`;
-            const theValue = pa.getProp('display') === 'block'
-              ? `<record ${className} ${style}><div>${treatNewlines(element[2])}</div></record>`
-              : `<record ${className} ${style}>${element[2]}</record>`;
 
-            actualValues.push(theValue);
+            const pickedValue = vp.pickValue(element[2], pa.getProp('colors', 'rules'), pa.getProp('classes', 'rules'));
+
+            if (pickedValue) {
+
+              const theValue = pa.getProp('display') === 'block'
+                ? `<record ${className} ${style}><div>${treatNewlines(element[2])}</div></record>`
+                : `<record ${className} ${style}>${pickedValue}</record>`;
+
+              actualValues.push(theValue);
+            }
           }
         }
 
@@ -680,71 +866,16 @@
     rotate(theElems, -fromPosition);
   }
 
-  const namePattern = '[a-zA-Z_]\\w*';
-
-  function getCorrespondingSets(
-    originalStructure,
-    namedSets,
-    absolutePos,
-    absolutePosFromEnd,
-    currentPos,
-    relativePos,
-    otherNamedSet,
-    otherNamedSetPos,
-  ) {
-    let correspondingSets;
-
-    if (absolutePos) {
-      correspondingSets = [Number(absolutePos)];
-    }
-    else if (absolutePosFromEnd) {
-      const offset = Number(absolutePosFromEnd.slice(1));
-      correspondingSets = [originalStructure.length + offset - 1];
-    }
-    else if (relativePos) {
-      const idx = currentPos + Number(relativePos);
-
-      correspondingSets = originalStructure[idx]
-        ? [idx]
-        : [];
-    }
-    else if (otherNamedSet) {
-      const foundSets = namedSets
-        .find(v => v.name === otherNamedSet);
-
-      const finalSets = foundSets
-        ? foundSets.sets
-        : [];
-
-      if (foundSets && otherNamedSetPos) {
-        const idx = Number(otherNamedSetPos) >= 0
-          ? Number(otherNamedSetPos)
-          : originalStructure.length + Number(otherNamedSetPos) - 1;
-
-        correspondingSets = finalSets[idx] >= 0
-          ? [finalSets[idx]]
-          : [];
-
-      }
-      else {
-        correspondingSets = finalSets;
-      }
-    }
-    else /* self-referential */ {
-      correspondingSets = [currentPos];
-    }
-
-    return correspondingSets
-  }
-
-  const star = {"star":true};
-
   function generateRandomValue(min, max, extra, isReal) {
     const preValue = Math.random() * (max - min) + min;
 
     return isReal
       ? preValue.toFixed(extra || 2)
       : (Math.round(preValue) * (extra || 1)).toString()
+  }
+
+  function generateValue(name, subsetIndex, valueIndex) {
+    return `%%${name}%%${subsetIndex}%%${valueIndex}%%`
   }
 
   // also processes generator patterns
@@ -756,21 +887,17 @@
 
     const [
       valueSets,
-      valueSetResolutions,
+      valueSetEvaluations,
       uniquenessConstraints,
     ] = evalValueSets(originalStructure, evaluators);
 
     const [
       result,
       generatedValues,
-    ] = evalPicks(originalStructure, valueSets, valueSetResolutions, uniquenessConstraints, preGeneratedValues);
+    ] = evalPicks(originalStructure, valueSets, valueSetEvaluations, uniquenessConstraints, preGeneratedValues);
 
     return [result, generatedValues, valueSets]
   }
-
-  const sharedRegexes = {
-    positionPattern:  `:(?:(n(?:-\\d+)?|-\\d|\\d+)|(\\*))`,
-  };
 
   function evalEvaluations(originalStructure) {
     const evaluators = [];
@@ -778,7 +905,7 @@
     const evaluatorPattern = new RegExp(
       `^\\$(?:evaluate|eval|e)\\(` +
       `(?:\\s*(\\d+)\\s*,\\s*)?` + // count
-      `(?:(${namePattern})(?:(?:${sharedRegexes.positionPattern})?${sharedRegexes.positionPattern})?)` +
+      `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)` +
       `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
     );
 
@@ -813,11 +940,11 @@
 
   function evalValueSets(originalStructure, evaluators) {
     const valueSets = {};
-    const valueSetResolutions = [];
+    const valueSetEvaluations = [];
     const uniquenessConstraints = [];
 
     const valueSetPattern = new RegExp(
-      `^\\$(\\$)?(${namePattern})(?!\\()(\\W)((?:.|\\n|\\r)*)`
+      `^\\$(${namePattern})(!)?(?!\\()(\\W)((?:.|\\n|\\r)*)`
     );
 
     // modifies evaluators !!!!!
@@ -830,8 +957,8 @@
 
       // value set shortcut
       if (match = elem[2].match(valueSetPattern)) {
-        const valueSetName     = match[2];
-        const isSelfEvaluating = match[1] === '$' ? true : false;
+        const valueSetName     = match[1];
+        const isSelfEvaluating = match[2] === '!' ? true : false;
 
         const values = match[4]
           .split(new RegExp(`(?<!\\\\)\\${match[3]}`, 'g'))
@@ -864,9 +991,11 @@
 
           for (let i = 0; i < foundEvaluator[3]; i++) {
 
-            let theValue = `%%${valueSetName}%%${valueSetIndex}%%${
-            foundEvaluator[2] !== star ? foundEvaluator[2] : Math.floor(Math.random() * values.length)
-          }%%`;
+            let theValue = generateValue(
+              valueSetName,
+              valueSetIndex,
+              foundEvaluator[2] !== star ? foundEvaluator[2] : Math.floor(Math.random() * values.length),
+            );
 
             const uniquenessConstraintName = foundEvaluator[4];
 
@@ -888,9 +1017,11 @@
 
               while (uc.includes(theValue) && countIdx < countIdxMax) {
 
-                theValue = `%%${valueSetName}%%${valueSetIndex}%%${
-                Math.floor(Math.random() * values.length)
-              }%%`;
+                theValue = generateValue(
+                  valueSetName,
+                  valueSetIndex,
+                  Math.floor(Math.random() * values.length),
+                );
 
                 if (foundEvaluator[2] !== star) {
                   countIdx = countIdxMax;
@@ -923,12 +1054,16 @@
 
           resolvedValues.push(...Array.from(
             valueSets[valueSetName][valueSetIndex].values.keys(),
-            idx => `%%${valueSetName}%%${valueSetIndex}%%${idx}`,
+            idx => generateValue(
+              valueSetName,
+              valueSetIndex,
+              idx
+            ),
           ));
         }
 
         if (resolvedValues.length > 0) {
-          valueSetResolutions.push([
+          valueSetEvaluations.push([
             elem[0],
             elem[1],
             resolvedValues,
@@ -938,16 +1073,14 @@
       }
     }
 
-    console.log(valueSetResolutions);
-
     return [
       valueSets,
-      valueSetResolutions,
+      valueSetEvaluations,
       uniquenessConstraints,
     ]
   }
 
-  function evalPicks(originalStructure, valueSets, valueSetResolutions, uniquenessConstraints, preGeneratedValues) {
+  function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniquenessConstraints, prepicks) {
 
     const result = [];
     const generatedValues = [];
@@ -963,7 +1096,7 @@
       `^\\$(?:pick|p)\\(` +
       `(?:\\s*(\\d+)\\s*,\\s*)?` + // count
       `(?:${realIntGenerator}|` +
-      `(?:(${namePattern})(?:(?:${sharedRegexes.positionPattern})?${sharedRegexes.positionPattern})?)?)` +
+      `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)?)` + // picking from value sets
       `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
     );
 
@@ -984,11 +1117,11 @@
           lastMinute = true;
         }
 
-        else if (match = valueSetResolutions.find(v => v[0] === setIndex && v[1] === elemIndex)) {
+        else if (match = valueSetEvaluations.find(v => v[0] === setIndex && v[1] === elemIndex)) {
 
           let theElements;
           let maybePregeneratedValues;
-          if (maybePregeneratedValues = preGeneratedValues
+          if (maybePregeneratedValues = prepicks
             .find(v =>
               v[0] === setIndex &&
               v[1] === elemIndex)) {
@@ -1011,7 +1144,7 @@
             match[1] !== undefined
             ? Number(match[1]) : 1;
 
-          const uniquenessConstraintName = match[9];
+          const uniquenessConstraintName = match[10];
 
           const minValue   = match[2];
           const maxValue   = match[3];
@@ -1042,11 +1175,12 @@
           const resultValues = [];
 
           let maybePregeneratedValue;
-          if (maybePregeneratedValue = preGeneratedValues
+          if (maybePregeneratedValue = prepicks
             .find(v =>
               v[0] === setIndex &&
               v[1] === elemIndex)) {
-            resultValues = maybePregeneratedValue[2];
+
+            resultValues.push(...maybePregeneratedValue[2]);
           }
 
           else {
@@ -1109,24 +1243,25 @@
                 if (foundValueSubSet) {
                   if (valueSetValueIndex === star) {
                     const randomIndex = Math.floor(Math.random() * foundValueSubSet.values.length);
-                    resultValue = `%%${foundValueSubSet.name}%%${vidx}%%${randomIndex}%%`;
+                    resultValue = generateValue(foundValueSubSet.name, vidx, randomIndex);
                   }
                   else {
-                    resultValue = `%%${foundValueSubSet.name}%%${vidx}%%${valueSetValueIndex}%%`;
+                    resultValue = generateValue(foundValueSubSet.name, vidx, valueSetValueIndex);
                   }
+
                 }
 
-                if (resultValue && uniquenessConstraintName) {
+                const theUc = uniquenessConstraints
+                  .find(v => v.name === uniquenessConstraintName);
+
+                if (resultValue && theUc) {
                   let countIdx = 0;
                   const countIdxMax = 1000;
 
-                  while (uniquenessConstraints
-                    .find(v => v.name === uniquenessConstraintName)
-                    .values.includes(resultValue)
-                    && countIdx < countIdxMax) {
+                  while (theUc.values.includes(resultValue) && countIdx < countIdxMax) {
 
-                    const idx   = Math.floor(Math.random() * foundValueSubSet.values.length);
-                    resultValue = foundValueSubSet.values[idx];
+                    const randomIndex = Math.floor(Math.random() * foundValueSubSet.values.length);
+                    resultValue = generateValue(foundValueSubSet.name, vidx, randomIndex);
 
                     countIdx++;
                   }
@@ -1135,14 +1270,9 @@
                     resultValue = null;
                   }
                 }
-              }
 
-              if (resultValue) {
-                if (uniquenessConstraintName) {
-                  uniquenessConstraints
-                    .find(v => v.name === uniquenessConstraintName)
-                    .values
-                    .push(resultValue);
+                if (resultValue && theUc) {
+                  theUc.values.push(resultValue);
                 }
 
                 resultValues.push(resultValue);
@@ -1152,9 +1282,9 @@
             if (valueSetSetIndex === star || valueSetValueIndex === star) {
               generatedValues.push([setIndex, elemIndex, resultValues]);
             }
-
-            contentElements.push(...resultValues.map(v => [setIndex, elemIndex, v]));
           }
+
+          contentElements.push(...resultValues.map(v => [setIndex, elemIndex, v]));
         }
 
         else if (contentElementPattern.test(elem[2]) || elem[2].length === 0) {
@@ -1168,6 +1298,8 @@
         lastMinute: lastMinute,
       });
     }
+
+    console.log(uniquenessConstraints);
 
     return [
       result,
@@ -1320,7 +1452,37 @@
     return sharedOrderGroups
   }
 
+  const valueSetPattern = `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)`;
+
   function processRenderDirectives(originalStructure, defaultStyle, namedSets) {
+
+    const styleDefinitions  = processStyleDefinitions(originalStructure, defaultStyle);
+    const styleApplications = processStyleApplications(originalStructure, styleDefinitions, namedSets);
+    const styleRules        = processStyleRules(originalStructure, styleDefinitions);
+
+    return [styleDefinitions, styleApplications, styleRules]
+  }
+
+  function splitStylingDirectives(sd) {
+
+    const result = [];
+    const splitRegex = new RegExp(
+      `(\\w+):` +
+      `(?:\\[(.*?)\\]|(?:"(.*?)"|'(.*?)'|([^,]+)))?`, 'gm');
+
+    let m = splitRegex.exec(sd);
+
+    while (m) {
+      console.log(m);
+      result.push([m[1], m[2] || m[3] || m[4] || m[5]]);
+      m = splitRegex.exec(sd);
+    }
+
+    return result
+  }
+
+  function processStyleDefinitions(originalStructure, defaultStyle) {
+
     const styleDefinitions  = [
       {
         name: 'default',
@@ -1351,8 +1513,6 @@
       `\\)$`
     );
 
-    const afterColonRegex = new RegExp(':(.*)$');
-
     originalStructure
       .flat()
       .map(v => [...v, v[2].match(styleRegex)])
@@ -1370,81 +1530,182 @@
         if (!sd) {
           const idx = styleDefinitions.push({
             name: name,
-            stylings: {}
+            stylings: {
+              colors: {},
+              classes: {},
+            }
           });
 
           sd = styleDefinitions[idx - 1];
         }
 
-        stylingDirectives
-          .split(',')
-          .map(v => v.trim())
+        splitStylingDirectives(stylingDirectives)
           .forEach(v => {
 
-            if (v.startsWith('od:') || v.startsWith('openDelim:')) {
-              sd.stylings['openDelim'] = v.match(afterColonRegex)[1];
+            const [
+              attributeName,
+              attributeValue,
+            ] = v;
+
+            if (attributeName === 'od' || attributeName === 'openDelim') {
+              sd.stylings['openDelim'] = attributeValue;
             }
-            else if (v.startsWith('cd:') || v.startsWith('closeDelim:')) {
-              sd.stylings['closeDelim'] = v.match(afterColonRegex)[1];
+            else if (attributeName === 'cd' || attributeName === 'closeDelim') {
+              sd.stylings['closeDelim'] = attributeValue;
             }
-            else if (v.startsWith('fs:') || v.startsWith('fieldSeparator:')) {
-              sd.stylings['fieldSeparator'] = v.match(afterColonRegex)[1];
+            else if (attributeName === 'fs' || attributeName === 'fieldSeparator') {
+              sd.stylings['fieldSeparator'] = attributeValue;
             }
-            else if (v.startsWith('fp:') || v.startsWith('fieldPadding:')) {
-              const value = Number(v.match(afterColonRegex)[1]);
+            else if (attributeName === 'fp' || attributeName === 'fieldPadding') {
+              const value = Number(attributeValue);
               if (value >= 0) {
                 sd.stylings['fieldPadding'] = value;
               }
             }
 
-            else if (v.startsWith('clrs:') || v.startsWith('colors:')) {
-              sd.stylings['colors'] = v.match(afterColonRegex)[1].split(':');
+            else if (attributeName === 'clrs' || attributeName === 'colors') {
+              sd.stylings['colors']['values'] = attributeValue
+                .split(',')
+                .map(v => v.trim());
             }
-            else if (v.startsWith('clss:') || v.startsWith('classes:')) {
-              sd.stylings['classes'] = v.match(afterColonRegex)[1].split(':');
-            }
-
-            else if (v.startsWith('rclrs:') || v.startsWith('ruleColors:')) {
-              sd.stylings['ruleColors'] = v.match(afterColonRegex)[1].split(':');
-            }
-            else if (v.startsWith('rclss:') || v.startsWith('ruleClasses:')) {
-              sd.stylings['ruleClasses'] = v.match(afterColonRegex)[1].split(':');
+            else if (attributeName === 'clss' || attributeName === 'classes') {
+              sd.stylings['classes']['values'] = attributeValue
+                .split(',')
+                .map(v => v.trim());
             }
 
-            else if (v.startsWith('ci:') || v.startsWith('collectiveIndexing:')) {
-              const value = v.match(afterColonRegex)[1];
-              const bool = value === 'true'
+            else if (attributeName === 'clrsr' || attributeName === 'colorRules') {
+              sd.stylings['colors']['rules'] = partitionList(attributeValue
+                .split(',')
+                .map(v => v.trim()), 2
+              )
+                .map((v) => {
+
+                  if (v.length !== 2) {
+                    return v
+                  }
+
+                  const regexResult = v[1].match(`^${valueSetPattern}$`);
+
+                  if (!regexResult) {
+                    return null
+                  }
+
+                  const [
+                    _,
+                    valueSetName,
+                    valueSetSetIndex,
+                    valueSetSetStar,
+                    valueSetValueIndex,
+                    valueSetValueStar,
+                  ] = regexResult;
+
+                  return [
+                    v[0],
+                    valueSetName === '*' ? star : valueSetName,
+                    valueSetSetIndex ? Number(valueSetSetIndex) : star,
+                    valueSetValueIndex ? Number(valueSetValueIndex) : star,
+                  ]
+                })
+                .filter(v => v && v.length === 4);
+            }
+            else if (attributeName === 'clssr' || attributeName === 'classRules') {
+              sd.stylings['classes']['rules'] = partitionList(attributeValue
+                .split(',')
+                .map(v => v.trim()), 2
+              )
+                .map((v) => {
+
+                  if (v.length !== 2) {
+                    return v
+                  }
+
+                  const regexResult = v[1].match(`^${valueSetPattern}$`);
+
+                  if (!regexResult) {
+                    return null
+                  }
+
+                  const [
+                    _,
+                    valueSetName,
+                    valueSetSetIndex,
+                    valueSetSetStar,
+                    valueSetValueIndex,
+                    valueSetValueStar,
+                  ] = regexResult;
+
+                  return [
+                    v[0],
+                    valueSetName === '*' ? star : valueSetName,
+                    valueSetSetIndex ? Number(valueSetSetIndex) : star,
+                    valueSetValueIndex ? Number(valueSetValueIndex) : star,
+                  ]
+                })
+                .filter(v => v && v.length === 4);
+            }
+
+            else if (attributeName === 'clrsci' || attributeName === 'colorsCollectiveIndexing') {
+              const bool = attributeValue === 'true' || value === 'yes'
                 ? true
-                : value === 'false'
-                  ? false
-                  : null;
+                : attributeValue === 'false' || value === 'no'
+                ? false
+                : null;
 
               if (typeof bool === 'boolean') {
-                sd.stylings['collectiveIndexing'] = bool;
+                sd.stylings['colors']['collectiveIndexing'] = bool;
               }
             }
-            else if (v.startsWith('rsi:') || v.startsWith('randomStartIndex:')) {
+
+            else if (attributeName === 'clrsrsi' || attributeName === 'colorsRandomStartIndex') {
               const value = v.match(afterColonRegex)[1];
-              const bool = value === 'true'
+              const bool = value === 'true' || value === 'yes'
                 ? true
-                : value === 'false'
-                  ? false
-                  : null;
+                : value === 'false' || value === 'no'
+                ? false
+                : null;
 
               if (typeof bool === 'boolean') {
-                sd.stylings['randomStartIndex'] = bool;
+                sd.stylings['colors']['randomStartIndex'] = bool;
               }
             }
 
-            else if (v.startsWith('dp:') || v.startsWith('display:')) {
-              sd.stylings['display'] = v.match(afterColonRegex)[1];
+
+            else if (attributeName === 'clssci' || attributeName === 'classesCollectiveIndexing') {
+              const bool = attributeValue === 'true' || value === 'yes'
+                ? true
+                : attributeValue === 'false' || value === 'no'
+                ? false
+                : null;
+
+              if (typeof bool === 'boolean') {
+                sd.stylings['classes']['collectiveIndexing'] = bool;
+              }
+            }
+
+            else if (attributeName === 'clssrsi' || attributeName === 'classesRandomStartIndex') {
+              const value = v.match(afterColonRegex)[1];
+              const bool = value === 'true' || value === 'yes'
+                ? true
+                : value === 'false' || value === 'no'
+                ? false
+                : null;
+
+              if (typeof bool === 'boolean') {
+                sd.stylings['classes']['randomStartIndex'] = bool;
+              }
+            }
+
+            else if (attributeName === 'dp' || attributeName === 'display') {
+              sd.stylings['display'] = attributeValue;
             }
           });
       });
 
-    const styleApplications = [];
-    const styleRules = [];
+    return styleDefinitions
+  }
 
+  function processStyleApplications(originalStructure, styleDefinitions, namedSets) {
     const applyRegex = new RegExp(
       `^\\$(?:apply|app|a)\\(` +
       `(${namePattern})` +
@@ -1456,6 +1717,8 @@
       `)?` +
       `\\)$`
     );
+
+    const styleApplications = [];
 
     originalStructure
       .flat()
@@ -1490,7 +1753,53 @@
         }
       });
 
-    return [styleDefinitions, styleApplications, styleRules]
+    return styleApplications
+  }
+
+  function processStyleRules(originalStructure, styleDefinitions) {
+    const ruleRegex = new RegExp(
+      `^\\$(?:rule|r)\\(` +
+      `(${namePattern})` +
+      `(?:\\s*,\\s` +
+      `(?:` + // second arg
+      valueSetPattern +
+      `)` +
+      `)?` +
+      `\\)$`
+    );
+
+    const styleRules = [];
+    originalStructure
+      .flat()
+      .map(v => [...v, v[2].match(ruleRegex)])
+      .filter(v => v[3])
+      .forEach(v => {
+
+        const [
+          _,
+          stylingName,
+          valueSetName,
+          valueSetSetIndex,
+          valueSetSetStar,
+          valueSetValueIndex,
+          valueSetValueStar,
+        ] = v[3];
+
+        if (styleDefinitions.find(v => v.name === stylingName)) {
+
+          const vssi = Number(valueSetSetIndex);
+          const vsvi = Number(valueSetValueIndex);
+
+          styleRules.push([
+            stylingName,
+            valueSetName === '*' ? star : valueSetName,
+            valueSetSetIndex ? vssi : star,
+            valueSetValueIndex ? vsvi : star,
+          ]);
+        }
+      });
+
+    return styleRules
   }
 
   function processCommands(originalStructure, numberedSets, sharedElementsGroups) {
@@ -1800,7 +2109,11 @@
 
       //////////////////////////////////////////////////////////////////////////////
       // FIRST RANDOMIZATION
-      const [numberedSets, generatorValues] = processNumberedSets(
+      const [
+        numberedSets,
+        generatorValues,
+        valueSets,
+      ] = processNumberedSets(
         originalStructure,
         matchGeneratorValues(
           matchStructures(originalStructure, originalStructureInherited),
@@ -1812,8 +2125,9 @@
       const sogs     = processSharedOrderGroups(originalStructure, segs);
       const commands = processCommands(originalStructure, numberedSets, segs);
       const [
-        stylingDefinitions,
-        stylingAssignments,
+        styleDefinitions,
+        styleAssignments,
+        styleRules,
       ] = processRenderDirectives(originalStructure, defaultStyle, segs);
 
       const [elements, reordersAlpha] = generateRandomization(numberedSets, segs);
@@ -1860,9 +2174,11 @@
       // RENDERING
       const randomIndices = form.renderSets(
         reorderForRendering(structureMatches, elementsSecond),
-        stylingDefinitions,
-        stylingAssignments,
+        styleDefinitions,
+        styleAssignments,
+        styleRules,
         randomIndicesInherited,
+        valueSets,
         numberedSets,
       );
 
@@ -1904,6 +2220,9 @@
        !(new RegExp('// \S\E\T RANDOMIZER BACK TEMPLATE'))
        .test(document.querySelector('div#qa').innerHTML))) {
     mainFront();
+  }
+  else {
+    createWarning();
   }
   // })
 

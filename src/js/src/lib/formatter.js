@@ -3,10 +3,14 @@
  */
 
 import {
+  star,
+} from './processors/util.js'
+
+import {
   escapeString,
   escapeHtml,
   treatNewlines,
-} from './util'
+} from './util.js'
 
 export default function formatter(inputSyntax) {
 
@@ -125,31 +129,119 @@ export default function formatter(inputSyntax) {
     }
   }
 
-  const stylingsAccessor = function(stylingDefinitions, randomIndices) {
+  const valuePicker = function(valueSets, styleRules) {
 
-    const defaultStyle = stylingDefinitions.find(v => v.name === 'default').stylings
+    const valueRegex = new RegExp('%%(.+)%%(\\d+)%%(\\d+)%%')
 
-    stylingDefinitions
+    const pickStyle = function(elements) {
+
+      for (let i = elements.length - 1; i >= 0 ;i--) {
+
+        let m
+        if (m = elements[i].match(valueRegex)) {
+          const valueSetName = m[1]
+          const valueSubSet  = Number(m[2])
+          const valueIndex   = Number(m[3])
+
+          const theValue = styleRules.find(v =>
+            (v[1] == star || v[1] === valueSetName) &&
+            (v[2] == star || v[2] === valueSubSet) &&
+            (v[3] == star || v[3] === valueIndex)
+          )
+
+          if (theValue !== undefined) {
+            return theValue[0]
+          }
+
+        }
+      }
+
+      return null
+    }
+
+    const pickValue = function(name, colorRules, classRules) {
+
+      const m = name.match(valueRegex)
+
+      if (!m) {
+        return name
+      }
+
+      const valueSetName = m[1]
+      const valueSubSet  = Number(m[2])
+      const valueIndex   = Number(m[3])
+
+      let theValue
+      try {
+        theValue = valueSets[valueSetName][valueSubSet].values[valueIndex]
+        if (theValue === undefined) {
+          throw 'error'
+        }
+      }
+      catch {
+        return null
+      }
+
+      const theColor = colorRules ? colorRules.find(v =>
+        (v[1] == star || v[1] === valueSetName) &&
+        (v[2] == star || v[2] === valueSubSet) &&
+        (v[3] == star || v[3] === valueIndex)) : null
+
+      const theClass = classRules ? classRules.find(v =>
+        (v[1] == star || v[1] === valueSetName) &&
+        (v[2] == star || v[2] === valueSubSet) &&
+        (v[3] == star || v[3] === valueIndex)) : null
+
+      const theColorCss = theColor ? ` style="color: ${theColor[0]}"` : ''
+      const theClassCss = theClass ? ` class="${theClass[0]}"` : ''
+
+      const result = `<span${theColorCss}${theClassCss}>${theValue}</span>`
+
+      return result
+    }
+
+    return {
+      pickStyle: pickStyle,
+      pickValue: pickValue,
+    }
+  }
+
+  const stylingsAccessor = function(styleDefinitions, randomIndices) {
+
+    const defaultStyle = styleDefinitions.find(v => v.name === 'default').stylings
+
+    styleDefinitions
       .forEach(def => {
         def.stylings.randomIndices = randomIndices[def.name] || []
         def.stylings.nextIndex = 0
       })
 
-    const propAccessor = function(styleName, theDefaultStyle=defaultStyle) {
+    const propAccessor = function(styleName, ruleStyleName=null, theDefaultStyle=defaultStyle) {
 
       const theStyle = styleName
-        ? stylingDefinitions.find(v => v.name === styleName).stylings
+        ? styleDefinitions.find(v => v.name === styleName).stylings
+        : theDefaultStyle
+
+      const theRuleStyle = ruleStyleName
+        ? styleDefinitions.find(v => v.name === ruleStyleName).stylings
         : theDefaultStyle
 
       const getProp = function(propName, propName2) {
 
-        return propName2 === undefined
-          ? theStyle[propName] !== undefined
-            ? theStyle[propName]
-            : theDefaultStyle[propName]
-          : theStyle[propName] === undefined || theStyle[propName][propName2] === undefined
-            ? theDefaultStyle[propName][propName2]
-            : theStyle[propName][propName2]
+        const result = propName2 === undefined
+          ? theRuleStyle[propName] !== undefined
+            ? theRuleStyle[propName]
+            : theStyle[propName] !== undefined
+              ? theStyle[propName]
+              : theDefaultStyle[propName]
+
+          : theRuleStyle[propName] !== undefined && theRuleStyle[propName][propName2] !== undefined
+            ? theRuleStyle[propName][propName2]
+            : theStyle[propName] === undefined || theStyle[propName][propName2] === undefined
+              ? theStyle[propName][propName2]
+              : theDefaultStyle[propName][propName2]
+
+        return result
       }
 
       let currentIndex
@@ -203,7 +295,7 @@ export default function formatter(inputSyntax) {
     const exportIndices = function() {
       const result = {}
 
-      stylingDefinitions
+      styleDefinitions
         .forEach(def => {
           result[def.name] = def.stylings.randomIndices
         })
@@ -218,16 +310,30 @@ export default function formatter(inputSyntax) {
     }
   }
 
-  const renderSets = function(reordering, stylingDefinitions, stylingAssignments, randomIndices, numberedSets, theSelector=inputSyntax.cssSelector) {
+  const renderSets = function(
+    reordering,
+    styleDefinitions,
+    styleAssignments,
+    styleRules,
+    randomIndices,
+    valueSets,
+    numberedSets,
+    theSelector=inputSyntax.cssSelector
+  ) {
 
-    const sa = stylingsAccessor(stylingDefinitions, randomIndices)
+    const sa = stylingsAccessor(styleDefinitions, randomIndices)
+    const vp = valuePicker(valueSets, styleRules)
+
     const stylizedResults = Array(reordering.length)
 
     for (const [i, set] of reordering.entries()) {
 
       const actualValues = []
-      const styleName = stylingAssignments[i]
-      const pa = sa.propAccessor(styleName)
+      const styleName = styleAssignments[i]
+      const pa = sa.propAccessor(styleName, vp.pickStyle(set
+        .rendering
+        .map(v => v[2])
+      ))
 
       if (pa.getProp('display') === 'sort') {
         set.rendering.sort()
@@ -250,11 +356,17 @@ export default function formatter(inputSyntax) {
             : ''
 
           const style = `style="padding: 0px ${pa.getProp('fieldPadding')}px;${colorChoice}${blockDisplay}"`
-          const theValue = pa.getProp('display') === 'block'
-            ? `<record ${className} ${style}><div>${treatNewlines(element[2])}</div></record>`
-            : `<record ${className} ${style}>${element[2]}</record>`
 
-          actualValues.push(theValue)
+          const pickedValue = vp.pickValue(element[2], pa.getProp('colors', 'rules'), pa.getProp('classes', 'rules'))
+
+          if (pickedValue) {
+
+            const theValue = pa.getProp('display') === 'block'
+              ? `<record ${className} ${style}><div>${treatNewlines(element[2])}</div></record>`
+              : `<record ${className} ${style}>${pickedValue}</record>`
+
+            actualValues.push(theValue)
+          }
         }
       }
 

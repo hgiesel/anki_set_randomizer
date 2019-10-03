@@ -1,5 +1,6 @@
 import {
   namePattern,
+  positionPattern,
   star,
 } from './util.js'
 
@@ -11,6 +12,10 @@ function generateRandomValue(min, max, extra, isReal) {
     : (Math.round(preValue) * (extra || 1)).toString()
 }
 
+function generateValue(name, subsetIndex, valueIndex) {
+  return `%%${name}%%${subsetIndex}%%${valueIndex}%%`
+}
+
 // also processes generator patterns
 export function processNumberedSets(originalStructure, preGeneratedValues) {
 
@@ -20,20 +25,16 @@ export function processNumberedSets(originalStructure, preGeneratedValues) {
 
   const [
     valueSets,
-    valueSetResolutions,
+    valueSetEvaluations,
     uniquenessConstraints,
   ] = evalValueSets(originalStructure, evaluators)
 
   const [
     result,
     generatedValues,
-  ] = evalPicks(originalStructure, valueSets, valueSetResolutions, uniquenessConstraints, preGeneratedValues)
+  ] = evalPicks(originalStructure, valueSets, valueSetEvaluations, uniquenessConstraints, preGeneratedValues)
 
   return [result, generatedValues, valueSets]
-}
-
-const sharedRegexes = {
-  positionPattern:  `:(?:(n(?:-\\d+)?|-\\d|\\d+)|(\\*))`,
 }
 
 function evalEvaluations(originalStructure) {
@@ -42,7 +43,7 @@ function evalEvaluations(originalStructure) {
   const evaluatorPattern = new RegExp(
     `^\\$(?:evaluate|eval|e)\\(` +
     `(?:\\s*(\\d+)\\s*,\\s*)?` + // count
-    `(?:(${namePattern})(?:(?:${sharedRegexes.positionPattern})?${sharedRegexes.positionPattern})?)` +
+    `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)` +
     `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
   )
 
@@ -77,11 +78,11 @@ function evalEvaluations(originalStructure) {
 
 function evalValueSets(originalStructure, evaluators) {
   const valueSets = {}
-  const valueSetResolutions = []
+  const valueSetEvaluations = []
   const uniquenessConstraints = []
 
   const valueSetPattern = new RegExp(
-    `^\\$(\\$)?(${namePattern})(?!\\()(\\W)((?:.|\\n|\\r)*)`
+    `^\\$(${namePattern})(!)?(?!\\()(\\W)((?:.|\\n|\\r)*)`
   )
 
   const valueSetTokens = '(?:\'((?:.|\\n|\\r)*?[^\\\\])\'|"((?:.|\\n|\\r)*?[^\\\\])")'
@@ -100,8 +101,8 @@ function evalValueSets(originalStructure, evaluators) {
 
     // value set shortcut
     if (match = elem[2].match(valueSetPattern)) {
-      const valueSetName     = match[2]
-      const isSelfEvaluating = match[1] === '$' ? true : false
+      const valueSetName     = match[1]
+      const isSelfEvaluating = match[2] === '!' ? true : false
 
       const values = match[4]
         .split(new RegExp(`(?<!\\\\)\\${match[3]}`, 'g'))
@@ -134,9 +135,11 @@ function evalValueSets(originalStructure, evaluators) {
 
         for (let i = 0; i < foundEvaluator[3]; i++) {
 
-          let theValue = `%%${valueSetName}%%${valueSetIndex}%%${
-            foundEvaluator[2] !== star ? foundEvaluator[2] : Math.floor(Math.random() * values.length)
-          }%%`
+          let theValue = generateValue(
+            valueSetName,
+            valueSetIndex,
+            foundEvaluator[2] !== star ? foundEvaluator[2] : Math.floor(Math.random() * values.length),
+          )
 
           const uniquenessConstraintName = foundEvaluator[4]
 
@@ -158,9 +161,11 @@ function evalValueSets(originalStructure, evaluators) {
 
             while (uc.includes(theValue) && countIdx < countIdxMax) {
 
-              theValue = `%%${valueSetName}%%${valueSetIndex}%%${
-                Math.floor(Math.random() * values.length)
-              }%%`
+              theValue = generateValue(
+                valueSetName,
+                valueSetIndex,
+                Math.floor(Math.random() * values.length),
+              )
 
               if (foundEvaluator[2] !== star) {
                 countIdx = countIdxMax
@@ -193,12 +198,16 @@ function evalValueSets(originalStructure, evaluators) {
 
         resolvedValues.push(...Array.from(
           valueSets[valueSetName][valueSetIndex].values.keys(),
-          idx => `%%${valueSetName}%%${valueSetIndex}%%${idx}`,
+          idx => generateValue(
+            valueSetName,
+            valueSetIndex,
+            idx
+          ),
         ))
       }
 
       if (resolvedValues.length > 0) {
-        valueSetResolutions.push([
+        valueSetEvaluations.push([
           elem[0],
           elem[1],
           resolvedValues,
@@ -208,16 +217,14 @@ function evalValueSets(originalStructure, evaluators) {
     }
   }
 
-  console.log(valueSetResolutions)
-
   return [
     valueSets,
-    valueSetResolutions,
+    valueSetEvaluations,
     uniquenessConstraints,
   ]
 }
 
-function evalPicks(originalStructure, valueSets, valueSetResolutions, uniquenessConstraints, preGeneratedValues) {
+function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniquenessConstraints, prepicks) {
 
   const result = []
   const generatedValues = []
@@ -233,7 +240,7 @@ function evalPicks(originalStructure, valueSets, valueSetResolutions, uniqueness
     `^\\$(?:pick|p)\\(` +
     `(?:\\s*(\\d+)\\s*,\\s*)?` + // count
     `(?:${realIntGenerator}|` +
-    `(?:(${namePattern})(?:(?:${sharedRegexes.positionPattern})?${sharedRegexes.positionPattern})?)?)` +
+    `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)?)` + // picking from value sets
     `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
   )
 
@@ -254,11 +261,11 @@ function evalPicks(originalStructure, valueSets, valueSetResolutions, uniqueness
         lastMinute = true
       }
 
-      else if (match = valueSetResolutions.find(v => v[0] === setIndex && v[1] === elemIndex)) {
+      else if (match = valueSetEvaluations.find(v => v[0] === setIndex && v[1] === elemIndex)) {
 
         let theElements
         let maybePregeneratedValues
-        if (maybePregeneratedValues = preGeneratedValues
+        if (maybePregeneratedValues = prepicks
           .find(v =>
             v[0] === setIndex &&
             v[1] === elemIndex)) {
@@ -281,7 +288,7 @@ function evalPicks(originalStructure, valueSets, valueSetResolutions, uniqueness
           match[1] !== undefined
           ? Number(match[1]) : 1
 
-        const uniquenessConstraintName = match[9]
+        const uniquenessConstraintName = match[10]
 
         const minValue   = match[2]
         const maxValue   = match[3]
@@ -312,11 +319,12 @@ function evalPicks(originalStructure, valueSets, valueSetResolutions, uniqueness
         const resultValues = []
 
         let maybePregeneratedValue
-        if (maybePregeneratedValue = preGeneratedValues
+        if (maybePregeneratedValue = prepicks
           .find(v =>
             v[0] === setIndex &&
             v[1] === elemIndex)) {
-          resultValues = maybePregeneratedValue[2]
+
+          resultValues.push(...maybePregeneratedValue[2])
         }
 
         else {
@@ -379,24 +387,25 @@ function evalPicks(originalStructure, valueSets, valueSetResolutions, uniqueness
               if (foundValueSubSet) {
                 if (valueSetValueIndex === star) {
                   const randomIndex = Math.floor(Math.random() * foundValueSubSet.values.length)
-                  resultValue = `%%${foundValueSubSet.name}%%${vidx}%%${randomIndex}%%`
+                  resultValue = generateValue(foundValueSubSet.name, vidx, randomIndex)
                 }
                 else {
-                  resultValue = `%%${foundValueSubSet.name}%%${vidx}%%${valueSetValueIndex}%%`
+                  resultValue = generateValue(foundValueSubSet.name, vidx, valueSetValueIndex)
                 }
+
               }
 
-              if (resultValue && uniquenessConstraintName) {
+              const theUc = uniquenessConstraints
+                .find(v => v.name === uniquenessConstraintName)
+
+              if (resultValue && theUc) {
                 let countIdx = 0
                 const countIdxMax = 1000
 
-                while (uniquenessConstraints
-                  .find(v => v.name === uniquenessConstraintName)
-                  .values.includes(resultValue)
-                  && countIdx < countIdxMax) {
+                while (theUc.values.includes(resultValue) && countIdx < countIdxMax) {
 
-                  const idx   = Math.floor(Math.random() * foundValueSubSet.values.length)
-                  resultValue = foundValueSubSet.values[idx]
+                  const randomIndex = Math.floor(Math.random() * foundValueSubSet.values.length)
+                  resultValue = generateValue(foundValueSubSet.name, vidx, randomIndex)
 
                   countIdx++
                 }
@@ -405,14 +414,9 @@ function evalPicks(originalStructure, valueSets, valueSetResolutions, uniqueness
                   resultValue = null
                 }
               }
-            }
 
-            if (resultValue) {
-              if (uniquenessConstraintName) {
-                uniquenessConstraints
-                  .find(v => v.name === uniquenessConstraintName)
-                  .values
-                  .push(resultValue)
+              if (resultValue && theUc) {
+                theUc.values.push(resultValue)
               }
 
               resultValues.push(resultValue)
@@ -422,9 +426,9 @@ function evalPicks(originalStructure, valueSets, valueSetResolutions, uniqueness
           if (valueSetSetIndex === star || valueSetValueIndex === star) {
             generatedValues.push([setIndex, elemIndex, resultValues])
           }
-
-          contentElements.push(...resultValues.map(v => [setIndex, elemIndex, v]))
         }
+
+        contentElements.push(...resultValues.map(v => [setIndex, elemIndex, v]))
       }
 
       else if (contentElementPattern.test(elem[2]) || elem[2].length === 0) {
@@ -438,6 +442,8 @@ function evalPicks(originalStructure, valueSets, valueSetResolutions, uniqueness
       lastMinute: lastMinute,
     })
   }
+
+  console.log(uniquenessConstraints)
 
   return [
     result,

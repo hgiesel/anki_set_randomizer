@@ -59,7 +59,11 @@ export function main(
 
     //////////////////////////////////////////////////////////////////////////////
     // FIRST RANDOMIZATION
-    const [numberedSets, generatorValues] = processNumberedSets(
+    const [
+      numberedSets,
+      generatorValues,
+      valueSets,
+    ] = processNumberedSets(
       originalStructure,
       matchGeneratorValues(
         matchStructures(originalStructure, originalStructureInherited),
@@ -71,8 +75,9 @@ export function main(
     const sogs     = processSharedOrderGroups(originalStructure, segs)
     const commands = processCommands(originalStructure, numberedSets, segs)
     const [
-      stylingDefinitions,
-      stylingAssignments,
+      styleDefinitions,
+      styleAssignments,
+      styleRules,
     ] = processRenderDirectives(originalStructure, defaultStyle, segs)
 
     const [elements, reordersAlpha] = generateRandomization(numberedSets, segs)
@@ -119,9 +124,11 @@ export function main(
     // RENDERING
     const randomIndices = form.renderSets(
       reorderForRendering(structureMatches, elementsSecond),
-      stylingDefinitions,
-      stylingAssignments,
+      styleDefinitions,
+      styleAssignments,
+      styleRules,
       randomIndicesInherited,
+      valueSets,
       numberedSets,
     )
 

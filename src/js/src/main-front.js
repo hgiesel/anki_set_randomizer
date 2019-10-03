@@ -1,5 +1,6 @@
 import {
   saveData,
+  createWarning,
 } from './save.js'
 
 import {
@@ -13,6 +14,9 @@ if (window.Persistence && Persistence.isAvailable() &&
      !(new RegExp('// \S\E\T RANDOMIZER BACK TEMPLATE'))
      .test(document.querySelector('div#qa').innerHTML))) {
   mainFront()
+}
+else {
+  createWarning()
 }
 // })
 
