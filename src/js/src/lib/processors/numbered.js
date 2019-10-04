@@ -17,27 +17,35 @@ function generateValue(name, subsetIndex, valueIndex) {
 }
 
 // also processes generator patterns
-export function processNumberedSets(originalStructure, preGeneratedValues) {
+export function processNumberedSets(
+  elements,
+  generatedValues,
+  lastMinutes=null,
+) {
 
   const [
     evaluators,
-  ] = evalEvaluations(originalStructure)
+  ] = evalEvaluations(elements)
 
   const [
     valueSets,
     valueSetEvaluations,
     uniquenessConstraints,
-  ] = evalValueSets(originalStructure, evaluators)
+  ] = evalValueSets(elements, evaluators)
 
   const [
     result,
-    generatedValues,
-  ] = evalPicks(originalStructure, valueSets, valueSetEvaluations, uniquenessConstraints, preGeneratedValues)
+  ] = evalPicks(elements, valueSets, valueSetEvaluations, uniquenessConstraints, generatedValues, lastMinutes)
+
+  if (generatedValues.length > 0) {
+    console.log('vse', valueSetEvaluations)
+    console.log('gv', generatedValues)
+  }
 
   return [result, generatedValues, valueSets]
 }
 
-function evalEvaluations(originalStructure) {
+function evalEvaluations(elements) {
   const evaluators = []
 
   const evaluatorPattern = new RegExp(
@@ -48,7 +56,7 @@ function evalEvaluations(originalStructure) {
   )
 
 
-  for (const elem of originalStructure.flat()) {
+  for (const elem of elements.flat()) {
     let match
 
     // evaluations
@@ -77,7 +85,7 @@ function evalEvaluations(originalStructure) {
   ]
 }
 
-function evalValueSets(originalStructure, evaluators) {
+function evalValueSets(elements, evaluators) {
   const valueSets = {}
   const valueSetEvaluations = []
   const uniquenessConstraints = []
@@ -97,7 +105,7 @@ function evalValueSets(originalStructure, evaluators) {
   const newLinePattern = new RegExp(`\\\\n`, 'g')
   const catchPattern = new RegExp(`\\\\.`, 'g')
 
-  for (const elem of originalStructure.flat()) {
+  for (const elem of elements.flat()) {
     let match
 
     // value set shortcut
@@ -225,7 +233,7 @@ function evalValueSets(originalStructure, evaluators) {
   ]
 }
 
-function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniquenessConstraints, prepicks) {
+function evalPicks(elements, valueSets, valueSetEvaluations, uniquenessConstraints, generatedValues, lastMinutes) {
 
   const result = []
   const lastMinutePattern = new RegExp(`^\\$(n|name)!\\(\\)$`)
@@ -245,10 +253,10 @@ function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniqueness
 
   const contentElementPattern = new RegExp('^[^\\$]')
 
-  for (const [i, set] of originalStructure.entries()) {
+  for (const [i, set] of elements.entries()) {
 
     const contentElements = []
-    let lastMinute = false
+    let lastMinute = lastMinutes[i] || false
 
     for (const elem of set) {
 
@@ -256,29 +264,28 @@ function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniqueness
       const setIndex  = elem[0]
       const elemIndex = elem[1]
 
-      if (lastMinutePattern.test(elem[2])) {
+      if (!lastMinute && lastMinutePattern.test(elem[2])) {
         lastMinute = true
       }
 
       else if (match = valueSetEvaluations.find(v => v[0] === setIndex && v[1] === elemIndex)) {
 
         let theElements
-        let maybePregeneratedValues
-        if (maybePregeneratedValues = prepicks
-          .find(v =>
-            v[0] === setIndex &&
-            v[1] === elemIndex)) {
+        let maybePregeneratedValue
+
+        if (maybePregeneratedValue = generatedValues
+          .find(w => w[0] === setIndex && w[1] === elemIndex)) {
           theElements = maybePregeneratedValue[2]
         }
         else {
-          theElements = match
+          theElements = match[2]
+
+          if (match[3]) {
+            generatedValues.push([setIndex, elemIndex, match[2]])
+          }
         }
 
-        contentElements.push(...match[2].map(v => [match[0], match[1], v]))
-
-        if (match[3]) {
-          prepicks.push(...theElements)
-        }
+        contentElements.push(...theElements.map(w => [setIndex, elemIndex, w]))
       }
 
       else if (match = elem[2].match(pickPattern)) {
@@ -293,9 +300,14 @@ function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniqueness
         const maxValue   = match[3]
         const extraValue = match[4]
 
-        const valueSetName       = match[5]
+        const valueSetName = match[5]
+
         const maybeValueSetSetIndex   = Number(match[6])
         const maybeValueSetValueIndex = Number(match[8])
+
+        const valueSetNameName = valueSetName === '*'
+          ? star
+          : valueSetName
 
         const valueSetSetIndex = !Number.isNaN(maybeValueSetSetIndex)
         ? maybeValueSetSetIndex
@@ -318,7 +330,7 @@ function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniqueness
         const resultValues = []
 
         let maybePregeneratedValue
-        if (maybePregeneratedValue = prepicks
+        if (maybePregeneratedValue = generatedValues
           .find(v =>
             v[0] === setIndex &&
             v[1] === elemIndex)) {
@@ -370,9 +382,9 @@ function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniqueness
             else /* value set pick */ {
 
               const foundValueSet = valueSets[
-                valueSetName === star
+                valueSetNameName === star
                 ? Object.keys(valueSets)[Math.floor(Math.random() * valueSets.length)]
-                : valueSetName
+                : valueSetNameName
               ]
 
               const vidx = valueSetSetIndex === star
@@ -424,8 +436,8 @@ function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniqueness
             }
           }
 
-          if (valueSetSetIndex === star || valueSetValueIndex === star) {
-            prepicks.push([setIndex, elemIndex, resultValues])
+          if (valueSetNameName === star || valueSetSetIndex === star || valueSetValueIndex === star) {
+            generatedValues.push([setIndex, elemIndex, resultValues])
           }
         }
 
@@ -446,6 +458,5 @@ function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniqueness
 
   return [
     result,
-    prepicks,
   ]
 }

@@ -15,22 +15,22 @@
 
 
 
-      4.03. Second randomization <br>
 
-      Let's have the same question, as before, but show the answer in-place: <br>
 
-      Example: Connect countries with their respective capitals: <br>
 
-      Countries: [[$n!()::$o(a)::Italy::Ethiopia::India::New Zealand::Germany]] <br>
-      Capitals: [[$o(a))::Rome::Addis Ababa::New Delhi::Wellington::Berlin]] <br>
 
-      Or in list view: <br>
 
-      [[$n!(y)::$o(b, y)::Italy]]: [[$n(z)::$o(b, z)::Rome]] <br>
-      [[$n(y)::Ethiopia]]: [[$n(z)::Addis Ababa]] <br>
-      [[$n(y)::India]]: [[$n(z)::New Delhi]] <br>
-      [[$n(y)::New Zealand]]: [[$n(z)::Wellington]] <br>
-      [[$n(y)::Germany]]: [[$n(z)::Berlin]] <br>
+
+      And now, it shows the answer: [[$eval(c1:0)]]! <br>
+
+      So in short, the evaluations are like reversed picks: instead of generating the element where the pick element used to be, it generates the element where the value set used to be! <br>
+
+      And just like picks, evaluations also supports wildcards, counts, and uniqueness constraints: <br>
+
+      [[$gr|alpha|beta|gamma|delta::$eval(4, gr:*, uc)]] <br>
+
+
+
 
 
 

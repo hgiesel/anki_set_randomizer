@@ -3,7 +3,7 @@ import {
   getCorrespondingSets,
 } from './util.js'
 
-export function processNamedSets(originalStructure) {
+export function processNamedSets(elementsOriginal) {
 
   const namedSetPattern = new RegExp(
     `\\$(?:name|n)(!)?` +
@@ -21,13 +21,13 @@ export function processNamedSets(originalStructure) {
 
   const namedSets = []
 
-  originalStructure
+  elementsOriginal
     .flat()
-    .map(v => [...v, v[2].match(namedSetPattern)])
-    .filter(v => v[3])
+    .map(v => [v, v[2].match(namedSetPattern)])
+    .filter(v => v[1])
     // sort self-referring sets to beginning
     .reduce((accu, v) => {
-      v[3][3] || v[3][4] || v[3][5] || v[3][6] || v[3][7]
+      v[1][3] || v[1][4] || v[1][5] || v[1][6] || v[1][7]
         ? accu.push(v)
         : accu.unshift(v)
       return accu
@@ -42,20 +42,20 @@ export function processNamedSets(originalStructure) {
         relativePos,
         otherNamedSet,
         otherNamedSetPos,
-      ] = v[3]
+      ] = v[1]
 
       const correspondingSets = getCorrespondingSets(
-        originalStructure,
+        elementsOriginal,
         namedSets,
         absolutePos,
         absolutePosFromEnd,
-        v[0],
+        v[0][0],
         relativePos,
         otherNamedSet,
         otherNamedSetPos,
       )
 
-      let theNs = namedSets.find(v => v.name === name)
+      let theNs = namedSets.find(w => w.name === name)
 
       if (!theNs) {
         const idx = namedSets.push({
@@ -78,7 +78,7 @@ export function processNamedSets(originalStructure) {
   return namedSets
 }
 
-export function processOrderConstraints(originalStructure, namedSets) {
+export function processOrderConstraints(elementsOriginal, namedSets) {
   const orderConstraints = []
 
   const orderConstraintPattern = new RegExp(
@@ -95,10 +95,10 @@ export function processOrderConstraints(originalStructure, namedSets) {
     `\\)$`
   )
 
-  originalStructure
+  elementsOriginal
     .flat()
-    .map(v => [...v, v[2].match(orderConstraintPattern)])
-    .filter(v => v[3])
+    .map(v => [v, v[2].match(orderConstraintPattern)])
+    .filter(v => v[1])
     .forEach(v => {
       const [
         _,
@@ -109,16 +109,16 @@ export function processOrderConstraints(originalStructure, namedSets) {
         relativePos,
         otherNamedSet,
         otherNamedSetPos,
-      ] = v[3]
+      ] = v[1]
 
       const correspondingSets = (otherNamedSet && !otherNamedSetPos)
         ? [otherNamedSet]
         : getCorrespondingSets(
-          originalStructure,
+          elementsOriginal,
           namedSets,
           absolutePos,
           absolutePosFromEnd,
-          v[0],
+          v[0][0],
           relativePos,
           otherNamedSet,
           otherNamedSetPos,

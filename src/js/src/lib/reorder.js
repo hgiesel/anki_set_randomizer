@@ -15,9 +15,6 @@ function shuffle(array) {
 
 function detectOrderDictator(orderConstraint, setReorders) {
 
-  // alert(JSON.stringify(orderConstraint))
-  // alert(JSON.stringify(setReorders))
-
   return orderConstraint
     .sets
     .map(v => ({

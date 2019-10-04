@@ -35,24 +35,46 @@ import {
   reorderForRendering,
 } from './lib/matching.js'
 
-export function main(
+export function main(options, saveDataOld, frontside) {
+
+  const saveData = options
+    .reduce((accu, v) => main2(
+      frontside,
+      v.inputSyntax,
+      v.defaultStyle,
+      ...accu,
+    ), saveDataOld)
+
+  return saveData
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// elementsInherited + elementsOriginal -> elementsFirst -> elementsSecond
+// [[0,0,'Hello','n'],[0,1,'World'],[]],[[],[]], etc.]
+
+// numberedSets -> numberedSetsSecond
+
+// reorders -> reordersSecond
+// [{name:1/name, length, sets, setLengths, order, lastMinute}]
+function main2(
   frontside,
   inputSyntax,
   defaultStyle,
-  originalStructureInherited,
+
+  elementsInherited,
   generatorValuesInherited,
   reordersInherited,
   reordersSecondInherited,
   randomIndicesInherited,
 ) {
   const form = formatter(inputSyntax)
-  const originalStructure = form.getOriginalStructure()
+  const elementsOriginal = form.getElementsOriginal()
 
-  if (form.isValid && (!frontside || !form.isContained) && originalStructure.length > 0) {
+  if (form.isValid && (!frontside || !form.isContained) && elementsOriginal.length > 0) {
 
     const structureMatches = matchStructures(
-      originalStructure,
-      originalStructureInherited
+      elementsOriginal,
+      elementsInherited,
     )
 
     //////////////////////////////////////////////////////////////////////////////
@@ -62,28 +84,26 @@ export function main(
       generatorValues,
       valueSets,
     ] = processNumberedSets(
-      originalStructure,
-      matchGeneratorValues(
-        matchStructures(originalStructure, originalStructureInherited),
-        generatorValuesInherited,
-      ),
+      elementsOriginal,
+      matchGeneratorValues(structureMatches, generatorValuesInherited),
+      [],
     )
 
-    const namedSets        = processNamedSets(originalStructure)
-    const orderConstraints = processOrderConstraints(originalStructure, namedSets)
+    const namedSets        = processNamedSets(elementsOriginal)
+    const orderConstraints = processOrderConstraints(elementsOriginal, namedSets)
 
     // modifies numberedSets and namedSets
     adjustForSecondRandomization(orderConstraints, numberedSets, namedSets)
 
-    const commands = processCommands(originalStructure, numberedSets, namedSets)
+    const commands = processCommands(elementsOriginal, numberedSets, namedSets)
 
     const [
       styleDefinitions,
-      styleAssignments,
+      styleApplications,
       styleRules,
-    ] = processRenderDirectives(originalStructure, defaultStyle, namedSets)
+    ] = processRenderDirectives(elementsOriginal, defaultStyle, namedSets)
 
-    const [elements, reordersAlpha] = generateRandomization(numberedSets, namedSets)
+    const [elementsFirst, reordersAlpha] = generateRandomization(numberedSets, namedSets)
 
     const reorders = applyInheritedSetReorder(
       reordersAlpha,
@@ -91,22 +111,20 @@ export function main(
       structureMatches,
     )
 
-    applyModifications(reorders, elements, orderConstraints, commands)
+    applyModifications(reorders, elementsFirst, orderConstraints, commands)
+
 
     //////////////////////////////////////////////////////////////////////////////
     // SECOND RANDOMIZATION
-    const [numberedSetsSecond, _] = processNumberedSets(
-      elements.map(set => set.filter(elem => elem[3] !== 'd')),
+
+    const [numberedSetsSecond, _1, _2] = processNumberedSets(
+      elementsFirst.map(set => set.filter(elem => elem[3] !== 'd')),
       [],
+      numberedSets.map(set => set.lastMinute),
     )
 
     const [elementsSecond, reordersSecondAlpha] = generateRandomization(
-      numberedSetsSecond
-        .map((v, i) => ({
-          name: v.name,
-          elements: v.elements,
-          lastMinute: numberedSets[i].lastMinute
-        })),
+      numberedSetsSecond,
       namedSets,
     )
 
@@ -115,8 +133,6 @@ export function main(
       reordersSecondInherited,
       structureMatches,
     )
-
-    alert(JSON.stringify(reordersSecond))
 
     applyModifications(
       reordersSecond.filter(v => v.lastMinute),
@@ -130,7 +146,7 @@ export function main(
     const randomIndices = form.renderSets(
       reorderForRendering(structureMatches, elementsSecond),
       styleDefinitions,
-      styleAssignments,
+      styleApplications,
       styleRules,
       randomIndicesInherited,
       valueSets,
@@ -139,7 +155,7 @@ export function main(
 
     //////////////////////////////////////////////////////////////////////////////
     return [
-      originalStructure,
+      elementsOriginal,
       generatorValues,
       reorders,
       reordersSecond,
@@ -149,8 +165,8 @@ export function main(
 
   else {
     return [
-      originalStructure,
-      [/* generatorValues */],
+      elementsOriginal,
+      [/* generatedValues */],
       [/* reorders */],
       [/* reordersSecond */],
       {/* randomIndices */},

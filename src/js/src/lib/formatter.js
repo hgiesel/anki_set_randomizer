@@ -105,14 +105,14 @@ export default function formatter(inputSyntax) {
   }
 
   // 2d list of elements in the form of [[i, j, element]]
-  const _originalStructure = {}
-  const getOriginalStructure = function(theSelector=inputSyntax.cssSelector) {
-    if (_originalStructure[theSelector]) {
-      return _originalStructure[theSelector]
+  const _elementsOriginal = {}
+  const getElementsOriginal = function(theSelector=inputSyntax.cssSelector) {
+    if (_elementsOriginal[theSelector]) {
+      return _elementsOriginal[theSelector]
     }
 
     else {
-      const theOriginalStructure = []
+      const theElementsOriginal = []
       const theFoundStructure = getFoundStructure(theSelector)
 
       for (const [i, group] of theFoundStructure.entries()) {
@@ -120,12 +120,12 @@ export default function formatter(inputSyntax) {
           .split(inputSyntax.isRegex
             ? new RegExp(inputSyntax.fieldSeparator)
             : inputSyntax.fieldSeparator)
-          .map((elem, j) => [i, j, elem, /* TODO 'n' */])
+          .map((elem, j) => [i, j, elem, 'n'])
 
-        theOriginalStructure.push(splitGroup)
+        theElementsOriginal.push(splitGroup)
       }
 
-      return _originalStructure[theSelector] = theOriginalStructure
+      return _elementsOriginal[theSelector] = theElementsOriginal
     }
   }
 
@@ -406,7 +406,7 @@ export default function formatter(inputSyntax) {
       .forEach((v, i) => theHtml[i].innerHTML = v)
 
     if (theSelector === 'div#clozed') {
-      const olParse = getOriginalStructure('div#original').flat()
+      const olParse = getElementsOriginal('div#original').flat()
 
       if (olParse.length > 0) {
         const newReordering = reordering
@@ -427,7 +427,7 @@ export default function formatter(inputSyntax) {
   }
 
   return {
-    getOriginalStructure: getOriginalStructure,
+    getElementsOriginal: getElementsOriginal,
     renderSets: renderSets,
     isValid: isValid,
   }

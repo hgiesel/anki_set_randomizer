@@ -2,7 +2,7 @@ import {
   namePattern,
 } from './util.js'
 
-export function processCommands(originalStructure, numberedSets, sharedElementsGroups) {
+export function processCommands(originalStructure, numberedSets, namedSets) {
   const result = []
 
   const idxRegex      = `(?:(\\d+)|((?:\\+|-)\\d+)|n(-\\d+)|(${namePattern}))`
@@ -58,7 +58,7 @@ export function processCommands(originalStructure, numberedSets, sharedElementsG
         patternResult[14],
         elem[0],
         originalStructure.length,
-        sharedElementsGroups,
+        namedSets,
       )
 
       const toSetPosition = processPositionIndex(
@@ -87,7 +87,7 @@ export function processCommands(originalStructure, numberedSets, sharedElementsG
         patternResult[8],
         elem[0],
         originalStructure.length,
-        sharedElementsGroups,
+        namedSets,
       )
 
       const fromSetPosition = processPositionIndex(
@@ -127,7 +127,7 @@ function processSetIndex(
   nameIndex,
   currentIndex,
   elemCount,
-  sharedElementsGroups,
+  namedSets,
 ) {
 
   if (absIndex) /* absolute index */ {
@@ -156,11 +156,11 @@ function processSetIndex(
   else if (nameIndex) /* named set */ {
     // named set, I don't need to check name constraints
     // because, you only refer to named sets, not create them
-    const foundSeg = sharedElementsGroups
-      .find(seg => seg.name === nameIndex)
+    const foundNs = namedSets
+      .find(ns => ns.name === nameIndex)
 
-    return foundSeg
-      ? [foundSeg.sets, true]
+    return foundNs
+      ? [foundNs.sets, true]
       : [[], true]
   }
 

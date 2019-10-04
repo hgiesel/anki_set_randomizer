@@ -76,15 +76,15 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
 
   originalStructure
     .flat()
-    .map(v => [...v, v[2].match(styleRegex)])
-    .filter(v => v[3])
+    .map(v => [v, v[2].match(styleRegex)])
+    .filter(v => v[1])
     .forEach(v => {
 
       const [
         _,
         name,
         stylingDirectives,
-      ] = v[3]
+      ] = v[1]
 
       let sd = styleDefinitions.find(v => v.name === name)
 
@@ -143,15 +143,15 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
           else if (attributeName === 'clrsr' || attributeName === 'colorRules') {
             sd.stylings['colors']['rules'] = partitionList(attributeValue
               .split(',')
-              .map(v => v.trim()), 2
+              .map(w => w.trim()), 2
             )
-              .map((v) => {
+              .map(w => {
 
-                if (v.length !== 2) {
-                  return v
+                if (w.length !== 2) {
+                  return w
                 }
 
-                const regexResult = v[1].match(`^${valueSetPattern}$`)
+                const regexResult = w[1].match(`^${valueSetPattern}$`)
 
                 if (!regexResult) {
                   return null
@@ -167,26 +167,26 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
                 ] = regexResult
 
                 return [
-                  v[0],
+                  w[0],
                   valueSetName === '*' ? star : valueSetName,
                   valueSetSetIndex ? Number(valueSetSetIndex) : star,
                   valueSetValueIndex ? Number(valueSetValueIndex) : star,
                 ]
               })
-              .filter(v => v && v.length === 4)
+              .filter(w => w && w.length === 4)
           }
           else if (attributeName === 'clssr' || attributeName === 'classRules') {
             sd.stylings['classes']['rules'] = partitionList(attributeValue
               .split(',')
-              .map(v => v.trim()), 2
+              .map(w => w.trim()), 2
             )
-              .map((v) => {
+              .map(w => {
 
-                if (v.length !== 2) {
-                  return v
+                if (w.length !== 2) {
+                  return w
                 }
 
-                const regexResult = v[1].match(`^${valueSetPattern}$`)
+                const regexResult = w[1].match(`^${valueSetPattern}$`)
 
                 if (!regexResult) {
                   return null
@@ -202,13 +202,13 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
                 ] = regexResult
 
                 return [
-                  v[0],
+                  w[0],
                   valueSetName === '*' ? star : valueSetName,
                   valueSetSetIndex ? Number(valueSetSetIndex) : star,
                   valueSetValueIndex ? Number(valueSetValueIndex) : star,
                 ]
               })
-              .filter(v => v && v.length === 4)
+              .filter(w => w && w.length === 4)
           }
 
           else if (attributeName === 'clrsci' || attributeName === 'colorsCollectiveIndexing') {
@@ -288,8 +288,8 @@ function processStyleApplications(originalStructure, styleDefinitions, namedSets
 
   originalStructure
     .flat()
-    .map(v => [...v, v[2].match(applyRegex)])
-    .filter(v => v[3])
+    .map(v => [v, v[2].match(applyRegex)])
+    .filter(v => v[1])
     .forEach(v => {
 
       const [
@@ -300,7 +300,7 @@ function processStyleApplications(originalStructure, styleDefinitions, namedSets
         relativePos,
         otherNamedSet,
         otherNamedSetPos,
-      ] = v[3]
+      ] = v[1]
 
       if (styleDefinitions.find(v => v.name === stylingName)) {
         const correspondingSets = getCorrespondingSets(
@@ -308,7 +308,7 @@ function processStyleApplications(originalStructure, styleDefinitions, namedSets
           namedSets,
           absolutePos,
           absolutePosFromEnd,
-          v[0],
+          v[0][0],
           relativePos,
           otherNamedSet,
           otherNamedSetPos,
@@ -339,8 +339,8 @@ function processStyleRules(originalStructure, styleDefinitions) {
   const styleRules = []
   originalStructure
     .flat()
-    .map(v => [...v, v[2].match(ruleRegex)])
-    .filter(v => v[3])
+    .map(v => [v, v[2].match(ruleRegex)])
+    .filter(v => v[1])
     .forEach(v => {
 
       const [
@@ -351,7 +351,7 @@ function processStyleRules(originalStructure, styleDefinitions) {
         valueSetSetStar,
         valueSetValueIndex,
         valueSetValueStar,
-      ] = v[3]
+      ] = v[1]
 
       if (styleDefinitions.find(v => v.name === stylingName)) {
 

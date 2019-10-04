@@ -5,24 +5,15 @@ import {
 } from './reorder'
 
 
-// TODO I think I can delete this
-function initializeNumberedSets(numberedSets) {
-  return numberedSets
-    .map(v => v.elements)
-    .map(u => u.map(w => [w[0], w[1], w[2], 'n']))
-}
-
 export function generateRandomization(
   numberedSets,
-  sharedElementsGroups,
+  namedSets,
 ) {
+  const elements = numberedSets.map(v => v.elements)
 
-  const elements     = initializeNumberedSets(numberedSets)
-  const elementsCopy = JSON.parse(JSON.stringify(elements))
-
-  const setReorders  = [
+  const setReorders = [
     reorderNumberedSets(numberedSets),
-    reorderSharedElementsGroups(sharedElementsGroups, numberedSets),
+    reorderNamedSets(namedSets, numberedSets),
   ].flat()
 
   return [elements, setReorders]
@@ -30,11 +21,11 @@ export function generateRandomization(
 
 export function shareOrder(
   setReorders,
-  sharedOrderGroups,
+  orderConstraints,
 ) {
   // modifies setReorders (!)
-  sharedOrderGroups
-    .forEach(sog => applySharedOrder(sog, setReorders))
+  orderConstraints
+    .forEach(orderConstraint => applyOrderConstraint(orderConstraint, setReorders))
 }
 
 export function adjustForSecondRandomization(orderConstraints, numberedSets, namedSets) {

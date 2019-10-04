@@ -5,6 +5,7 @@
     <meta name='viewport' content='width=device-width'>
     <title>anki-set-randomizer BACK</title>
     <link rel="stylesheet" type="text/css" href="style.css"/>
+    <script src='options.js'></script>
     <script src='anki-persistence.js'></script>
   </head>
 
@@ -20,36 +21,24 @@
 
 
 
-      4.03. Second randomization <br>
+      1.09 Generators: Evaluations <br>
 
-      Let's have the same question, as before, but show the answer in-place: <br>
+      You cannot only pick from value sets, but you can also evaluate value sets themselves. At this point it behaves more like Clozes. <br>
+      The name of the meta element is "$evaluate(count, valueset, uniqueness_constraint)". "evaluate" can be shortenend to "eval", or just "e". Both arguments, "count", and "uniqueness_constraint", are optional. <br>
 
-      Example: Connect countries with their respective capitals: <br>
+      Example: What's the capital of Germany: [[$c1:Berlin:starts with B::$eval(c1:1)]] <br>
 
-      Countries: [[$o(a)::$n!()::Italy::Ethiopia::India::New Zealand::Germany]] <br>
-      Capitals:  [[$o(a)::$n!()::Rome::Addis Ababa::New Delhi::Wellington::Berlin]] <br>
+      As you can see, it now shows the hint. Now try reversing... <br>
 
-      Or in list view: <br>
+      <hr>
 
-      [[$n(y)::$o(b, y)::Italy]]: [[$n!(z)::$o(b, z)::Rome]] <br>
-      [[$n(y)::Ethiopia]]:         [[$n(z)::Addis Ababa]] <br>
-      [[$n(y)::India]]:            [[$n(z)::New Delhi]] <br>
-      [[$n(y)::New Zealand]]:      [[$n(z)::Wellington]] <br>
-      [[$n(y)::Germany]]:          [[$n(z)::Berlin]] <br>
+      And now, it shows the answer: [[$eval(c1:0)]]! <br>
 
-      <br>
+      So in short, the evaluations are like reversed picks: instead of generating the element where the pick element used to be, it generates the element where the value set used to be! <br>
 
-      [[$o!(a)::$o!(b)]] Look at the backside and be amazed how conveniently short this is. <br>
+      And just like picks, evaluations also supports wildcards, counts, and uniqueness constraints: <br>
 
-      "$order!(a)" defines order sharing after the second randomization. I'll try to explain it succinctly: <br>
-      * While uncovering the frontside, you have two order-sharing sets, which are matched. <br>
-      * However before you even get to the see the frontside, the second randomization will kick in, and mix up the countries again. <br>
-      * Uncovering the backside will reveal a set which enables this in the second randomization set, which is why it the elements are automatically sorted. <br>
-
-      The same can also work in reverse. You'd need a field that only appears on the front: <br>
-      * This field contains the meta-element, to perform a second randomization of the capitals. <br>
-      * The backside of the card misses this field. Thus the capitals are not randomized a second time, and still fit the countries! <br>
-
+      [[$gr|alpha|beta|gamma|delta::$eval(4, gr:*, uc)]] <br>
 
 
 

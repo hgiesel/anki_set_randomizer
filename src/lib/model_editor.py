@@ -62,7 +62,9 @@ def update_model_template(model, settings):
         )
 
     with io.open(f'{dir_path}/../js/dist/back.js', mode='r', encoding='utf-8') as template_back:
-        js_back = template_back.read()
+        js_back =  BetterTemplate(template_back.read()).substitute(
+            options=json.dumps(settings['options'])
+        )
 
     with io.open(f'{dir_path}/../js/dist/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:
         anki_persistence = template_anki_persistence.read() + '\n'

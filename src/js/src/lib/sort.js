@@ -101,26 +101,34 @@ export function applySetReorder(srs, elems) {
   }
 }
 
-export function applyInheritedSetReorder(newReorders, inheritedNewReorders, structureMatches) {
+export function applyInheritedSetReorder(reorders, inheritedReorders, structureMatches) {
   const modifiedReorders = []
 
-  for (const reorder of newReorders) {
+  for (const reorder of reorders) {
     let match
 
-    // numbered sets
-    if (match = structureMatches.find(v => reorder.name === v.to)) {
-      modifiedReorders.push(inheritedNewReorders.find(v => v.name === match.from))
-    }
-
     // named sets
-    else if (match = inheritedNewReorders.find(v => reorder.name === v.name)) {
-
+    if ((typeof reorder.name === 'string') && (match = inheritedReorders.find(v => reorder.name === v.name))) {
       modifiedReorders.push({
         name: reorder.name,
         length: reorder.length,
         sets: reorder.sets,
         setLengths: reorder.setLengths,
         order: complementArrays(match.order, reorder.order),
+        lastMinute: reorder.lastMinute,
+      })
+    }
+
+    // numbered sets
+    else if (match = structureMatches.find(v => reorder.name === v.to)) {
+      const theReorder = inheritedReorders.find(v => v.name === match.from)
+
+      modifiedReorders.push({
+        name: reorder.name,
+        length: theReorder.length,
+        sets: theReorder.sets,
+        setLengths: theReorder.setLengths,
+        order: theReorder.order,
         lastMinute: reorder.lastMinute,
       })
     }
