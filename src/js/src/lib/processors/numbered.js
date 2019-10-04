@@ -47,6 +47,7 @@ function evalEvaluations(originalStructure) {
     `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
   )
 
+
   for (const elem of originalStructure.flat()) {
     let match
 
@@ -101,16 +102,16 @@ function evalValueSets(originalStructure, evaluators) {
 
     // value set shortcut
     if (match = elem[2].match(valueSetPattern)) {
+
       const valueSetName     = match[1]
       const isSelfEvaluating = match[2] === '!' ? true : false
 
       const values = match[4]
-        .split(new RegExp(`(?<!\\\\)\\${match[3]}`, 'g'))
-        .map(v => v
-          .replace(new RegExp(`\\${match[3]}`, 'g'), match[3])
-          .replace(newLinePattern, '<br/>')
-          .replace(catchPattern, (x) => x.slice(1))
-        )
+        .replace(`\\${match[3]}`, '%%sr%%ESCDELIM%%')
+        .replace(newLinePattern, '<br/>')
+        .replace(catchPattern, (x) => x.slice(1))
+        .split(match[3])
+        .map(v => v.replace('%%sr%%ESCDELIM%%', match[3]))
 
       const valueSetIndex = (valueSets[valueSetName] || (valueSets[valueSetName] = [])).push({
         name: valueSetName,
@@ -227,8 +228,6 @@ function evalValueSets(originalStructure, evaluators) {
 function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniquenessConstraints, prepicks) {
 
   const result = []
-  const generatedValues = []
-
   const lastMinutePattern = new RegExp(`^\\$(n|name)!\\(\\)$`)
 
   const intPattern       = '\\d+'
@@ -278,7 +277,7 @@ function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniqueness
         contentElements.push(...match[2].map(v => [match[0], match[1], v]))
 
         if (match[3]) {
-          generatedValues.push(...theElements)
+          prepicks.push(...theElements)
         }
       }
 
@@ -392,7 +391,6 @@ function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniqueness
                 else {
                   resultValue = generateValue(foundValueSubSet.name, vidx, valueSetValueIndex)
                 }
-
               }
 
               const theUc = uniquenessConstraints
@@ -415,16 +413,19 @@ function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniqueness
                 }
               }
 
-              if (resultValue && theUc) {
-                theUc.values.push(resultValue)
-              }
+              if (resultValue !== undefined && resultValue !== null) {
 
-              resultValues.push(resultValue)
+                if (theUc) {
+                  theUc.values.push(resultValue)
+                }
+
+                resultValues.push(resultValue)
+              }
             }
           }
 
           if (valueSetSetIndex === star || valueSetValueIndex === star) {
-            generatedValues.push([setIndex, elemIndex, resultValues])
+            prepicks.push([setIndex, elemIndex, resultValues])
           }
         }
 
@@ -443,10 +444,8 @@ function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniqueness
     })
   }
 
-  console.log(uniquenessConstraints)
-
   return [
     result,
-    generatedValues,
+    prepicks,
   ]
 }

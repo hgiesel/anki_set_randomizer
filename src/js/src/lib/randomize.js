@@ -1,7 +1,7 @@
 import {
   reorderNumberedSets,
-  reorderSharedElementsGroups,
-  applySharedOrder
+  reorderNamedSets,
+  applyOrderConstraint
 } from './reorder'
 
 
@@ -35,4 +35,15 @@ export function shareOrder(
   // modifies setReorders (!)
   sharedOrderGroups
     .forEach(sog => applySharedOrder(sog, setReorders))
+}
+
+export function adjustForSecondRandomization(orderConstraints, numberedSets, namedSets) {
+
+  const joinedSets = [numberedSets, namedSets].flat()
+
+  for (const oc of orderConstraints.filter(v => v.lastMinute)) {
+    for (const set of oc.sets) {
+      joinedSets.find(v => v.name === set).lastMinute = true
+    }
+  }
 }

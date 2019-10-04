@@ -7,7 +7,7 @@ import { terser } from 'rollup-plugin-terser';
 const production = !process.env.ROLLUP_WATCH;
 
 export default {
-  input: 'src/main-back.js',
+  input: 'src/back.js',
   output: {
     file: 'dist/back.js',
     format: 'iife', // immediately-invoked function expression — suitable for <script> tags

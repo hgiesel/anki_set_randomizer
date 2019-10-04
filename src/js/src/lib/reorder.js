@@ -13,11 +13,19 @@ function shuffle(array) {
   return array;
 }
 
-function detectOrderDictator(sog, setReorders) {
-  return sog.sets.map(v => ({
-    name: v,
-    length: setReorders.find(w => w.name === v).length
-  })).reduce((accu, v) => accu.length < v.length ? v : accu).name
+function detectOrderDictator(orderConstraint, setReorders) {
+
+  // alert(JSON.stringify(orderConstraint))
+  // alert(JSON.stringify(setReorders))
+
+  return orderConstraint
+    .sets
+    .map(v => ({
+      name: v,
+      length: setReorders.find(w => w.name === v).length
+    }))
+      .reduce((accu, v) => accu.length < v.length ? v : accu)
+      .name
 }
 
 export function reorderNumberedSets(numberedSets) {
@@ -31,8 +39,8 @@ export function reorderNumberedSets(numberedSets) {
   }))
 }
 
-export function reorderSharedElementsGroups(sharedElementsGroups, numberedSets) {
-  return sharedElementsGroups.map(v => {
+export function reorderNamedSets(namedSets, numberedSets) {
+  return namedSets.map(v => {
 
     const containedNumberedSets = v.sets
       .map(v => numberedSets.filter(u => u.name === v))
@@ -54,14 +62,14 @@ export function reorderSharedElementsGroups(sharedElementsGroups, numberedSets) 
   })
 }
 
-export function applySharedOrder(sog, setReorders) {
+export function applyOrderConstraint(orderConstraint, setReorders) {
 
-  const dictator = detectOrderDictator(sog, setReorders)
-  sog.dictator = dictator
+  const dictator = detectOrderDictator(orderConstraint, setReorders)
+  orderConstraint.dictator = dictator
 
-  const dictatorOrder = setReorders.find(v => v.name === sog.dictator).order
+  const dictatorOrder = setReorders.find(v => v.name === orderConstraint.dictator).order
 
-  for (const set of sog.sets) {
+  for (const set of orderConstraint.sets) {
 
     const oldOrder = setReorders.find(v => v.name === set).order
     const newOrder = dictatorOrder.filter(v => v < oldOrder.length)
@@ -70,7 +78,7 @@ export function applySharedOrder(sog, setReorders) {
     setReorders.forEach(v => {
       if (v.name === set) {
         v.order = newOrder
-        if (sog.lastMinute) {
+        if (orderConstraint.lastMinute) {
           v.lastMinute = true
         }
       }
@@ -79,4 +87,3 @@ export function applySharedOrder(sog, setReorders) {
 
   return setReorders
 }
-

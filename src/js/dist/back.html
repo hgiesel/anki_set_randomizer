@@ -5,7 +5,7 @@
     <meta name='viewport' content='width=device-width'>
     <title>anki-set-randomizer BACK</title>
     <link rel="stylesheet" type="text/css" href="style.css"/>
-    <!-- <script src='anki-persistence.js'></script> -->
+    <script src='anki-persistence.js'></script>
   </head>
 
   <body>
@@ -15,15 +15,42 @@
 
 
 
-      They can appear on the back side of the card as well: <br>
-      [[Bangkok::Beijing::Rome]] <br>
-      [[Ethiopia::Germany::USA]] <br>
-      0.02. First examples <br>
 
-      You can define however many sets you want: <br>
-      [[apple::banana::pear]] <br>
-      [[carrot::potato::sweet potato]] <br>
-      [[strawberry::blackberry::raspberry]] <br>
+
+
+
+
+      4.03. Second randomization <br>
+
+      Let's have the same question, as before, but show the answer in-place: <br>
+
+      Example: Connect countries with their respective capitals: <br>
+
+      Countries: [[$o(a)::$n!()::Italy::Ethiopia::India::New Zealand::Germany]] <br>
+      Capitals:  [[$o(a)::$n!()::Rome::Addis Ababa::New Delhi::Wellington::Berlin]] <br>
+
+      Or in list view: <br>
+
+      [[$n(y)::$o(b, y)::Italy]]: [[$n!(z)::$o(b, z)::Rome]] <br>
+      [[$n(y)::Ethiopia]]:         [[$n(z)::Addis Ababa]] <br>
+      [[$n(y)::India]]:            [[$n(z)::New Delhi]] <br>
+      [[$n(y)::New Zealand]]:      [[$n(z)::Wellington]] <br>
+      [[$n(y)::Germany]]:          [[$n(z)::Berlin]] <br>
+
+      <br>
+
+      [[$o!(a)::$o!(b)]] Look at the backside and be amazed how conveniently short this is. <br>
+
+      "$order!(a)" defines order sharing after the second randomization. I'll try to explain it succinctly: <br>
+      * While uncovering the frontside, you have two order-sharing sets, which are matched. <br>
+      * However before you even get to the see the frontside, the second randomization will kick in, and mix up the countries again. <br>
+      * Uncovering the backside will reveal a set which enables this in the second randomization set, which is why it the elements are automatically sorted. <br>
+
+      The same can also work in reverse. You'd need a field that only appears on the front: <br>
+      * This field contains the meta-element, to perform a second randomization of the capitals. <br>
+      * The backside of the card misses this field. Thus the capitals are not randomized a second time, and still fit the countries! <br>
+
+
 
 
 

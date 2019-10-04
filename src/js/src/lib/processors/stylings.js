@@ -27,8 +27,15 @@ function splitStylingDirectives(sd) {
   let m = splitRegex.exec(sd)
 
   while (m) {
-    console.log(m)
-    result.push([m[1], m[2] || m[3] || m[4] || m[5]])
+    const theValue = [
+      m[1],
+      m[2] !== undefined ? m[2] :
+      m[3] !== undefined ? m[3] :
+      m[4] !== undefined ? m[4] :
+      m[5] !== undefined ? m[5] : '',
+    ]
+
+    result.push(theValue)
     m = splitRegex.exec(sd)
   }
 
@@ -107,6 +114,7 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
           else if (attributeName === 'cd' || attributeName === 'closeDelim') {
             sd.stylings['closeDelim'] = attributeValue
           }
+
           else if (attributeName === 'fs' || attributeName === 'fieldSeparator') {
             sd.stylings['fieldSeparator'] = attributeValue
           }
@@ -115,6 +123,10 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
             if (value >= 0) {
               sd.stylings['fieldPadding'] = value
             }
+          }
+
+          else if (attributeName === 'es' || attributeName === 'emptySet') {
+            sd.stylings['emptySet'] = attributeValue
           }
 
           else if (attributeName === 'clrs' || attributeName === 'colors') {
@@ -303,7 +315,9 @@ function processStyleApplications(originalStructure, styleDefinitions, namedSets
         )
 
         correspondingSets
-          .forEach(set => styleApplications[set] = stylingName)
+          .forEach(set => {
+            styleApplications[set] = stylingName
+          })
       }
     })
 

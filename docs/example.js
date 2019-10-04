@@ -117,7 +117,7 @@
 
     let isValid     = true;
 
-    const elemDelim = '$$$$$D$E$L$I$M$$$$$';
+    const elemDelim = '%%sr%%ELEMDELIM%%';
 
     // a single big string with inserted elemDelims
     const _rawStructure = {};
@@ -300,11 +300,11 @@
 
         const theStyle = styleName
           ? styleDefinitions.find(v => v.name === styleName).stylings
-          : theDefaultStyle;
+          : {};
 
         const theRuleStyle = ruleStyleName
           ? styleDefinitions.find(v => v.name === ruleStyleName).stylings
-          : theDefaultStyle;
+          : {};
 
         const getProp = function(propName, propName2) {
 
@@ -317,7 +317,7 @@
 
             : theRuleStyle[propName] !== undefined && theRuleStyle[propName][propName2] !== undefined
               ? theRuleStyle[propName][propName2]
-              : theStyle[propName] === undefined || theStyle[propName][propName2] === undefined
+              : theStyle[propName] !== undefined && theStyle[propName][propName2] !== undefined
                 ? theStyle[propName][propName2]
                 : theDefaultStyle[propName][propName2];
 
@@ -511,120 +511,6 @@
       renderSets: renderSets,
       isValid: isValid,
     }
-  }
-
-  function shuffle(array) {
-    var currentIndex = array.length, temporaryValue, randomIndex;
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
-      // Pick a remaining element...
-      randomIndex   = Math.floor(Math.random() * currentIndex);
-      currentIndex -= 1;
-      // And swap it with the current element.
-      temporaryValue      = array[currentIndex];
-      array[currentIndex] = array[randomIndex];
-      array[randomIndex]  = temporaryValue;
-    }
-    return array;
-  }
-
-  function detectOrderDictator(sog, setReorders) {
-    return sog.sets.map(v => ({
-      name: v,
-      length: setReorders.find(w => w.name === v).length
-    })).reduce((accu, v) => accu.length < v.length ? v : accu).name
-  }
-
-  function reorderNumberedSets(numberedSets) {
-    return numberedSets.map(v => ({
-      name: v.name,
-      length: v.elements.length,
-      sets: [v.name],
-      setLengths: [v.elements.length],
-      order: shuffle([...new Array(v.elements.length).keys()]),
-      lastMinute: v.lastMinute,
-    }))
-  }
-
-  function reorderSharedElementsGroups(sharedElementsGroups, numberedSets) {
-    return sharedElementsGroups.map(v => {
-
-      const containedNumberedSets = v.sets
-        .map(v => numberedSets.filter(u => u.name === v));
-
-      const setLengths = containedNumberedSets
-        .map(v => v[0].elements.length);
-
-      const elementCount = setLengths
-        .reduce((accu, w) => accu + w, 0);
-
-      return {
-        name: v.name,
-        length: elementCount,
-        sets: v.sets,
-        setLengths: setLengths,
-        order: shuffle([...new Array(elementCount).keys()]),
-        lastMinute: v.lastMinute,
-      }
-    })
-  }
-
-  function applySharedOrder(sog, setReorders) {
-
-    const dictator = detectOrderDictator(sog, setReorders);
-    sog.dictator = dictator;
-
-    const dictatorOrder = setReorders.find(v => v.name === sog.dictator).order;
-
-    for (const set of sog.sets) {
-
-      const oldOrder = setReorders.find(v => v.name === set).order;
-      const newOrder = dictatorOrder.filter(v => v < oldOrder.length);
-
-      // modifies setReorders
-      setReorders.forEach(v => {
-        if (v.name === set) {
-          v.order = newOrder;
-          if (sog.lastMinute) {
-            v.lastMinute = true;
-          }
-        }
-      });
-    }
-
-    return setReorders
-  }
-
-  // TODO I think I can delete this
-  function initializeNumberedSets(numberedSets) {
-    return numberedSets
-      .map(v => v.elements)
-      .map(u => u.map(w => [w[0], w[1], w[2], 'n']))
-  }
-
-  function generateRandomization(
-    numberedSets,
-    sharedElementsGroups,
-  ) {
-
-    const elements     = initializeNumberedSets(numberedSets);
-    const elementsCopy = JSON.parse(JSON.stringify(elements));
-
-    const setReorders  = [
-      reorderNumberedSets(numberedSets),
-      reorderSharedElementsGroups(sharedElementsGroups, numberedSets),
-    ].flat();
-
-    return [elements, setReorders]
-  }
-
-  function shareOrder(
-    setReorders,
-    sharedOrderGroups,
-  ) {
-    // modifies setReorders (!)
-    sharedOrderGroups
-      .forEach(sog => applySharedOrder(sog, setReorders));
   }
 
   // modifies in-place (!)
@@ -909,6 +795,7 @@
       `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
     );
 
+
     for (const elem of originalStructure.flat()) {
       let match;
 
@@ -957,16 +844,16 @@
 
       // value set shortcut
       if (match = elem[2].match(valueSetPattern)) {
+
         const valueSetName     = match[1];
         const isSelfEvaluating = match[2] === '!' ? true : false;
 
         const values = match[4]
-          .split(new RegExp(`(?<!\\\\)\\${match[3]}`, 'g'))
-          .map(v => v
-            .replace(new RegExp(`\\${match[3]}`, 'g'), match[3])
-            .replace(newLinePattern, '<br/>')
-            .replace(catchPattern, (x) => x.slice(1))
-          );
+          .replace(`\\${match[3]}`, '%%sr%%ESCDELIM%%')
+          .replace(newLinePattern, '<br/>')
+          .replace(catchPattern, (x) => x.slice(1))
+          .split(match[3])
+          .map(v => v.replace('%%sr%%ESCDELIM%%', match[3]));
 
         const valueSetIndex = (valueSets[valueSetName] || (valueSets[valueSetName] = [])).push({
           name: valueSetName,
@@ -1083,8 +970,6 @@
   function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniquenessConstraints, prepicks) {
 
     const result = [];
-    const generatedValues = [];
-
     const lastMinutePattern = new RegExp(`^\\$(n|name)!\\(\\)$`);
 
     const intPattern       = '\\d+';
@@ -1134,7 +1019,7 @@
           contentElements.push(...match[2].map(v => [match[0], match[1], v]));
 
           if (match[3]) {
-            generatedValues.push(...theElements);
+            prepicks.push(...theElements);
           }
         }
 
@@ -1248,7 +1133,6 @@
                   else {
                     resultValue = generateValue(foundValueSubSet.name, vidx, valueSetValueIndex);
                   }
-
                 }
 
                 const theUc = uniquenessConstraints
@@ -1271,16 +1155,19 @@
                   }
                 }
 
-                if (resultValue && theUc) {
-                  theUc.values.push(resultValue);
-                }
+                if (resultValue !== undefined && resultValue !== null) {
 
-                resultValues.push(resultValue);
+                  if (theUc) {
+                    theUc.values.push(resultValue);
+                  }
+
+                  resultValues.push(resultValue);
+                }
               }
             }
 
             if (valueSetSetIndex === star || valueSetValueIndex === star) {
-              generatedValues.push([setIndex, elemIndex, resultValues]);
+              prepicks.push([setIndex, elemIndex, resultValues]);
             }
           }
 
@@ -1299,15 +1186,13 @@
       });
     }
 
-    console.log(uniquenessConstraints);
-
     return [
       result,
-      generatedValues,
+      prepicks,
     ]
   }
 
-  function processSharedElementsGroups(originalStructure) {
+  function processNamedSets(originalStructure) {
 
     const namedSetPattern = new RegExp(
       `\\$(?:name|n)(!)?` +
@@ -1323,7 +1208,7 @@
       `\\)$`
     );
 
-    const sharedElementsGroups = [];
+    const namedSets = [];
 
     originalStructure
       .flat()
@@ -1350,7 +1235,7 @@
 
         const correspondingSets = getCorrespondingSets(
           originalStructure,
-          sharedElementsGroups,
+          namedSets,
           absolutePos,
           absolutePosFromEnd,
           v[0],
@@ -1359,33 +1244,33 @@
           otherNamedSetPos,
         );
 
-        let theSeg = sharedElementsGroups.find(v => v.name === name);
+        let theNs = namedSets.find(v => v.name === name);
 
-        if (!theSeg) {
-          const idx = sharedElementsGroups.push({
+        if (!theNs) {
+          const idx = namedSets.push({
             name: name,
             lastMinute: false,
             sets: []
           });
 
-          theSeg = sharedElementsGroups[idx - 1];
+          theNs = namedSets[idx - 1];
         }
 
-        theSeg.sets.push(...correspondingSets);
-        theSeg.sets.sort();
+        theNs.sets.push(...correspondingSets);
+        theNs.sets.sort();
 
         if (isLastMinute) {
-          theSeg.lastMinute = true;
+          theNs.lastMinute = true;
         }
       });
 
-    return sharedElementsGroups
+    return namedSets
   }
 
-  function processSharedOrderGroups(originalStructure, namedSets) {
-    const sharedOrderGroups = [];
+  function processOrderConstraints(originalStructure, namedSets) {
+    const orderConstraints = [];
 
-    const sharedOrderPattern = new RegExp(
+    const orderConstraintPattern = new RegExp(
       `\\$(?:order|ord|o)(!)?` +
       `\\(` +
       `(${namePattern})` +
@@ -1401,7 +1286,7 @@
 
     originalStructure
       .flat()
-      .map(v => [...v, v[2].match(sharedOrderPattern)])
+      .map(v => [...v, v[2].match(orderConstraintPattern)])
       .filter(v => v[3])
       .forEach(v => {
         const [
@@ -1428,28 +1313,28 @@
             otherNamedSetPos,
           );
 
-        let theSog = sharedOrderGroups.find(v => v.name === name);
+        let theOc = orderConstraints.find(v => v.name === name);
 
-        if (!theSog) {
-          const idx = sharedOrderGroups.push({
+        if (!theOc) {
+          const idx = orderConstraints.push({
             name: name,
             lastMinute: false,
             sets: [],
             dictator: false, // will be determined at a later stage
           });
 
-          theSog = sharedOrderGroups[idx - 1];
+          theOc = orderConstraints[idx - 1];
         }
 
-        theSog.sets.push(...correspondingSets);
-        theSog.sets.sort();
+        theOc.sets.push(...correspondingSets);
+        theOc.sets.sort();
 
         if (isLastMinute) {
-          theSog.lastMinute = true;
+          theOc.lastMinute = true;
         }
       });
 
-    return sharedOrderGroups
+    return orderConstraints
   }
 
   const valueSetPattern = `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)`;
@@ -1473,8 +1358,15 @@
     let m = splitRegex.exec(sd);
 
     while (m) {
-      console.log(m);
-      result.push([m[1], m[2] || m[3] || m[4] || m[5]]);
+      const theValue = [
+        m[1],
+        m[2] !== undefined ? m[2] :
+        m[3] !== undefined ? m[3] :
+        m[4] !== undefined ? m[4] :
+        m[5] !== undefined ? m[5] : '',
+      ];
+
+      result.push(theValue);
       m = splitRegex.exec(sd);
     }
 
@@ -1553,6 +1445,7 @@
             else if (attributeName === 'cd' || attributeName === 'closeDelim') {
               sd.stylings['closeDelim'] = attributeValue;
             }
+
             else if (attributeName === 'fs' || attributeName === 'fieldSeparator') {
               sd.stylings['fieldSeparator'] = attributeValue;
             }
@@ -1561,6 +1454,10 @@
               if (value >= 0) {
                 sd.stylings['fieldPadding'] = value;
               }
+            }
+
+            else if (attributeName === 'es' || attributeName === 'emptySet') {
+              sd.stylings['emptySet'] = attributeValue;
             }
 
             else if (attributeName === 'clrs' || attributeName === 'colors') {
@@ -1749,7 +1646,9 @@
           );
 
           correspondingSets
-            .forEach(set => styleApplications[set] = stylingName);
+            .forEach(set => {
+              styleApplications[set] = stylingName;
+            });
         }
       });
 
@@ -2003,6 +1902,75 @@
     }
   };
 
+  function shuffle(array) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+      // Pick a remaining element...
+      randomIndex   = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+      // And swap it with the current element.
+      temporaryValue      = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex]  = temporaryValue;
+    }
+    return array;
+  }
+
+  function reorderNumberedSets(numberedSets) {
+    return numberedSets.map(v => ({
+      name: v.name,
+      length: v.elements.length,
+      sets: [v.name],
+      setLengths: [v.elements.length],
+      order: shuffle([...new Array(v.elements.length).keys()]),
+      lastMinute: v.lastMinute,
+    }))
+  }
+
+  // TODO I think I can delete this
+  function initializeNumberedSets(numberedSets) {
+    return numberedSets
+      .map(v => v.elements)
+      .map(u => u.map(w => [w[0], w[1], w[2], 'n']))
+  }
+
+  function generateRandomization(
+    numberedSets,
+    sharedElementsGroups,
+  ) {
+
+    const elements     = initializeNumberedSets(numberedSets);
+    const elementsCopy = JSON.parse(JSON.stringify(elements));
+
+    const setReorders  = [
+      reorderNumberedSets(numberedSets),
+      reorderSharedElementsGroups(sharedElementsGroups, numberedSets),
+    ].flat();
+
+    return [elements, setReorders]
+  }
+
+  function shareOrder(
+    setReorders,
+    sharedOrderGroups,
+  ) {
+    // modifies setReorders (!)
+    sharedOrderGroups
+      .forEach(sog => applySharedOrder(sog, setReorders));
+  }
+
+  function adjustForSecondRandomization(orderConstraints, numberedSets, namedSets) {
+
+    const joinedSets = [numberedSets, namedSets].flat();
+
+    for (const oc of orderConstraints.filter(v => v.lastMinute)) {
+      for (const set of oc.sets) {
+        joinedSets.find(v => v.name === set).lastMinute = true;
+      }
+    }
+  }
+
   function compareArrays(array, otherArray) {
     if (!otherArray || array.length !== otherArray.length) {
       return false
@@ -2121,16 +2089,21 @@
         ),
       );
 
-      const segs     = processSharedElementsGroups(originalStructure);
-      const sogs     = processSharedOrderGroups(originalStructure, segs);
-      const commands = processCommands(originalStructure, numberedSets, segs);
+      const namedSets        = processNamedSets(originalStructure);
+      const orderConstraints = processOrderConstraints(originalStructure, namedSets);
+
+      // modifies numberedSets and namedSets
+      adjustForSecondRandomization(orderConstraints, numberedSets, namedSets);
+
+      const commands = processCommands(originalStructure, numberedSets, namedSets);
+
       const [
         styleDefinitions,
         styleAssignments,
         styleRules,
-      ] = processRenderDirectives(originalStructure, defaultStyle, segs);
+      ] = processRenderDirectives(originalStructure, defaultStyle, namedSets);
 
-      const [elements, reordersAlpha] = generateRandomization(numberedSets, segs);
+      const [elements, reordersAlpha] = generateRandomization(numberedSets, namedSets);
 
       const reorders = applyInheritedSetReorder(
         reordersAlpha,
@@ -2138,7 +2111,7 @@
         structureMatches,
       );
 
-      applyModifications(reorders, elements, sogs, commands);
+      applyModifications(reorders, elements, orderConstraints, commands);
 
       //////////////////////////////////////////////////////////////////////////////
       // SECOND RANDOMIZATION
@@ -2154,7 +2127,7 @@
             elements: v.elements,
             lastMinute: numberedSets[i].lastMinute
           })),
-        segs,
+        namedSets,
       );
 
       const reordersSecond = applyInheritedSetReorder(
@@ -2163,10 +2136,12 @@
         structureMatches,
       );
 
+      alert(JSON.stringify(reordersSecond));
+
       applyModifications(
         reordersSecond.filter(v => v.lastMinute),
         elementsSecond,
-        sogs.filter(v => v.lastMinute),
+        orderConstraints.filter(v => v.lastMinute),
         [],
       );
 
@@ -2204,41 +2179,43 @@
   }
 
   // numbered are sorted 0 -> n, then named are in order of appearance
-  function applyModifications(reorders, elements, sogs, commands) {
+  function applyModifications(reorders, elements, orderConstraints, commands) {
 
     // modifies reorders
-    shareOrder(reorders, sogs);
+    shareOrder(reorders, orderConstraints);
 
     // both modify elements
     applySetReorder(reorders, elements);
     applyCommands(commands, elements);
   }
 
+  const options = $$options;
+
   // document.addEventListener("DOMContentLoaded", function() {
   if (window.Persistence && Persistence.isAvailable() &&
      (document.querySelector('div#qa') === null ||
        !(new RegExp('// \S\E\T RANDOMIZER BACK TEMPLATE'))
        .test(document.querySelector('div#qa').innerHTML))) {
-    mainFront();
+    mainFront(options);
   }
   else {
     createWarning();
+    mainFrontWithoutSaving(options);
   }
   // })
 
   function getNullData() {
     return [
       [/* originalStructure */],
-      [/* generatorValues */],
+      [/* generatedValues */],
       [/* reorders */],
       [/* reordersSecond */],
       {/* randomIndices */},
     ]
   }
 
-  function mainFront() {
 
-    const options = $$options;
+  function mainFront(options) {
 
     const theSaveData = options
       .reduce((accu, v) => {
@@ -2264,6 +2241,10 @@
       ])[0];
 
     saveData(theSaveData);
+  }
+
+  function mainFrontWithoutSaving(options) {
+    options.map(v => main(true, v.inputSyntax, v.defaultStyle, ...getNullData()));
   }
 
 }());

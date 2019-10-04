@@ -1,10 +1,6 @@
 import formatter from './lib/formatter.js'
 
 import {
-  shareOrder,
-} from './lib/randomize.js'
-
-import {
   applySetReorder,
   applyCommands,
   applyInheritedSetReorder,
@@ -15,8 +11,8 @@ import {
 } from './lib/processors/numbered.js'
 
 import {
-  processSharedElementsGroups,
-  processSharedOrderGroups,
+  processNamedSets,
+  processOrderConstraints,
 } from './lib/processors/randomization.js'
 
 import {
@@ -28,7 +24,9 @@ import {
 } from './lib/processors/commands.js'
 
 import {
+  shareOrder,
   generateRandomization,
+  adjustForSecondRandomization,
 } from './lib/randomize.js'
 
 import {
@@ -71,16 +69,21 @@ export function main(
       ),
     )
 
-    const segs     = processSharedElementsGroups(originalStructure)
-    const sogs     = processSharedOrderGroups(originalStructure, segs)
-    const commands = processCommands(originalStructure, numberedSets, segs)
+    const namedSets        = processNamedSets(originalStructure)
+    const orderConstraints = processOrderConstraints(originalStructure, namedSets)
+
+    // modifies numberedSets and namedSets
+    adjustForSecondRandomization(orderConstraints, numberedSets, namedSets)
+
+    const commands = processCommands(originalStructure, numberedSets, namedSets)
+
     const [
       styleDefinitions,
       styleAssignments,
       styleRules,
-    ] = processRenderDirectives(originalStructure, defaultStyle, segs)
+    ] = processRenderDirectives(originalStructure, defaultStyle, namedSets)
 
-    const [elements, reordersAlpha] = generateRandomization(numberedSets, segs)
+    const [elements, reordersAlpha] = generateRandomization(numberedSets, namedSets)
 
     const reorders = applyInheritedSetReorder(
       reordersAlpha,
@@ -88,7 +91,7 @@ export function main(
       structureMatches,
     )
 
-    applyModifications(reorders, elements, sogs, commands)
+    applyModifications(reorders, elements, orderConstraints, commands)
 
     //////////////////////////////////////////////////////////////////////////////
     // SECOND RANDOMIZATION
@@ -104,7 +107,7 @@ export function main(
           elements: v.elements,
           lastMinute: numberedSets[i].lastMinute
         })),
-      segs,
+      namedSets,
     )
 
     const reordersSecond = applyInheritedSetReorder(
@@ -113,10 +116,12 @@ export function main(
       structureMatches,
     )
 
+    alert(JSON.stringify(reordersSecond))
+
     applyModifications(
       reordersSecond.filter(v => v.lastMinute),
       elementsSecond,
-      sogs.filter(v => v.lastMinute),
+      orderConstraints.filter(v => v.lastMinute),
       [],
     )
 
@@ -154,10 +159,10 @@ export function main(
 }
 
 // numbered are sorted 0 -> n, then named are in order of appearance
-function applyModifications(reorders, elements, sogs, commands) {
+function applyModifications(reorders, elements, orderConstraints, commands) {
 
   // modifies reorders
-  shareOrder(reorders, sogs)
+  shareOrder(reorders, orderConstraints)
 
   // both modify elements
   applySetReorder(reorders, elements)

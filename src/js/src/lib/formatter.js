@@ -30,7 +30,7 @@ export default function formatter(inputSyntax) {
   let isValid     = true
   let isContained = false
 
-  const elemDelim = '$$$$$D$E$L$I$M$$$$$'
+  const elemDelim = '%%sr%%ELEMDELIM%%'
 
   // a single big string with inserted elemDelims
   const _rawStructure = {}
@@ -220,11 +220,11 @@ export default function formatter(inputSyntax) {
 
       const theStyle = styleName
         ? styleDefinitions.find(v => v.name === styleName).stylings
-        : theDefaultStyle
+        : {}
 
       const theRuleStyle = ruleStyleName
         ? styleDefinitions.find(v => v.name === ruleStyleName).stylings
-        : theDefaultStyle
+        : {}
 
       const getProp = function(propName, propName2) {
 
@@ -237,7 +237,7 @@ export default function formatter(inputSyntax) {
 
           : theRuleStyle[propName] !== undefined && theRuleStyle[propName][propName2] !== undefined
             ? theRuleStyle[propName][propName2]
-            : theStyle[propName] === undefined || theStyle[propName][propName2] === undefined
+            : theStyle[propName] !== undefined && theStyle[propName][propName2] !== undefined
               ? theStyle[propName][propName2]
               : theDefaultStyle[propName][propName2]
 

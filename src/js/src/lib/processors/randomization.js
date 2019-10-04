@@ -3,7 +3,7 @@ import {
   getCorrespondingSets,
 } from './util.js'
 
-export function processSharedElementsGroups(originalStructure) {
+export function processNamedSets(originalStructure) {
 
   const namedSetPattern = new RegExp(
     `\\$(?:name|n)(!)?` +
@@ -19,7 +19,7 @@ export function processSharedElementsGroups(originalStructure) {
     `\\)$`
   )
 
-  const sharedElementsGroups = []
+  const namedSets = []
 
   originalStructure
     .flat()
@@ -46,7 +46,7 @@ export function processSharedElementsGroups(originalStructure) {
 
       const correspondingSets = getCorrespondingSets(
         originalStructure,
-        sharedElementsGroups,
+        namedSets,
         absolutePos,
         absolutePosFromEnd,
         v[0],
@@ -55,33 +55,33 @@ export function processSharedElementsGroups(originalStructure) {
         otherNamedSetPos,
       )
 
-      let theSeg = sharedElementsGroups.find(v => v.name === name)
+      let theNs = namedSets.find(v => v.name === name)
 
-      if (!theSeg) {
-        const idx = sharedElementsGroups.push({
+      if (!theNs) {
+        const idx = namedSets.push({
           name: name,
           lastMinute: false,
           sets: []
         })
 
-        theSeg = sharedElementsGroups[idx - 1]
+        theNs = namedSets[idx - 1]
       }
 
-      theSeg.sets.push(...correspondingSets)
-      theSeg.sets.sort()
+      theNs.sets.push(...correspondingSets)
+      theNs.sets.sort()
 
       if (isLastMinute) {
-        theSeg.lastMinute = true
+        theNs.lastMinute = true
       }
     })
 
-  return sharedElementsGroups
+  return namedSets
 }
 
-export function processSharedOrderGroups(originalStructure, namedSets) {
-  const sharedOrderGroups = []
+export function processOrderConstraints(originalStructure, namedSets) {
+  const orderConstraints = []
 
-  const sharedOrderPattern = new RegExp(
+  const orderConstraintPattern = new RegExp(
     `\\$(?:order|ord|o)(!)?` +
     `\\(` +
     `(${namePattern})` +
@@ -97,7 +97,7 @@ export function processSharedOrderGroups(originalStructure, namedSets) {
 
   originalStructure
     .flat()
-    .map(v => [...v, v[2].match(sharedOrderPattern)])
+    .map(v => [...v, v[2].match(orderConstraintPattern)])
     .filter(v => v[3])
     .forEach(v => {
       const [
@@ -124,26 +124,26 @@ export function processSharedOrderGroups(originalStructure, namedSets) {
           otherNamedSetPos,
         )
 
-      let theSog = sharedOrderGroups.find(v => v.name === name)
+      let theOc = orderConstraints.find(v => v.name === name)
 
-      if (!theSog) {
-        const idx = sharedOrderGroups.push({
+      if (!theOc) {
+        const idx = orderConstraints.push({
           name: name,
           lastMinute: false,
           sets: [],
           dictator: false, // will be determined at a later stage
         })
 
-        theSog = sharedOrderGroups[idx - 1]
+        theOc = orderConstraints[idx - 1]
       }
 
-      theSog.sets.push(...correspondingSets)
-      theSog.sets.sort()
+      theOc.sets.push(...correspondingSets)
+      theOc.sets.sort()
 
       if (isLastMinute) {
-        theSog.lastMinute = true
+        theOc.lastMinute = true
       }
     })
 
-  return sharedOrderGroups
+  return orderConstraints
 }
