@@ -1,3 +1,7 @@
+import {
+  compareArrays,
+} from './util.js'
+
 // modifies in-place (!)
 function rotate(arr, count) {
   count -= arr.length * Math.floor(count / arr.length)
@@ -78,11 +82,14 @@ export function applySetReorder(srs, elems) {
 
     const alreadySorted = appliedSrs
       .reduce(
-        (accu, v) => accu || sr.sets.every(srv => v.includes(srv)),
+        (accu, v) => accu || sr.sets.every(srv => {
+          return v.some(v => compareArrays(v, srv))
+        }),
         false
       )
 
     if (!alreadySorted) {
+
       const flatSaveElems = sr
         .sets
         .map(v => elems[v[1]])
@@ -105,10 +112,11 @@ export function applyInheritedSetReorder(reorders, inheritedReorders, structureM
   const modifiedReorders = []
 
   for (const reorder of reorders) {
-    let match
+    let match, reorderInherited
 
     // named sets
     if ((typeof reorder.name === 'string') && (match = inheritedReorders.find(v => reorder.name === v.name))) {
+
       modifiedReorders.push({
         iter: reorder.iter,
         name: reorder.name,
@@ -121,16 +129,17 @@ export function applyInheritedSetReorder(reorders, inheritedReorders, structureM
     }
 
     // numbered sets
-    else if (match = structureMatches.find(v => reorder.iter === v.to[0] && reorder.name === v.to[1])) {
-      const theReorder = inheritedReorders.find(v => v.iter === match.from[0] && v.name === match.from[1])
-
+    else if (
+      (match = structureMatches.find(m => reorder.iter === m.to[0] && reorder.name === m.to[1])) &&
+      (reorderInherited = inheritedReorders.find(reo => reo.iter === match.from[0] && reo.name === match.from[1]))
+    ) {
       modifiedReorders.push({
         iter: reorder.iter,
         name: reorder.name,
-        length: theReorder.length,
-        sets: theReorder.sets,
-        setLengths: theReorder.setLengths,
-        order: theReorder.order,
+        length: reorder.length,
+        sets: reorder.sets,
+        setLengths: reorder.setLengths,
+        order: reorderInherited.order,
         lastMinute: reorder.lastMinute,
       })
     }
@@ -219,13 +228,17 @@ function applyCommand(cmd, elems) {
   // .splice(n, 0) : does nothing
   // .splice(bigger_than_arr, m) : does nothing
   capturedElements
-    .forEach(v => v.splice(3, 1, 'c'))
+    .forEach(v => v.splice(4, 1, 'c'))
 
-  // insert commands to new position
+  // insert elements to new position
   if ((cmdName === 'c' || cmdName === 'm') && capturedElements.length > 0) {
 
     let elemCount   = contentElementCount
     let thePosition = 0
+
+    thePosition += elems[toSet]
+      .slice(thePosition)
+      .findIndex(v => v[4] === 'n' || v[4] === 'd')
 
     while (elemCount > 0) {
       thePosition += elems[toSet]
@@ -233,6 +246,10 @@ function applyCommand(cmd, elems) {
         .findIndex(v => v[4] === 'n' || v[4] === 'd')
       thePosition++
       elemCount--
+    }
+
+    if (thePosition === -1) {
+      thePosition = elems[toSet].length
     }
 
     // modifies elems

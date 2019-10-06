@@ -49,7 +49,6 @@ export function main(options, saveDataOld, frontside) {
       ...accu,
     ), saveDataOld)
 
-  console.log('saveData', saveData)
   return saveData
 }
 
@@ -145,6 +144,7 @@ function main2(
       [],
       reordersSecondInherited,
       structureMatches,
+      true,
     )
 
     //////////////////////////////////////////////////////////////////////////////
@@ -183,12 +183,16 @@ function main2(
 }
 
 // numbered are sorted 0 -> n, then named are in order of appearance
-function applyModifications(numberedSets, namedSets, orderConstraints, commands, reordersInherited, structureMatches) {
+function applyModifications(numberedSets, namedSets, orderConstraints, commands, reordersInherited, structureMatches, lastMinute=false) {
 
   const [elements, reordersAlpha] = generateRandomization(numberedSets, namedSets)
 
+  const reordersBeta = !lastMinute
+    ? reordersAlpha
+    : reordersAlpha.filter(v => v.lastMinute)
+
   const reorders = applyInheritedSetReorder(
-    reordersAlpha,
+    reordersBeta,
     reordersInherited,
     structureMatches,
   )

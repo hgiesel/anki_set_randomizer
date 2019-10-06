@@ -68,8 +68,6 @@ export function applyOrderConstraint(orderConstraint, setReorders) {
 
   const dictatorOrder = setReorders.find(v => v.name === orderConstraint.dictator).order
 
-  console.log('oc', orderConstraint)
-
   for (const set of orderConstraint.sets) {
 
     const oldOrder = setReorders.find(v => v.name === set).order

@@ -1,23 +1,6 @@
-function compareArrays(array, otherArray) {
-  if (!otherArray || array.length !== otherArray.length) {
-    return false
-  }
-
-  for (let i = 0, l = array.length; i < l; i++) {
-    // Check if we have nested arrays
-    if (array[i] instanceof Array && otherArray[i] instanceof Array) {
-      // recurse into the nested arrays
-      if (!compareArrays(array[i], otherArray[i])) {
-        return false
-      }
-    }
-    else if (array[i] != otherArray[i]) {
-      // Warning - two different object instances will never be equal: {x:20} != {x:20}
-      return false
-    }
-  }
-  return true
-}
+import {
+  compareArrays,
+} from './util.js'
 
 export function matchStructures(elementsOriginal, elementsInherited) {
   const result = []
@@ -26,11 +9,13 @@ export function matchStructures(elementsOriginal, elementsInherited) {
 
     let match
     if (match = elementsOriginal.find(set =>
-      compareArrays(set.map(v => v[2]), setInherited.map(v => v[2]))
+      compareArrays(set.map(v => v[3]), setInherited.map(v => v[3]))
       // Don't make n-to-m mappings, only 1-to-1:
       && !result.find(v => v.to[0] === set[0][0] && v.to[1] === set[0][1])
     )) {
 
+      // inherited set moved FROM position TO new position
+      // used to be found at FROM position, but now is found at TO position
       result.push({
         from: setInherited[0].slice(0, 2),
         to: match[0].slice(0, 2),
@@ -53,7 +38,8 @@ export function matchGeneratedValues(structureMatches, generatedValues) {
     }
   }
 
-  return result
+  // return original generatedValues + rematchings
+  return generatedValues.concat(result)
 }
 
 // important for collective color indexing

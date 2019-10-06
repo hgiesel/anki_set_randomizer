@@ -20,7 +20,7 @@ function generateValue(name, subsetIndex, valueIndex) {
 export function processNumberedSets(
   elements,
   generatedValues,
-  uniquenessConstraints0,
+  uniquenessConstraints,
   iterIndexCurr,
   lastMinutes=[],
 ) {
@@ -32,17 +32,13 @@ export function processNumberedSets(
   const [
     valueSets,
     valueSetEvaluations,
-    uniquenessConstraints1,
-  ] = evalValueSets(elements, evaluators, uniquenessConstraints0)
-
-  console.log('vse', valueSetEvaluations)
+  ] = evalValueSets(elements, evaluators, uniquenessConstraints, generatedValues)
 
   const [
     result,
-    uniquenessConstraints2,
-  ] = evalPicks(elements, valueSets, valueSetEvaluations, uniquenessConstraints1, generatedValues, iterIndexCurr, lastMinutes)
+  ] = evalPicks(elements, valueSets, valueSetEvaluations, uniquenessConstraints, generatedValues, iterIndexCurr, lastMinutes)
 
-  return [result, generatedValues, uniquenessConstraints2, valueSets]
+  return [result, generatedValues, uniquenessConstraints, valueSets]
 }
 
 function evalEvaluations(elements) {
@@ -86,7 +82,7 @@ function evalEvaluations(elements) {
   ]
 }
 
-function evalValueSets(elements, evaluators, uniquenessConstraints) {
+function evalValueSets(elements, evaluators, uniquenessConstraints, generatedValues) {
   const valueSets = {}
   const valueSetEvaluations = []
 
@@ -148,63 +144,77 @@ function evalValueSets(elements, evaluators, uniquenessConstraints) {
       let wasStar
 
       if (foundEvaluator) {
+
         wasStar = foundEvaluator[2] === star ? true : false
 
-        for (let i = 0; i < foundEvaluator[3]; i++) {
+        let pregen
+        if (pregen = generatedValues
+          .find(gv => gv[1] === setIndex && gv[2] === elemIndex)) {
 
-          let theValue = generateValue(
-            valueSetName,
-            valueSetIndex,
-            foundEvaluator[2] !== star ? foundEvaluator[2] : Math.floor(Math.random() * values.length),
-          )
+          resolvedValues.push(...pregen[3])
 
-          const uniquenessConstraintName = foundEvaluator[4]
+          /* does not need to inherited again */
+          wasStar = false
+        }
 
-          if (uniquenessConstraintName) {
+        else {
 
-            if (!uniquenessConstraints.find(v => v.name === uniquenessConstraintName)) {
-              uniquenessConstraints.push({
-                name: uniquenessConstraintName,
-                values: []
-              })
-            }
+          for (let i = 0; i < foundEvaluator[3]; i++) {
 
-            let countIdx = 0
-            const countIdxMax = 1000
+            let theValue = generateValue(
+              valueSetName,
+              valueSetIndex,
+              foundEvaluator[2] !== star ? foundEvaluator[2] : Math.floor(Math.random() * values.length),
+            )
 
-            const uc = uniquenessConstraints
-              .find(v => v.name === uniquenessConstraintName)
-              .values
+            const uniquenessConstraintName = foundEvaluator[4]
 
-            while (uc.includes(theValue) && countIdx < countIdxMax) {
+            if (uniquenessConstraintName) {
 
-              theValue = generateValue(
-                valueSetName,
-                valueSetIndex,
-                Math.floor(Math.random() * values.length),
-              )
-
-              if (foundEvaluator[2] !== star) {
-                countIdx = countIdxMax
+              if (!uniquenessConstraints.find(v => v.name === uniquenessConstraintName)) {
+                uniquenessConstraints.push({
+                  name: uniquenessConstraintName,
+                  values: []
+                })
               }
-              else {
-                countIdx++
-              }
-            }
 
-            if (countIdx === countIdxMax) {
-              theValue = null
-            }
-            else {
-              uniquenessConstraints
+              let countIdx = 0
+              const countIdxMax = 1000
+
+              const uc = uniquenessConstraints
                 .find(v => v.name === uniquenessConstraintName)
                 .values
-                .push(theValue)
-            }
-          }
 
-          if (theValue !== null) {
-            resolvedValues.push(theValue)
+              while (uc.includes(theValue) && countIdx < countIdxMax) {
+
+                theValue = generateValue(
+                  valueSetName,
+                  valueSetIndex,
+                  Math.floor(Math.random() * values.length),
+                )
+
+                if (foundEvaluator[2] !== star) {
+                  countIdx = countIdxMax
+                }
+                else {
+                  countIdx++
+                }
+              }
+
+              if (countIdx === countIdxMax) {
+                theValue = null
+              }
+              else {
+                uniquenessConstraints
+                  .find(v => v.name === uniquenessConstraintName)
+                  .values
+                  .push(theValue)
+              }
+            }
+
+            if (theValue !== null) {
+              resolvedValues.push(theValue)
+            }
           }
         }
       }
@@ -225,6 +235,7 @@ function evalValueSets(elements, evaluators, uniquenessConstraints) {
 
       if (resolvedValues.length > 0) {
         valueSetEvaluations.push([
+          iterIndex,
           setIndex,
           elemIndex,
           resolvedValues,
@@ -237,7 +248,6 @@ function evalValueSets(elements, evaluators, uniquenessConstraints) {
   return [
     valueSets,
     valueSetEvaluations,
-    uniquenessConstraints,
   ]
 }
 
@@ -289,21 +299,13 @@ function evalPicks(
         lastMinute = true
       }
 
-      else if (match = valueSetEvaluations.find(v => v[0] === setIndex && v[1] === elemIndex)) {
+      else if (match = valueSetEvaluations.find(v => v[1] === setIndex && v[2] === elemIndex)) {
 
-        let theElements
-        let maybePregeneratedValue
+        const theElements     = match[3]
+        const needsInheriting = match[4]
 
-        if (maybePregeneratedValue = generatedValues
-          .find(w => w[0] === setIndex && w[1] === elemIndex)) {
-          theElements = maybePregeneratedValue[3]
-        }
-        else {
-          theElements = match[3]
-
-          if (match[4]) {
-            generatedValues.push([iterIndex, setIndex, elemIndex, match[2]])
-          }
+        if (needsInheriting) {
+          generatedValues.push([iterIndex, setIndex, elemIndex, theElements])
         }
 
         contentElements.push(...theElements.map(w => [iterIndex, setIndex, elemIndex, w]))
@@ -352,16 +354,13 @@ function evalPicks(
         const theUc = uniquenessConstraints
           .find(v => v.name === uniquenessConstraintName)
 
-
-        console.log('gv', generatedValues)
-        let maybePregeneratedValue
-        if (maybePregeneratedValue = generatedValues
+        let pregen
+        if (pregen = generatedValues
           .find(v =>
             v[0] === iterIndex &&
             v[1] === setIndex &&
             v[2] === elemIndex)) {
-
-          resultValues.push(...maybePregeneratedValue[3])
+          resultValues.push(...pregen[3])
         }
 
         else {
@@ -386,7 +385,7 @@ function evalPicks(
                 const countIdxMax = 1000
 
                 while (theUc.values.includes(resultValue) &&
-                countIdx < countIdxMax) {
+                  countIdx < countIdxMax) {
 
                   resultValue = generateRandomValue(
                     Number(minValue),
@@ -483,6 +482,5 @@ function evalPicks(
 
   return [
     result,
-    uniquenessConstraints,
   ]
 }

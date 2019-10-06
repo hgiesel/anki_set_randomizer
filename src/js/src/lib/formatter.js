@@ -313,7 +313,7 @@ export default function formatter(inputSyntax, iterIndex) {
   const renderSets = function(
     reordering,
     styleDefinitions,
-    styleAssignments,
+    styleApplications,
     styleRules,
     randomIndices,
     valueSets,
@@ -326,12 +326,10 @@ export default function formatter(inputSyntax, iterIndex) {
 
     const stylizedResults = Array(reordering.length)
 
-    console.log('reo' ,reordering)
-    for (const [i, set] of reordering.entries()) {
-
+    for (const set of reordering) {
 
       const actualValues = []
-      const styleName = styleAssignments[i]
+      const styleName = styleApplications[set.order]
       const pa = sa.propAccessor(styleName, vp.pickStyle(set
         .rendering
         .map(v => v[3])
@@ -341,10 +339,10 @@ export default function formatter(inputSyntax, iterIndex) {
         set.rendering.sort()
       }
       else if (pa.getProp('display') === 'orig') {
-        set.rendering = numberedSets.find(v => v.name === i).elements
+        set.rendering = numberedSets.find(v => v.name === set.order).elements
       }
 
-      for (const [j, elem] of set.rendering.entries()) {
+      for (const elem of set.rendering) {
 
         const [
           _,

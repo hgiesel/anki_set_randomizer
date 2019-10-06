@@ -130,6 +130,27 @@
       .replace(RegExp('<div>', 'g'), '<br>')
   }
 
+  function compareArrays(array, otherArray) {
+    if (!otherArray || array.length !== otherArray.length) {
+      return false
+    }
+
+    for (let i = 0, l = array.length; i < l; i++) {
+      // Check if we have nested arrays
+      if (array[i] instanceof Array && otherArray[i] instanceof Array) {
+        // recurse into the nested arrays
+        if (!compareArrays(array[i], otherArray[i])) {
+          return false
+        }
+      }
+      else if (array[i] != otherArray[i]) {
+        // Warning - two different object instances will never be equal: {x:20} != {x:20}
+        return false
+      }
+    }
+    return true
+  }
+
   /**
    * For all funtions that concerns accessing the html content
    */
@@ -427,7 +448,7 @@
     const renderSets = function(
       reordering,
       styleDefinitions,
-      styleAssignments,
+      styleApplications,
       styleRules,
       randomIndices,
       valueSets,
@@ -440,12 +461,10 @@
 
       const stylizedResults = Array(reordering.length);
 
-      console.log('reo' ,reordering);
-      for (const [i, set] of reordering.entries()) {
-
+      for (const set of reordering) {
 
         const actualValues = [];
-        const styleName = styleAssignments[i];
+        const styleName = styleApplications[set.order];
         const pa = sa.propAccessor(styleName, vp.pickStyle(set
           .rendering
           .map(v => v[3])
@@ -455,10 +474,10 @@
           set.rendering.sort();
         }
         else if (pa.getProp('display') === 'orig') {
-          set.rendering = numberedSets.find(v => v.name === i).elements;
+          set.rendering = numberedSets.find(v => v.name === set.order).elements;
         }
 
-        for (const [j, elem] of set.rendering.entries()) {
+        for (const elem of set.rendering) {
 
           const [
             _,
@@ -639,11 +658,14 @@
 
       const alreadySorted = appliedSrs
         .reduce(
-          (accu, v) => accu || sr.sets.every(srv => v.includes(srv)),
+          (accu, v) => accu || sr.sets.every(srv => {
+            return v.some(v => compareArrays(v, srv))
+          }),
           false
         );
 
       if (!alreadySorted) {
+
         const flatSaveElems = sr
           .sets
           .map(v => elems[v[1]])
@@ -666,10 +688,11 @@
     const modifiedReorders = [];
 
     for (const reorder of reorders) {
-      let match;
+      let match, reorderInherited;
 
       // named sets
       if ((typeof reorder.name === 'string') && (match = inheritedReorders.find(v => reorder.name === v.name))) {
+
         modifiedReorders.push({
           iter: reorder.iter,
           name: reorder.name,
@@ -682,16 +705,17 @@
       }
 
       // numbered sets
-      else if (match = structureMatches.find(v => reorder.iter === v.to[0] && reorder.name === v.to[1])) {
-        const theReorder = inheritedReorders.find(v => v.iter === match.from[0] && v.name === match.from[1]);
-
+      else if (
+        (match = structureMatches.find(m => reorder.iter === m.to[0] && reorder.name === m.to[1])) &&
+        (reorderInherited = inheritedReorders.find(reo => reo.iter === match.from[0] && reo.name === match.from[1]))
+      ) {
         modifiedReorders.push({
           iter: reorder.iter,
           name: reorder.name,
-          length: theReorder.length,
-          sets: theReorder.sets,
-          setLengths: theReorder.setLengths,
-          order: theReorder.order,
+          length: reorder.length,
+          sets: reorder.sets,
+          setLengths: reorder.setLengths,
+          order: reorderInherited.order,
           lastMinute: reorder.lastMinute,
         });
       }
@@ -780,13 +804,17 @@
     // .splice(n, 0) : does nothing
     // .splice(bigger_than_arr, m) : does nothing
     capturedElements
-      .forEach(v => v.splice(3, 1, 'c'));
+      .forEach(v => v.splice(4, 1, 'c'));
 
-    // insert commands to new position
+    // insert elements to new position
     if ((cmdName === 'c' || cmdName === 'm') && capturedElements.length > 0) {
 
       let elemCount   = contentElementCount;
       let thePosition = 0;
+
+      thePosition += elems[toSet]
+        .slice(thePosition)
+        .findIndex(v => v[4] === 'n' || v[4] === 'd');
 
       while (elemCount > 0) {
         thePosition += elems[toSet]
@@ -794,6 +822,10 @@
           .findIndex(v => v[4] === 'n' || v[4] === 'd');
         thePosition++;
         elemCount--;
+      }
+
+      if (thePosition === -1) {
+        thePosition = elems[toSet].length;
       }
 
       // modifies elems
@@ -824,7 +856,7 @@
   function processNumberedSets(
     elements,
     generatedValues,
-    uniquenessConstraints0,
+    uniquenessConstraints,
     iterIndexCurr,
     lastMinutes=[],
   ) {
@@ -836,17 +868,13 @@
     const [
       valueSets,
       valueSetEvaluations,
-      uniquenessConstraints1,
-    ] = evalValueSets(elements, evaluators, uniquenessConstraints0);
-
-    console.log('vse', valueSetEvaluations);
+    ] = evalValueSets(elements, evaluators, uniquenessConstraints, generatedValues);
 
     const [
       result,
-      uniquenessConstraints2,
-    ] = evalPicks(elements, valueSets, valueSetEvaluations, uniquenessConstraints1, generatedValues, iterIndexCurr, lastMinutes);
+    ] = evalPicks(elements, valueSets, valueSetEvaluations, uniquenessConstraints, generatedValues, iterIndexCurr, lastMinutes);
 
-    return [result, generatedValues, uniquenessConstraints2, valueSets]
+    return [result, generatedValues, uniquenessConstraints, valueSets]
   }
 
   function evalEvaluations(elements) {
@@ -890,7 +918,7 @@
     ]
   }
 
-  function evalValueSets(elements, evaluators, uniquenessConstraints) {
+  function evalValueSets(elements, evaluators, uniquenessConstraints, generatedValues) {
     const valueSets = {};
     const valueSetEvaluations = [];
 
@@ -946,63 +974,77 @@
         let wasStar;
 
         if (foundEvaluator) {
+
           wasStar = foundEvaluator[2] === star ? true : false;
 
-          for (let i = 0; i < foundEvaluator[3]; i++) {
+          let pregen;
+          if (pregen = generatedValues
+            .find(gv => gv[1] === setIndex && gv[2] === elemIndex)) {
 
-            let theValue = generateValue(
-              valueSetName,
-              valueSetIndex,
-              foundEvaluator[2] !== star ? foundEvaluator[2] : Math.floor(Math.random() * values.length),
-            );
+            resolvedValues.push(...pregen[3]);
 
-            const uniquenessConstraintName = foundEvaluator[4];
+            /* does not need to inherited again */
+            wasStar = false;
+          }
 
-            if (uniquenessConstraintName) {
+          else {
 
-              if (!uniquenessConstraints.find(v => v.name === uniquenessConstraintName)) {
-                uniquenessConstraints.push({
-                  name: uniquenessConstraintName,
-                  values: []
-                });
-              }
+            for (let i = 0; i < foundEvaluator[3]; i++) {
 
-              let countIdx = 0;
-              const countIdxMax = 1000;
+              let theValue = generateValue(
+                valueSetName,
+                valueSetIndex,
+                foundEvaluator[2] !== star ? foundEvaluator[2] : Math.floor(Math.random() * values.length),
+              );
 
-              const uc = uniquenessConstraints
-                .find(v => v.name === uniquenessConstraintName)
-                .values;
+              const uniquenessConstraintName = foundEvaluator[4];
 
-              while (uc.includes(theValue) && countIdx < countIdxMax) {
+              if (uniquenessConstraintName) {
 
-                theValue = generateValue(
-                  valueSetName,
-                  valueSetIndex,
-                  Math.floor(Math.random() * values.length),
-                );
+                if (!uniquenessConstraints.find(v => v.name === uniquenessConstraintName)) {
+                  uniquenessConstraints.push({
+                    name: uniquenessConstraintName,
+                    values: []
+                  });
+                }
 
-                if (foundEvaluator[2] !== star) {
-                  countIdx = countIdxMax;
+                let countIdx = 0;
+                const countIdxMax = 1000;
+
+                const uc = uniquenessConstraints
+                  .find(v => v.name === uniquenessConstraintName)
+                  .values;
+
+                while (uc.includes(theValue) && countIdx < countIdxMax) {
+
+                  theValue = generateValue(
+                    valueSetName,
+                    valueSetIndex,
+                    Math.floor(Math.random() * values.length),
+                  );
+
+                  if (foundEvaluator[2] !== star) {
+                    countIdx = countIdxMax;
+                  }
+                  else {
+                    countIdx++;
+                  }
+                }
+
+                if (countIdx === countIdxMax) {
+                  theValue = null;
                 }
                 else {
-                  countIdx++;
+                  uniquenessConstraints
+                    .find(v => v.name === uniquenessConstraintName)
+                    .values
+                    .push(theValue);
                 }
               }
 
-              if (countIdx === countIdxMax) {
-                theValue = null;
+              if (theValue !== null) {
+                resolvedValues.push(theValue);
               }
-              else {
-                uniquenessConstraints
-                  .find(v => v.name === uniquenessConstraintName)
-                  .values
-                  .push(theValue);
-              }
-            }
-
-            if (theValue !== null) {
-              resolvedValues.push(theValue);
             }
           }
         }
@@ -1023,6 +1065,7 @@
 
         if (resolvedValues.length > 0) {
           valueSetEvaluations.push([
+            iterIndex,
             setIndex,
             elemIndex,
             resolvedValues,
@@ -1035,7 +1078,6 @@
     return [
       valueSets,
       valueSetEvaluations,
-      uniquenessConstraints,
     ]
   }
 
@@ -1087,21 +1129,13 @@
           lastMinute = true;
         }
 
-        else if (match = valueSetEvaluations.find(v => v[0] === setIndex && v[1] === elemIndex)) {
+        else if (match = valueSetEvaluations.find(v => v[1] === setIndex && v[2] === elemIndex)) {
 
-          let theElements;
-          let maybePregeneratedValue;
+          const theElements     = match[3];
+          const needsInheriting = match[4];
 
-          if (maybePregeneratedValue = generatedValues
-            .find(w => w[0] === setIndex && w[1] === elemIndex)) {
-            theElements = maybePregeneratedValue[3];
-          }
-          else {
-            theElements = match[3];
-
-            if (match[4]) {
-              generatedValues.push([iterIndex, setIndex, elemIndex, match[2]]);
-            }
+          if (needsInheriting) {
+            generatedValues.push([iterIndex, setIndex, elemIndex, theElements]);
           }
 
           contentElements.push(...theElements.map(w => [iterIndex, setIndex, elemIndex, w]));
@@ -1150,16 +1184,13 @@
           const theUc = uniquenessConstraints
             .find(v => v.name === uniquenessConstraintName);
 
-
-          console.log('gv', generatedValues);
-          let maybePregeneratedValue;
-          if (maybePregeneratedValue = generatedValues
+          let pregen;
+          if (pregen = generatedValues
             .find(v =>
               v[0] === iterIndex &&
               v[1] === setIndex &&
               v[2] === elemIndex)) {
-
-            resultValues.push(...maybePregeneratedValue[3]);
+            resultValues.push(...pregen[3]);
           }
 
           else {
@@ -1184,7 +1215,7 @@
                   const countIdxMax = 1000;
 
                   while (theUc.values.includes(resultValue) &&
-                  countIdx < countIdxMax) {
+                    countIdx < countIdxMax) {
 
                     resultValue = generateRandomValue(
                       Number(minValue),
@@ -1281,7 +1312,6 @@
 
     return [
       result,
-      uniquenessConstraints,
     ]
   }
 
@@ -1883,7 +1913,7 @@
 
         const [toSetNameNew, toSetPositionNew] = numberedSets
           .filter(v => toSetName.includes(v.name))
-          .reduce((accu, sl, i, arr) => {
+          .reduce((accu, sl) => {
             return accu[1] - (sl.elements.length + 1) < 0
               ? [accu[0] || sl.name, accu[1]]
               : [null, accu[1] - (sl.elements.length + 1)]
@@ -2005,12 +2035,13 @@
       return numberedSets
         .find(v => v.name === setName)
         .elements
-        .reduce((accu, v) =>
-          v[1] < inSetIdx
+        .reduce((accu, v) => {
+          const elemIndex = v[2];
+
+          return elemIndex < inSetIdx
             ? accu + 1
-            : accu,
-          0
-        )
+            : accu
+        }, 0)
     }
   };
 
@@ -2084,8 +2115,6 @@
 
     const dictatorOrder = setReorders.find(v => v.name === orderConstraint.dictator).order;
 
-    console.log('oc', orderConstraint);
-
     for (const set of orderConstraint.sets) {
 
       const oldOrder = setReorders.find(v => v.name === set).order;
@@ -2139,27 +2168,6 @@
     }
   }
 
-  function compareArrays(array, otherArray) {
-    if (!otherArray || array.length !== otherArray.length) {
-      return false
-    }
-
-    for (let i = 0, l = array.length; i < l; i++) {
-      // Check if we have nested arrays
-      if (array[i] instanceof Array && otherArray[i] instanceof Array) {
-        // recurse into the nested arrays
-        if (!compareArrays(array[i], otherArray[i])) {
-          return false
-        }
-      }
-      else if (array[i] != otherArray[i]) {
-        // Warning - two different object instances will never be equal: {x:20} != {x:20}
-        return false
-      }
-    }
-    return true
-  }
-
   function matchStructures(elementsOriginal, elementsInherited) {
     const result = [];
 
@@ -2167,11 +2175,13 @@
 
       let match;
       if (match = elementsOriginal.find(set =>
-        compareArrays(set.map(v => v[2]), setInherited.map(v => v[2]))
+        compareArrays(set.map(v => v[3]), setInherited.map(v => v[3]))
         // Don't make n-to-m mappings, only 1-to-1:
         && !result.find(v => v.to[0] === set[0][0] && v.to[1] === set[0][1])
       )) {
 
+        // inherited set moved FROM position TO new position
+        // used to be found at FROM position, but now is found at TO position
         result.push({
           from: setInherited[0].slice(0, 2),
           to: match[0].slice(0, 2),
@@ -2194,7 +2204,8 @@
       }
     }
 
-    return result
+    // return original generatedValues + rematchings
+    return generatedValues.concat(result)
   }
 
   // important for collective color indexing
@@ -2238,7 +2249,6 @@
         ...accu,
       ), saveDataOld);
 
-    console.log('saveData', saveData);
     return saveData
   }
 
@@ -2334,6 +2344,7 @@
         [],
         reordersSecondInherited,
         structureMatches,
+        true,
       );
 
       //////////////////////////////////////////////////////////////////////////////
@@ -2372,12 +2383,16 @@
   }
 
   // numbered are sorted 0 -> n, then named are in order of appearance
-  function applyModifications(numberedSets, namedSets, orderConstraints, commands, reordersInherited, structureMatches) {
+  function applyModifications(numberedSets, namedSets, orderConstraints, commands, reordersInherited, structureMatches, lastMinute=false) {
 
     const [elements, reordersAlpha] = generateRandomization(numberedSets, namedSets);
 
+    const reordersBeta = !lastMinute
+      ? reordersAlpha
+      : reordersAlpha.filter(v => v.lastMinute);
+
     const reorders = applyInheritedSetReorder(
-      reordersAlpha,
+      reordersBeta,
       reordersInherited,
       structureMatches,
     );

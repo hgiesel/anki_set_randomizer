@@ -80,7 +80,7 @@ export function processCommands(elements, numberedSets, namedSets) {
 
       const [toSetNameNew, toSetPositionNew] = numberedSets
         .filter(v => toSetName.includes(v.name))
-        .reduce((accu, sl, i, arr) => {
+        .reduce((accu, sl) => {
           return accu[1] - (sl.elements.length + 1) < 0
             ? [accu[0] || sl.name, accu[1]]
             : [null, accu[1] - (sl.elements.length + 1)]
@@ -202,11 +202,12 @@ const processPositionIndex = function(
     return numberedSets
       .find(v => v.name === setName)
       .elements
-      .reduce((accu, v) =>
-        v[1] < inSetIdx
+      .reduce((accu, v) => {
+        const elemIndex = v[2]
+
+        return elemIndex < inSetIdx
           ? accu + 1
-          : accu,
-        0
-      )
+          : accu
+      }, 0)
   }
 }

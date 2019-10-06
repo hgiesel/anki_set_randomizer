@@ -2,7 +2,7 @@ import {
   reorderNumberedSets,
   reorderNamedSets,
   applyOrderConstraint
-} from './reorder'
+} from './reorder.js'
 
 
 export function generateRandomization(
