@@ -27,9 +27,10 @@ function detectOrderDictator(orderConstraint, setReorders) {
 
 export function reorderNumberedSets(numberedSets) {
   return numberedSets.map(v => ({
+    iter: v.iter,
     name: v.name,
     length: v.elements.length,
-    sets: [v.name],
+    sets: [[v.iter, v.name]],
     setLengths: [v.elements.length],
     order: shuffle([...new Array(v.elements.length).keys()]),
     lastMinute: v.lastMinute,
@@ -49,9 +50,10 @@ export function reorderNamedSets(namedSets, numberedSets) {
       .reduce((accu, w) => accu + w, 0)
 
     return {
+      iter: v.iter,
       name: v.name,
       length: elementCount,
-      sets: v.sets,
+      sets: v.sets.map(w => [v.iter, w]),
       setLengths: setLengths,
       order: shuffle([...new Array(elementCount).keys()]),
       lastMinute: v.lastMinute,
@@ -65,6 +67,8 @@ export function applyOrderConstraint(orderConstraint, setReorders) {
   orderConstraint.dictator = dictator
 
   const dictatorOrder = setReorders.find(v => v.name === orderConstraint.dictator).order
+
+  console.log('oc', orderConstraint)
 
   for (const set of orderConstraint.sets) {
 

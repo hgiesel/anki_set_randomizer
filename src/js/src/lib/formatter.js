@@ -12,7 +12,7 @@ import {
   treatNewlines,
 } from './util.js'
 
-export default function formatter(inputSyntax) {
+export default function formatter(inputSyntax, iterIndex) {
 
   // the original NodeList
   const _htmlContent  = {}
@@ -120,7 +120,7 @@ export default function formatter(inputSyntax) {
           .split(inputSyntax.isRegex
             ? new RegExp(inputSyntax.fieldSeparator)
             : inputSyntax.fieldSeparator)
-          .map((elem, j) => [i, j, elem, 'n'])
+          .map((elem, j) => [iterIndex, i, j, elem, 'n'])
 
         theElementsOriginal.push(splitGroup)
       }
@@ -326,13 +326,15 @@ export default function formatter(inputSyntax) {
 
     const stylizedResults = Array(reordering.length)
 
+    console.log('reo' ,reordering)
     for (const [i, set] of reordering.entries()) {
+
 
       const actualValues = []
       const styleName = styleAssignments[i]
       const pa = sa.propAccessor(styleName, vp.pickStyle(set
         .rendering
-        .map(v => v[2])
+        .map(v => v[3])
       ))
 
       if (pa.getProp('display') === 'sort') {
@@ -342,27 +344,37 @@ export default function formatter(inputSyntax) {
         set.rendering = numberedSets.find(v => v.name === i).elements
       }
 
-      for (const [j, element] of set.rendering.entries()) {
-        if (element[3] !== 'd') {
+      for (const [j, elem] of set.rendering.entries()) {
+
+        const [
+          _,
+          setIndex,
+          elemIndex,
+          elemContent,
+          elemType,
+        ] = elem
+
+
+        if (elemType !== 'd') {
           const theIndex = pa.getColorIndex()
 
           const colorChoice = pa.getProp('colors', 'values')
             ? ` color: ${pa.getProp('colors', 'values')[theIndex]};`
             : ''
 
-          const className = `class="set-randomizer--element set-randomizer--element-index-${element[0]}-${element[1]}"`
-          const blockDisplay = pa.getProp('display') === 'block'
+          const className = `class="set-randomizer--element set-randomizer--element-index-${setIndex}-${elemIndex}"`
+          const blockDisplay = pa.getProp('block')
             ? ' display: block;'
             : ''
 
           const style = `style="padding: 0px ${pa.getProp('fieldPadding')}px;${colorChoice}${blockDisplay}"`
 
-          const pickedValue = vp.pickValue(element[2], pa.getProp('colors', 'rules'), pa.getProp('classes', 'rules'))
+          const pickedValue = vp.pickValue(elemContent, pa.getProp('colors', 'rules'), pa.getProp('classes', 'rules'))
 
           if (pickedValue) {
 
-            const theValue = pa.getProp('display') === 'block'
-              ? `<record ${className} ${style}><div>${treatNewlines(element[2])}</div></record>`
+            const theValue = pa.getProp('block')
+              ? `<record ${className} ${style}><div>${treatNewlines(elemContent)}</div></record>`
               : `<record ${className} ${style}>${pickedValue}</record>`
 
             actualValues.push(theValue)

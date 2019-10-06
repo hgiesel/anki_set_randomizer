@@ -44,7 +44,8 @@ export function getNullData() {
   return [
     [/* elementsInherited */],
     [/* generatedValues */],
-    [/* reorders */],
+    [/* uniquenessConstraints */],
+    [/* reordersFirst */],
     [/* reordersSecond */],
     {/* randomIndices */},
   ]

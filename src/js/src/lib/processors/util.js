@@ -15,7 +15,7 @@ export function partitionList(list, spacing) {
 
 // evaluates named set args in $n(), $o(), or $a()
 export function getCorrespondingSets(
-  originalStructure,
+  elements,
   namedSets,
   absolutePos,
   absolutePosFromEnd,
@@ -31,12 +31,12 @@ export function getCorrespondingSets(
   }
   else if (absolutePosFromEnd) {
     const offset = Number(absolutePosFromEnd.slice(1))
-    correspondingSets = [originalStructure.length + offset - 1]
+    correspondingSets = [elements.length + offset - 1]
   }
   else if (relativePos) {
     const idx = currentPos + Number(relativePos)
 
-    correspondingSets = originalStructure[idx]
+    correspondingSets = elements[idx]
       ? [idx]
       : []
   }
@@ -51,7 +51,7 @@ export function getCorrespondingSets(
     if (foundSets && otherNamedSetPos) {
       const idx = Number(otherNamedSetPos) >= 0
         ? Number(otherNamedSetPos)
-        : originalStructure.length + Number(otherNamedSetPos) - 1
+        : elements.length + Number(otherNamedSetPos) - 1
 
       correspondingSets = finalSets[idx] >= 0
         ? [finalSets[idx]]

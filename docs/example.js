@@ -8,11 +8,45 @@
     Persistence.setItem(dataName, theSaveData);
   }
 
-  function createWarning() {
+  function createWarningNotDefined() {
+    if (!document.querySelector('#set-randomizer--warning')) {
+      document.body.appendChild(getWarningDiv(
+        'Set-Randomizer: Anki-Persistence is not defined!\n' +
+        'Check "Tools > Set Randomizer Options" and make sure you enable "Inject anki-persistence"!'
+      ));
+    }
+  }
+
+  function createWarningNotAvailable() {
+    if (!document.querySelector('#set-randomizer--warning')) {
+      document.body.appendChild(getWarningDiv(
+        'Set-Randomizer: Anki-Persistence does not work in the Card Preview and Template Editor.'
+      ));
+    }
+  }
+
+  function getWarningDiv(warningMessage) {
     const warningDiv = document.createElement('div');
-    warningDiv.innerText = 'Anki-Set-Randomizer: Anki-Persistence not found!';
-    warningDiv.style.cssText = 'width: 100%; height: 100%; background-color: white; color: red;';
-    document.body.appendChild(warningDiv);
+    warningDiv.id = 'set-randomizer--warning';
+    warningDiv.innerText = warningMessage;
+    warningDiv.style.cssText = (
+      'width: 100%; height: 100%; ' +
+      'padding: 15px 0px; ' +
+      'font-size: 50%; ' +
+      'background-color: white; color: red;'
+    );
+    return warningDiv
+  }
+
+  function getNullData() {
+    return [
+      [/* elementsInherited */],
+      [/* generatedValues */],
+      [/* uniquenessConstraints */],
+      [/* reordersFirst */],
+      [/* reordersSecond */],
+      {/* randomIndices */},
+    ]
   }
 
   const namePattern     = '[a-zA-Z_][a-zA-Z0-9_\\-]*';
@@ -32,7 +66,7 @@
 
   // evaluates named set args in $n(), $o(), or $a()
   function getCorrespondingSets(
-    originalStructure,
+    elements,
     namedSets,
     absolutePos,
     absolutePosFromEnd,
@@ -48,12 +82,12 @@
     }
     else if (absolutePosFromEnd) {
       const offset = Number(absolutePosFromEnd.slice(1));
-      correspondingSets = [originalStructure.length + offset - 1];
+      correspondingSets = [elements.length + offset - 1];
     }
     else if (relativePos) {
       const idx = currentPos + Number(relativePos);
 
-      correspondingSets = originalStructure[idx]
+      correspondingSets = elements[idx]
         ? [idx]
         : [];
     }
@@ -68,7 +102,7 @@
       if (foundSets && otherNamedSetPos) {
         const idx = Number(otherNamedSetPos) >= 0
           ? Number(otherNamedSetPos)
-          : originalStructure.length + Number(otherNamedSetPos) - 1;
+          : elements.length + Number(otherNamedSetPos) - 1;
 
         correspondingSets = finalSets[idx] >= 0
           ? [finalSets[idx]]
@@ -100,7 +134,7 @@
    * For all funtions that concerns accessing the html content
    */
 
-  function formatter(inputSyntax) {
+  function formatter(inputSyntax, iterIndex) {
 
     // the original NodeList
     const _htmlContent  = {};
@@ -185,14 +219,14 @@
     };
 
     // 2d list of elements in the form of [[i, j, element]]
-    const _originalStructure = {};
-    const getOriginalStructure = function(theSelector=inputSyntax.cssSelector) {
-      if (_originalStructure[theSelector]) {
-        return _originalStructure[theSelector]
+    const _elementsOriginal = {};
+    const getElementsOriginal = function(theSelector=inputSyntax.cssSelector) {
+      if (_elementsOriginal[theSelector]) {
+        return _elementsOriginal[theSelector]
       }
 
       else {
-        const theOriginalStructure = [];
+        const theElementsOriginal = [];
         const theFoundStructure = getFoundStructure(theSelector);
 
         for (const [i, group] of theFoundStructure.entries()) {
@@ -200,12 +234,12 @@
             .split(inputSyntax.isRegex
               ? new RegExp(inputSyntax.fieldSeparator)
               : inputSyntax.fieldSeparator)
-            .map((elem, j) => [i, j, elem, /* TODO 'n' */]);
+            .map((elem, j) => [iterIndex, i, j, elem, 'n']);
 
-          theOriginalStructure.push(splitGroup);
+          theElementsOriginal.push(splitGroup);
         }
 
-        return _originalStructure[theSelector] = theOriginalStructure
+        return _elementsOriginal[theSelector] = theElementsOriginal
       }
     };
 
@@ -406,13 +440,15 @@
 
       const stylizedResults = Array(reordering.length);
 
+      console.log('reo' ,reordering);
       for (const [i, set] of reordering.entries()) {
+
 
         const actualValues = [];
         const styleName = styleAssignments[i];
         const pa = sa.propAccessor(styleName, vp.pickStyle(set
           .rendering
-          .map(v => v[2])
+          .map(v => v[3])
         ));
 
         if (pa.getProp('display') === 'sort') {
@@ -422,27 +458,37 @@
           set.rendering = numberedSets.find(v => v.name === i).elements;
         }
 
-        for (const [j, element] of set.rendering.entries()) {
-          if (element[3] !== 'd') {
+        for (const [j, elem] of set.rendering.entries()) {
+
+          const [
+            _,
+            setIndex,
+            elemIndex,
+            elemContent,
+            elemType,
+          ] = elem;
+
+
+          if (elemType !== 'd') {
             const theIndex = pa.getColorIndex();
 
             const colorChoice = pa.getProp('colors', 'values')
               ? ` color: ${pa.getProp('colors', 'values')[theIndex]};`
               : '';
 
-            const className = `class="set-randomizer--element set-randomizer--element-index-${element[0]}-${element[1]}"`;
-            const blockDisplay = pa.getProp('display') === 'block'
+            const className = `class="set-randomizer--element set-randomizer--element-index-${setIndex}-${elemIndex}"`;
+            const blockDisplay = pa.getProp('block')
               ? ' display: block;'
               : '';
 
             const style = `style="padding: 0px ${pa.getProp('fieldPadding')}px;${colorChoice}${blockDisplay}"`;
 
-            const pickedValue = vp.pickValue(element[2], pa.getProp('colors', 'rules'), pa.getProp('classes', 'rules'));
+            const pickedValue = vp.pickValue(elemContent, pa.getProp('colors', 'rules'), pa.getProp('classes', 'rules'));
 
             if (pickedValue) {
 
-              const theValue = pa.getProp('display') === 'block'
-                ? `<record ${className} ${style}><div>${treatNewlines(element[2])}</div></record>`
+              const theValue = pa.getProp('block')
+                ? `<record ${className} ${style}><div>${treatNewlines(elemContent)}</div></record>`
                 : `<record ${className} ${style}>${pickedValue}</record>`;
 
               actualValues.push(theValue);
@@ -486,7 +532,7 @@
         .forEach((v, i) => theHtml[i].innerHTML = v);
 
       if (theSelector === 'div#clozed') {
-        const olParse = getOriginalStructure('div#original').flat();
+        const olParse = getElementsOriginal('div#original').flat();
 
         if (olParse.length > 0) {
           const newReordering = reordering
@@ -507,7 +553,7 @@
     };
 
     return {
-      getOriginalStructure: getOriginalStructure,
+      getElementsOriginal: getElementsOriginal,
       renderSets: renderSets,
       isValid: isValid,
     }
@@ -600,7 +646,7 @@
       if (!alreadySorted) {
         const flatSaveElems = sr
           .sets
-          .map(v => elems[v])
+          .map(v => elems[v[1]])
           .flat();
 
         sliceWithLengths(
@@ -608,7 +654,7 @@
           sr.setLengths
         )
           .forEach((v, i) => {
-            elems[sr.sets[i]] = v;
+            elems[sr.sets[i][1]] = v;
           });
 
         appliedSrs.push(sr.sets);
@@ -616,26 +662,36 @@
     }
   }
 
-  function applyInheritedSetReorder(newReorders, inheritedNewReorders, structureMatches) {
+  function applyInheritedSetReorder(reorders, inheritedReorders, structureMatches) {
     const modifiedReorders = [];
 
-    for (const reorder of newReorders) {
+    for (const reorder of reorders) {
       let match;
 
-      // numbered sets
-      if (match = structureMatches.find(v => reorder.name === v.to)) {
-        modifiedReorders.push(inheritedNewReorders.find(v => v.name === match.from));
-      }
-
       // named sets
-      else if (match = inheritedNewReorders.find(v => reorder.name === v.name)) {
-
+      if ((typeof reorder.name === 'string') && (match = inheritedReorders.find(v => reorder.name === v.name))) {
         modifiedReorders.push({
+          iter: reorder.iter,
           name: reorder.name,
           length: reorder.length,
           sets: reorder.sets,
           setLengths: reorder.setLengths,
           order: complementArrays(match.order, reorder.order),
+          lastMinute: reorder.lastMinute,
+        });
+      }
+
+      // numbered sets
+      else if (match = structureMatches.find(v => reorder.iter === v.to[0] && reorder.name === v.to[1])) {
+        const theReorder = inheritedReorders.find(v => v.iter === match.from[0] && v.name === match.from[1]);
+
+        modifiedReorders.push({
+          iter: reorder.iter,
+          name: reorder.name,
+          length: theReorder.length,
+          sets: theReorder.sets,
+          setLengths: theReorder.setLengths,
+          order: theReorder.order,
           lastMinute: reorder.lastMinute,
         });
       }
@@ -703,7 +759,7 @@
     let elemAmount = cmd[1];
 
     for (const elem of theElems) {
-      const elemType = elem[3];
+      const elemType = elem[4];
 
       if (elemType !== 'd' && elemType !== 'c') {
 
@@ -711,7 +767,7 @@
 
         if (cmdName === 'd' || cmdName === 'm') {
           // modifies elems
-          elem[3] = 'd';
+          elem[4] = 'd';
         }
 
         if (--elemAmount === 0) {
@@ -735,7 +791,7 @@
       while (elemCount > 0) {
         thePosition += elems[toSet]
           .slice(thePosition)
-          .findIndex(v => v[3] === 'n' || v[3] === 'd');
+          .findIndex(v => v[4] === 'n' || v[4] === 'd');
         thePosition++;
         elemCount--;
       }
@@ -765,27 +821,35 @@
   }
 
   // also processes generator patterns
-  function processNumberedSets(originalStructure, preGeneratedValues) {
+  function processNumberedSets(
+    elements,
+    generatedValues,
+    uniquenessConstraints0,
+    iterIndexCurr,
+    lastMinutes=[],
+  ) {
 
     const [
       evaluators,
-    ] = evalEvaluations(originalStructure);
+    ] = evalEvaluations(elements);
 
     const [
       valueSets,
       valueSetEvaluations,
-      uniquenessConstraints,
-    ] = evalValueSets(originalStructure, evaluators);
+      uniquenessConstraints1,
+    ] = evalValueSets(elements, evaluators, uniquenessConstraints0);
+
+    console.log('vse', valueSetEvaluations);
 
     const [
       result,
-      generatedValues,
-    ] = evalPicks(originalStructure, valueSets, valueSetEvaluations, uniquenessConstraints, preGeneratedValues);
+      uniquenessConstraints2,
+    ] = evalPicks(elements, valueSets, valueSetEvaluations, uniquenessConstraints1, generatedValues, iterIndexCurr, lastMinutes);
 
-    return [result, generatedValues, valueSets]
+    return [result, generatedValues, uniquenessConstraints2, valueSets]
   }
 
-  function evalEvaluations(originalStructure) {
+  function evalEvaluations(elements) {
     const evaluators = [];
 
     const evaluatorPattern = new RegExp(
@@ -795,12 +859,13 @@
       `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
     );
 
-
-    for (const elem of originalStructure.flat()) {
+    for (const elem of elements.flat()) {
       let match;
 
+      const theElem = elem[3];
+
       // evaluations
-      if (match = elem[2].match(evaluatorPattern)) {
+      if (match = theElem.match(evaluatorPattern)) {
 
         const count = match[1];
         const valueSetName = match[2];
@@ -825,10 +890,9 @@
     ]
   }
 
-  function evalValueSets(originalStructure, evaluators) {
+  function evalValueSets(elements, evaluators, uniquenessConstraints) {
     const valueSets = {};
     const valueSetEvaluations = [];
-    const uniquenessConstraints = [];
 
     const valueSetPattern = new RegExp(
       `^\\$(${namePattern})(!)?(?!\\()(\\W)((?:.|\\n|\\r)*)`
@@ -839,11 +903,18 @@
     const newLinePattern = new RegExp(`\\\\n`, 'g');
     const catchPattern = new RegExp(`\\\\.`, 'g');
 
-    for (const elem of originalStructure.flat()) {
+    for (const elem of elements.flat()) {
       let match;
 
+      const [
+        iterIndex,
+        setIndex,
+        elemIndex,
+        theElem,
+      ] = elem;
+
       // value set shortcut
-      if (match = elem[2].match(valueSetPattern)) {
+      if (match = theElem.match(valueSetPattern)) {
 
         const valueSetName     = match[1];
         const isSelfEvaluating = match[2] === '!' ? true : false;
@@ -859,8 +930,9 @@
           name: valueSetName,
           idx: valueSets[valueSetName] ? valueSets[valueSetName].length : 0,
           values: values,
-          set: elem[0],
-          pos: elem[1],
+          iter: iterIndex,
+          set: setIndex,
+          pos: elemIndex,
         }) - 1;
 
         const foundEvaluator = evaluators.find(v =>
@@ -951,8 +1023,8 @@
 
         if (resolvedValues.length > 0) {
           valueSetEvaluations.push([
-            elem[0],
-            elem[1],
+            setIndex,
+            elemIndex,
             resolvedValues,
             wasStar,
           ]);
@@ -967,7 +1039,15 @@
     ]
   }
 
-  function evalPicks(originalStructure, valueSets, valueSetEvaluations, uniquenessConstraints, prepicks) {
+  function evalPicks(
+    elements,
+    valueSets,
+    valueSetEvaluations,
+    uniquenessConstraints,
+    generatedValues,
+    iterIndex,
+    lastMinutes,
+  ) {
 
     const result = [];
     const lastMinutePattern = new RegExp(`^\\$(n|name)!\\(\\)$`);
@@ -987,43 +1067,47 @@
 
     const contentElementPattern = new RegExp('^[^\\$]');
 
-    for (const [i, set] of originalStructure.entries()) {
+    for (const [i, set] of elements.entries()) {
 
       const contentElements = [];
-      let lastMinute = false;
+      let lastMinute = lastMinutes[i] || false;
 
       for (const elem of set) {
 
         let match;
-        const setIndex  = elem[0];
-        const elemIndex = elem[1];
 
-        if (lastMinutePattern.test(elem[2])) {
+        const [
+          iterIndex,
+          setIndex,
+          elemIndex,
+          theElem,
+        ] = elem;
+
+        if (!lastMinute && lastMinutePattern.test(theElem)) {
           lastMinute = true;
         }
 
         else if (match = valueSetEvaluations.find(v => v[0] === setIndex && v[1] === elemIndex)) {
 
           let theElements;
-          let maybePregeneratedValues;
-          if (maybePregeneratedValues = prepicks
-            .find(v =>
-              v[0] === setIndex &&
-              v[1] === elemIndex)) {
-            theElements = maybePregeneratedValue[2];
+          let maybePregeneratedValue;
+
+          if (maybePregeneratedValue = generatedValues
+            .find(w => w[0] === setIndex && w[1] === elemIndex)) {
+            theElements = maybePregeneratedValue[3];
           }
           else {
-            theElements = match;
+            theElements = match[3];
+
+            if (match[4]) {
+              generatedValues.push([iterIndex, setIndex, elemIndex, match[2]]);
+            }
           }
 
-          contentElements.push(...match[2].map(v => [match[0], match[1], v]));
-
-          if (match[3]) {
-            prepicks.push(...theElements);
-          }
+          contentElements.push(...theElements.map(w => [iterIndex, setIndex, elemIndex, w]));
         }
 
-        else if (match = elem[2].match(pickPattern)) {
+        else if (match = theElem.match(pickPattern)) {
 
           const count =
             match[1] !== undefined
@@ -1035,17 +1119,22 @@
           const maxValue   = match[3];
           const extraValue = match[4];
 
-          const valueSetName       = match[5];
+          const valueSetName = match[5];
+
           const maybeValueSetSetIndex   = Number(match[6]);
           const maybeValueSetValueIndex = Number(match[8]);
 
+          const valueSetNameName = valueSetName === '*'
+            ? star
+            : valueSetName;
+
           const valueSetSetIndex = !Number.isNaN(maybeValueSetSetIndex)
-          ? maybeValueSetSetIndex
-          : match[7] ? star : 0;
+            ? maybeValueSetSetIndex
+            : match[7] ? star : 0;
 
           const valueSetValueIndex = !Number.isNaN(maybeValueSetValueIndex)
-          ? maybeValueSetValueIndex
-          : star;
+            ? maybeValueSetValueIndex
+            : star;
 
           if (
             uniquenessConstraintName &&
@@ -1058,14 +1147,19 @@
           }
 
           const resultValues = [];
+          const theUc = uniquenessConstraints
+            .find(v => v.name === uniquenessConstraintName);
 
+
+          console.log('gv', generatedValues);
           let maybePregeneratedValue;
-          if (maybePregeneratedValue = prepicks
+          if (maybePregeneratedValue = generatedValues
             .find(v =>
-              v[0] === setIndex &&
-              v[1] === elemIndex)) {
+              v[0] === iterIndex &&
+              v[1] === setIndex &&
+              v[2] === elemIndex)) {
 
-            resultValues.push(...maybePregeneratedValue[2]);
+            resultValues.push(...maybePregeneratedValue[3]);
           }
 
           else {
@@ -1084,14 +1178,13 @@
                   isReal,
                 );
 
-                if (uniquenessConstraintName) {
+                /* dealing with uc */
+                if (theUc) {
                   let countIdx = 0;
                   const countIdxMax = 1000;
 
-                  while (uniquenessConstraints
-                    .find(v => v.name === uniquenessConstraintName)
-                    .values.includes(resultValue)
-                    && countIdx < countIdxMax) {
+                  while (theUc.values.includes(resultValue) &&
+                  countIdx < countIdxMax) {
 
                     resultValue = generateRandomValue(
                       Number(minValue),
@@ -1112,9 +1205,9 @@
               else /* value set pick */ {
 
                 const foundValueSet = valueSets[
-                  valueSetName === star
+                  valueSetNameName === star
                   ? Object.keys(valueSets)[Math.floor(Math.random() * valueSets.length)]
-                  : valueSetName
+                  : valueSetNameName
                 ];
 
                 const vidx = valueSetSetIndex === star
@@ -1135,9 +1228,7 @@
                   }
                 }
 
-                const theUc = uniquenessConstraints
-                  .find(v => v.name === uniquenessConstraintName);
-
+                /* dealing with uc */
                 if (resultValue && theUc) {
                   let countIdx = 0;
                   const countIdxMax = 1000;
@@ -1154,32 +1245,34 @@
                     resultValue = null;
                   }
                 }
+              }
 
-                if (resultValue !== undefined && resultValue !== null) {
+              /* adding to resultValues */
+              if (resultValue !== undefined && resultValue !== null) {
 
-                  if (theUc) {
-                    theUc.values.push(resultValue);
-                  }
-
-                  resultValues.push(resultValue);
+                if (theUc) {
+                  theUc.values.push(resultValue);
                 }
+
+                resultValues.push(resultValue);
               }
             }
 
-            if (valueSetSetIndex === star || valueSetValueIndex === star) {
-              prepicks.push([setIndex, elemIndex, resultValues]);
+            if (resultValues.length > 0 && (valueSetNameName === star || valueSetSetIndex === star || valueSetValueIndex === star)) {
+              generatedValues.push([iterIndex, setIndex, elemIndex, resultValues]);
             }
           }
 
-          contentElements.push(...resultValues.map(v => [setIndex, elemIndex, v]));
+          contentElements.push(...resultValues.map(v => [iterIndex, setIndex, elemIndex, v]));
         }
 
-        else if (contentElementPattern.test(elem[2]) || elem[2].length === 0) {
+        else if (contentElementPattern.test(theElem) || theElem.length === 0) {
           contentElements.push(elem);
         }
       }
 
       result.push({
+        iter: iterIndex,
         name: i,
         elements: contentElements,
         lastMinute: lastMinute,
@@ -1188,11 +1281,11 @@
 
     return [
       result,
-      prepicks,
+      uniquenessConstraints,
     ]
   }
 
-  function processNamedSets(originalStructure) {
+  function processNamedSets(elementsOriginal) {
 
     const namedSetPattern = new RegExp(
       `\\$(?:name|n)(!)?` +
@@ -1210,13 +1303,13 @@
 
     const namedSets = [];
 
-    originalStructure
+    elementsOriginal
       .flat()
-      .map(v => [...v, v[2].match(namedSetPattern)])
-      .filter(v => v[3])
+      .map(v => [v, v[3].match(namedSetPattern)])
+      .filter(v => v[1])
       // sort self-referring sets to beginning
       .reduce((accu, v) => {
-        v[3][3] || v[3][4] || v[3][5] || v[3][6] || v[3][7]
+        v[1][3] || v[1][4] || v[1][5] || v[1][6] || v[1][7]
           ? accu.push(v)
           : accu.unshift(v);
         return accu
@@ -1231,23 +1324,24 @@
           relativePos,
           otherNamedSet,
           otherNamedSetPos,
-        ] = v[3];
+        ] = v[1];
 
         const correspondingSets = getCorrespondingSets(
-          originalStructure,
+          elementsOriginal,
           namedSets,
           absolutePos,
           absolutePosFromEnd,
-          v[0],
+          v[0][1],
           relativePos,
           otherNamedSet,
           otherNamedSetPos,
         );
 
-        let theNs = namedSets.find(v => v.name === name);
+        let theNs = namedSets.find(w => w.name === name);
 
         if (!theNs) {
           const idx = namedSets.push({
+            iter: v[0][0],
             name: name,
             lastMinute: false,
             sets: []
@@ -1267,7 +1361,7 @@
     return namedSets
   }
 
-  function processOrderConstraints(originalStructure, namedSets) {
+  function processOrderConstraints(elementsOriginal, namedSets) {
     const orderConstraints = [];
 
     const orderConstraintPattern = new RegExp(
@@ -1284,10 +1378,10 @@
       `\\)$`
     );
 
-    originalStructure
+    elementsOriginal
       .flat()
-      .map(v => [...v, v[2].match(orderConstraintPattern)])
-      .filter(v => v[3])
+      .map(v => [v, v[3].match(orderConstraintPattern)])
+      .filter(v => v[1])
       .forEach(v => {
         const [
           _,
@@ -1298,16 +1392,16 @@
           relativePos,
           otherNamedSet,
           otherNamedSetPos,
-        ] = v[3];
+        ] = v[1];
 
         const correspondingSets = (otherNamedSet && !otherNamedSetPos)
           ? [otherNamedSet]
           : getCorrespondingSets(
-            originalStructure,
+            elementsOriginal,
             namedSets,
             absolutePos,
             absolutePosFromEnd,
-            v[0],
+            v[0][1],
             relativePos,
             otherNamedSet,
             otherNamedSetPos,
@@ -1339,11 +1433,11 @@
 
   const valueSetPattern = `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)`;
 
-  function processRenderDirectives(originalStructure, defaultStyle, namedSets) {
+  function processRenderDirectives(elements, defaultStyle, namedSets) {
 
-    const styleDefinitions  = processStyleDefinitions(originalStructure, defaultStyle);
-    const styleApplications = processStyleApplications(originalStructure, styleDefinitions, namedSets);
-    const styleRules        = processStyleRules(originalStructure, styleDefinitions);
+    const styleDefinitions  = processStyleDefinitions(elements, defaultStyle);
+    const styleApplications = processStyleApplications(elements, styleDefinitions, namedSets);
+    const styleRules        = processStyleRules(elements, styleDefinitions);
 
     return [styleDefinitions, styleApplications, styleRules]
   }
@@ -1373,7 +1467,7 @@
     return result
   }
 
-  function processStyleDefinitions(originalStructure, defaultStyle) {
+  function processStyleDefinitions(elements, defaultStyle) {
 
     const styleDefinitions  = [
       {
@@ -1389,7 +1483,7 @@
       {
         name: 'block',
         stylings: {
-          display: 'block',
+          block: true,
           openDelim: '',
           closeDelim: '',
           fieldPadding: 0,
@@ -1405,17 +1499,17 @@
       `\\)$`
     );
 
-    originalStructure
+    elements
       .flat()
-      .map(v => [...v, v[2].match(styleRegex)])
-      .filter(v => v[3])
+      .map(v => [v, v[3].match(styleRegex)])
+      .filter(v => v[1])
       .forEach(v => {
 
         const [
           _,
           name,
           stylingDirectives,
-        ] = v[3];
+        ] = v[1];
 
         let sd = styleDefinitions.find(v => v.name === name);
 
@@ -1474,15 +1568,15 @@
             else if (attributeName === 'clrsr' || attributeName === 'colorRules') {
               sd.stylings['colors']['rules'] = partitionList(attributeValue
                 .split(',')
-                .map(v => v.trim()), 2
+                .map(w => w.trim()), 2
               )
-                .map((v) => {
+                .map(w => {
 
-                  if (v.length !== 2) {
-                    return v
+                  if (w.length !== 2) {
+                    return w
                   }
 
-                  const regexResult = v[1].match(`^${valueSetPattern}$`);
+                  const regexResult = w[1].match(`^${valueSetPattern}$`);
 
                   if (!regexResult) {
                     return null
@@ -1498,26 +1592,26 @@
                   ] = regexResult;
 
                   return [
-                    v[0],
+                    w[0],
                     valueSetName === '*' ? star : valueSetName,
                     valueSetSetIndex ? Number(valueSetSetIndex) : star,
                     valueSetValueIndex ? Number(valueSetValueIndex) : star,
                   ]
                 })
-                .filter(v => v && v.length === 4);
+                .filter(w => w && w.length === 4);
             }
             else if (attributeName === 'clssr' || attributeName === 'classRules') {
               sd.stylings['classes']['rules'] = partitionList(attributeValue
                 .split(',')
-                .map(v => v.trim()), 2
+                .map(w => w.trim()), 2
               )
-                .map((v) => {
+                .map(w => {
 
-                  if (v.length !== 2) {
-                    return v
+                  if (w.length !== 2) {
+                    return w
                   }
 
-                  const regexResult = v[1].match(`^${valueSetPattern}$`);
+                  const regexResult = w[1].match(`^${valueSetPattern}$`);
 
                   if (!regexResult) {
                     return null
@@ -1533,19 +1627,19 @@
                   ] = regexResult;
 
                   return [
-                    v[0],
+                    w[0],
                     valueSetName === '*' ? star : valueSetName,
                     valueSetSetIndex ? Number(valueSetSetIndex) : star,
                     valueSetValueIndex ? Number(valueSetValueIndex) : star,
                   ]
                 })
-                .filter(v => v && v.length === 4);
+                .filter(w => w && w.length === 4);
             }
 
             else if (attributeName === 'clrsci' || attributeName === 'colorsCollectiveIndexing') {
-              const bool = attributeValue === 'true' || value === 'yes'
+              const bool = attributeValue === 'true' || attributeValue === 'yes'
                 ? true
-                : attributeValue === 'false' || value === 'no'
+                : attributeValue === 'false' || attributeValue === 'no'
                 ? false
                 : null;
 
@@ -1555,10 +1649,9 @@
             }
 
             else if (attributeName === 'clrsrsi' || attributeName === 'colorsRandomStartIndex') {
-              const value = v.match(afterColonRegex)[1];
-              const bool = value === 'true' || value === 'yes'
+              const bool = attributeValue === 'true' || attributeValue === 'yes'
                 ? true
-                : value === 'false' || value === 'no'
+                : attributeValue === 'false' || attributeValue === 'no'
                 ? false
                 : null;
 
@@ -1569,9 +1662,9 @@
 
 
             else if (attributeName === 'clssci' || attributeName === 'classesCollectiveIndexing') {
-              const bool = attributeValue === 'true' || value === 'yes'
+              const bool = attributeValue === 'true' || attributeValue === 'yes'
                 ? true
-                : attributeValue === 'false' || value === 'no'
+                : attributeValue === 'false' || attributeValue === 'no'
                 ? false
                 : null;
 
@@ -1581,15 +1674,26 @@
             }
 
             else if (attributeName === 'clssrsi' || attributeName === 'classesRandomStartIndex') {
-              const value = v.match(afterColonRegex)[1];
-              const bool = value === 'true' || value === 'yes'
+              const bool = attributeValue === 'true' || attributeValue === 'yes'
                 ? true
-                : value === 'false' || value === 'no'
+                : attributeValue === 'false' || attributeValue === 'no'
                 ? false
                 : null;
 
               if (typeof bool === 'boolean') {
                 sd.stylings['classes']['randomStartIndex'] = bool;
+              }
+            }
+
+            else if (attributeName === 'blk' || attributeName === 'block') {
+              const bool = attributeValue === 'true' || attributeValue === 'yes'
+                ? true
+                : attributeValue === 'false' || attributeValue === 'no'
+                ? false
+                : null;
+
+              if (typeof bool === 'boolean') {
+                sd.stylings['block'] = bool;
               }
             }
 
@@ -1602,7 +1706,7 @@
     return styleDefinitions
   }
 
-  function processStyleApplications(originalStructure, styleDefinitions, namedSets) {
+  function processStyleApplications(elements, styleDefinitions, namedSets) {
     const applyRegex = new RegExp(
       `^\\$(?:apply|app|a)\\(` +
       `(${namePattern})` +
@@ -1617,10 +1721,10 @@
 
     const styleApplications = [];
 
-    originalStructure
+    elements
       .flat()
-      .map(v => [...v, v[2].match(applyRegex)])
-      .filter(v => v[3])
+      .map(v => [v, v[3].match(applyRegex)])
+      .filter(v => v[1])
       .forEach(v => {
 
         const [
@@ -1631,15 +1735,15 @@
           relativePos,
           otherNamedSet,
           otherNamedSetPos,
-        ] = v[3];
+        ] = v[1];
 
         if (styleDefinitions.find(v => v.name === stylingName)) {
           const correspondingSets = getCorrespondingSets(
-            originalStructure,
+            elements,
             namedSets,
             absolutePos,
             absolutePosFromEnd,
-            v[0],
+            v[0][1],
             relativePos,
             otherNamedSet,
             otherNamedSetPos,
@@ -1655,7 +1759,7 @@
     return styleApplications
   }
 
-  function processStyleRules(originalStructure, styleDefinitions) {
+  function processStyleRules(elements, styleDefinitions) {
     const ruleRegex = new RegExp(
       `^\\$(?:rule|r)\\(` +
       `(${namePattern})` +
@@ -1668,10 +1772,10 @@
     );
 
     const styleRules = [];
-    originalStructure
+    elements
       .flat()
-      .map(v => [...v, v[2].match(ruleRegex)])
-      .filter(v => v[3])
+      .map(v => [v, v[3].match(ruleRegex)])
+      .filter(v => v[1])
       .forEach(v => {
 
         const [
@@ -1682,7 +1786,7 @@
           valueSetSetStar,
           valueSetValueIndex,
           valueSetValueStar,
-        ] = v[3];
+        ] = v[1];
 
         if (styleDefinitions.find(v => v.name === stylingName)) {
 
@@ -1701,7 +1805,7 @@
     return styleRules
   }
 
-  function processCommands(originalStructure, numberedSets, sharedElementsGroups) {
+  function processCommands(elements, numberedSets, namedSets) {
     const result = [];
 
     const idxRegex      = `(?:(\\d+)|((?:\\+|-)\\d+)|n(-\\d+)|(${namePattern}))`;
@@ -1722,8 +1826,16 @@
       `)?\\)$`
     );
 
-    for (const elem of originalStructure.flat()) {
-      const patternResult = elem[2]
+    for (const elem of elements.flat()) {
+
+      const [
+        iterIndex,
+        setIndex,
+        elemIndex,
+        theElem,
+      ] = elem;
+
+      const patternResult = theElem
         .match(mainRegex);
 
       // pr[1]: copySymbol, pr[2]: moveSymbol, pr[3]: deleteSymbol
@@ -1755,18 +1867,18 @@
           patternResult[12],
           patternResult[13],
           patternResult[14],
-          elem[0],
-          originalStructure.length,
-          sharedElementsGroups,
+          setIndex,
+          elements.length,
+          namedSets,
         );
 
         const toSetPosition = processPositionIndex(
           patternResult[15],
           patternResult[16],
           toSetNameWasDefined,
-          toSetName[0] ? toSetName[0] : elem[0],
+          toSetName[0] ? toSetName[0] : setIndex,
           numberedSets,
-          elem[1],
+          elemIndex,
         );
 
         const [toSetNameNew, toSetPositionNew] = numberedSets
@@ -1784,18 +1896,18 @@
           patternResult[6],
           patternResult[7],
           patternResult[8],
-          elem[0],
-          originalStructure.length,
-          sharedElementsGroups,
+          setIndex,
+          elements.length,
+          namedSets,
         );
 
         const fromSetPosition = processPositionIndex(
           patternResult[9],
           patternResult[10],
           true,
-          elem[0],
+          setIndex,
           numberedSets,
-          elem[1],
+          elemIndex,
         );
 
         if (
@@ -1826,7 +1938,7 @@
     nameIndex,
     currentIndex,
     elemCount,
-    sharedElementsGroups,
+    namedSets,
   ) {
 
     if (absIndex) /* absolute index */ {
@@ -1855,11 +1967,11 @@
     else if (nameIndex) /* named set */ {
       // named set, I don't need to check name constraints
       // because, you only refer to named sets, not create them
-      const foundSeg = sharedElementsGroups
-        .find(seg => seg.name === nameIndex);
+      const foundNs = namedSets
+        .find(ns => ns.name === nameIndex);
 
-      return foundSeg
-        ? [foundSeg.sets, true]
+      return foundNs
+        ? [foundNs.sets, true]
         : [[], true]
     }
 
@@ -1917,47 +2029,103 @@
     return array;
   }
 
+  function detectOrderDictator(orderConstraint, setReorders) {
+
+    return orderConstraint
+      .sets
+      .map(v => ({
+        name: v,
+        length: setReorders.find(w => w.name === v).length
+      }))
+        .reduce((accu, v) => accu.length < v.length ? v : accu)
+        .name
+  }
+
   function reorderNumberedSets(numberedSets) {
     return numberedSets.map(v => ({
+      iter: v.iter,
       name: v.name,
       length: v.elements.length,
-      sets: [v.name],
+      sets: [[v.iter, v.name]],
       setLengths: [v.elements.length],
       order: shuffle([...new Array(v.elements.length).keys()]),
       lastMinute: v.lastMinute,
     }))
   }
 
-  // TODO I think I can delete this
-  function initializeNumberedSets(numberedSets) {
-    return numberedSets
-      .map(v => v.elements)
-      .map(u => u.map(w => [w[0], w[1], w[2], 'n']))
+  function reorderNamedSets(namedSets, numberedSets) {
+    return namedSets.map(v => {
+
+      const containedNumberedSets = v.sets
+        .map(v => numberedSets.filter(u => u.name === v));
+
+      const setLengths = containedNumberedSets
+        .map(v => v[0].elements.length);
+
+      const elementCount = setLengths
+        .reduce((accu, w) => accu + w, 0);
+
+      return {
+        iter: v.iter,
+        name: v.name,
+        length: elementCount,
+        sets: v.sets.map(w => [v.iter, w]),
+        setLengths: setLengths,
+        order: shuffle([...new Array(elementCount).keys()]),
+        lastMinute: v.lastMinute,
+      }
+    })
+  }
+
+  function applyOrderConstraint(orderConstraint, setReorders) {
+
+    const dictator = detectOrderDictator(orderConstraint, setReorders);
+    orderConstraint.dictator = dictator;
+
+    const dictatorOrder = setReorders.find(v => v.name === orderConstraint.dictator).order;
+
+    console.log('oc', orderConstraint);
+
+    for (const set of orderConstraint.sets) {
+
+      const oldOrder = setReorders.find(v => v.name === set).order;
+      const newOrder = dictatorOrder.filter(v => v < oldOrder.length);
+
+      // modifies setReorders
+      setReorders.forEach(v => {
+        if (v.name === set) {
+          v.order = newOrder;
+          if (orderConstraint.lastMinute) {
+            v.lastMinute = true;
+          }
+        }
+      });
+    }
+
+    return setReorders
   }
 
   function generateRandomization(
     numberedSets,
-    sharedElementsGroups,
+    namedSets,
   ) {
+    const elements = numberedSets.map(v => v.elements);
 
-    const elements     = initializeNumberedSets(numberedSets);
-    const elementsCopy = JSON.parse(JSON.stringify(elements));
-
-    const setReorders  = [
+    const setReorders = [
       reorderNumberedSets(numberedSets),
-      reorderSharedElementsGroups(sharedElementsGroups, numberedSets),
+      reorderNamedSets(namedSets, numberedSets),
     ].flat();
 
     return [elements, setReorders]
   }
 
   function shareOrder(
+    orderConstraints,
     setReorders,
-    sharedOrderGroups,
   ) {
     // modifies setReorders (!)
-    sharedOrderGroups
-      .forEach(sog => applySharedOrder(sog, setReorders));
+    orderConstraints
+      .forEach(orderConstraint => applyOrderConstraint(orderConstraint, setReorders));
   }
 
   function adjustForSecondRandomization(orderConstraints, numberedSets, namedSets) {
@@ -1976,7 +2144,7 @@
       return false
     }
 
-    for (let i = 0, l=array.length; i < l; i++) {
+    for (let i = 0, l = array.length; i < l; i++) {
       // Check if we have nested arrays
       if (array[i] instanceof Array && otherArray[i] instanceof Array) {
         // recurse into the nested arrays
@@ -1992,36 +2160,37 @@
     return true
   }
 
-  function matchStructures(originalStructure, inheritedOriginalStructure) {
+  function matchStructures(elementsOriginal, elementsInherited) {
     const result = [];
 
-    for (const set of originalStructure) {
-      for (const inheritedSet of inheritedOriginalStructure) {
+    for (const setInherited of elementsInherited) {
 
-        if (compareArrays(set.map(v => v[2]), inheritedSet.map(v => v[2]))
-          // Don't make n-to-m mappings, only 1-to-1:
-          && !result.find(v => v.from === inheritedSet[0][0])
-          && !result.find(v => v.to === set[0][0])) {
+      let match;
+      if (match = elementsOriginal.find(set =>
+        compareArrays(set.map(v => v[2]), setInherited.map(v => v[2]))
+        // Don't make n-to-m mappings, only 1-to-1:
+        && !result.find(v => v.to[0] === set[0][0] && v.to[1] === set[0][1])
+      )) {
 
-          result.push({
-            from: inheritedSet[0][0],
-            to: set[0][0],
-          });
-        }
+        result.push({
+          from: setInherited[0].slice(0, 2),
+          to: match[0].slice(0, 2),
+        });
+
       }
     }
 
     return result
   }
 
-  function matchGeneratorValues(structureMatches, generatorValues) {
+  function matchGeneratedValues(structureMatches, generatedValues) {
     const result = [];
 
-    for (const value of generatorValues) {
-      const match = structureMatches.find(v => v.from === value[0]);
+    for (const value of generatedValues) {
+      const match = structureMatches.find(v => v.from[0] === value[0] && v.from[1] === value[1]);
 
       if (match) {
-        result.push([match.to, value[1], value[2]]);
+        result.push([...match.to, value[2], value[3]]);
       }
     }
 
@@ -2029,7 +2198,7 @@
   }
 
   // important for collective color indexing
-  function reorderForRendering(structureMatches, reorderings) {
+  function reorderForRendering(structureMatches, reorderings, iterIndex) {
 
     const result = Array(reorderings.length);
 
@@ -2041,10 +2210,10 @@
       .entries()
     ) {
 
-      const match = structureMatches.find(v => i === v.to);
+      const match = structureMatches.find(v => iterIndex === v.to[0] && i === v.to[1]);
 
       if (match) {
-        result[match.from] = ro;
+        result[match.from[1]] = ro;
       }
       else {
         result.push(ro);
@@ -2055,102 +2224,124 @@
       .filter(v => v !== undefined)
   }
 
-  function main(
+  function main(options, saveDataOld, frontside) {
+
+    // frontside will be run with indices (1, 2, 3, etc...)
+    // backside will be run with indices (-1, -2, -3, etc...)
+    // but technically they are run in a row
+    const saveData = options
+      .reduce((accu, v, iterIndex) => main2(
+        frontside ? (iterIndex + 1) : (-iterIndex - 1),
+        frontside,
+        v.inputSyntax,
+        v.defaultStyle,
+        ...accu,
+      ), saveDataOld);
+
+    console.log('saveData', saveData);
+    return saveData
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  // elementsInherited + elementsOriginal -> elementsFirst -> elementsSecond
+  // [[0,0,'Hello','n'],[0,1,'World'],[]],[[],[]], etc.]
+
+  // numberedSets -> numberedSetsSecond
+
+  // reorders -> reordersSecond
+  // [{name:1/name, length, sets, setLengths, order, lastMinute}]
+  function main2(
+    iterIndex,
     frontside,
     inputSyntax,
     defaultStyle,
-    originalStructureInherited,
-    generatorValuesInherited,
-    reordersInherited,
+
+    elementsInherited,
+    generatedValuesInherited,
+    uniquenessConstraintsInherited,
+    reordersFirstInherited,
     reordersSecondInherited,
     randomIndicesInherited,
   ) {
-    const form = formatter(inputSyntax);
-    const originalStructure = form.getOriginalStructure();
+    const form = formatter(inputSyntax, iterIndex);
+    const elementsOriginal = form.getElementsOriginal();
 
-    if (form.isValid && (!frontside || !form.isContained) && originalStructure.length > 0) {
+    if (form.isValid && (!frontside || !form.isContained) && elementsOriginal.length > 0) {
 
       const structureMatches = matchStructures(
-        originalStructure,
-        originalStructureInherited
+        elementsOriginal,
+        elementsInherited,
       );
 
       //////////////////////////////////////////////////////////////////////////////
       // FIRST RANDOMIZATION
       const [
         numberedSets,
-        generatorValues,
+        generatedValues,
+        uniquenessConstraints,
         valueSets,
       ] = processNumberedSets(
-        originalStructure,
-        matchGeneratorValues(
-          matchStructures(originalStructure, originalStructureInherited),
-          generatorValuesInherited,
-        ),
+        elementsOriginal,
+        matchGeneratedValues(structureMatches, generatedValuesInherited),
+        uniquenessConstraintsInherited,
+        iterIndex,
       );
 
-      const namedSets        = processNamedSets(originalStructure);
-      const orderConstraints = processOrderConstraints(originalStructure, namedSets);
+      const namedSets        = processNamedSets(elementsOriginal);
+      const orderConstraints = processOrderConstraints(elementsOriginal, namedSets);
 
       // modifies numberedSets and namedSets
       adjustForSecondRandomization(orderConstraints, numberedSets, namedSets);
 
-      const commands = processCommands(originalStructure, numberedSets, namedSets);
+      const commands = processCommands(elementsOriginal, numberedSets, namedSets);
 
       const [
         styleDefinitions,
-        styleAssignments,
+        styleApplications,
         styleRules,
-      ] = processRenderDirectives(originalStructure, defaultStyle, namedSets);
+      ] = processRenderDirectives(elementsOriginal, defaultStyle, namedSets);
 
-      const [elements, reordersAlpha] = generateRandomization(numberedSets, namedSets);
-
-      const reorders = applyInheritedSetReorder(
-        reordersAlpha,
-        reordersInherited,
+      const [
+        reordersFirst,
+        elementsFirst,
+      ] = applyModifications(
+        numberedSets,
+        namedSets,
+        orderConstraints,
+        commands,
+        reordersFirstInherited,
         structureMatches,
       );
-
-      applyModifications(reorders, elements, orderConstraints, commands);
 
       //////////////////////////////////////////////////////////////////////////////
       // SECOND RANDOMIZATION
-      const [numberedSetsSecond, _] = processNumberedSets(
-        elements.map(set => set.filter(elem => elem[3] !== 'd')),
+
+      const [numberedSetsSecond, _1, _2, _3] = processNumberedSets(
+        elementsFirst.map(set => set.filter(elem => elem[4] !== 'd')),
         [],
+        [],
+        iterIndex,
+        numberedSets.map(set => set.lastMinute),
       );
 
-      const [elementsSecond, reordersSecondAlpha] = generateRandomization(
-        numberedSetsSecond
-          .map((v, i) => ({
-            name: v.name,
-            elements: v.elements,
-            lastMinute: numberedSets[i].lastMinute
-          })),
-        namedSets,
-      );
-
-      const reordersSecond = applyInheritedSetReorder(
-        reordersSecondAlpha,
-        reordersSecondInherited,
-        structureMatches,
-      );
-
-      alert(JSON.stringify(reordersSecond));
-
-      applyModifications(
-        reordersSecond.filter(v => v.lastMinute),
+      const [
+        reordersSecond,
         elementsSecond,
+      ] = applyModifications(
+        numberedSetsSecond,
+        namedSets.filter(v => v.lastMinute),
         orderConstraints.filter(v => v.lastMinute),
         [],
+        reordersSecondInherited,
+        structureMatches,
       );
 
       //////////////////////////////////////////////////////////////////////////////
       // RENDERING
       const randomIndices = form.renderSets(
-        reorderForRendering(structureMatches, elementsSecond),
+        reorderForRendering(structureMatches, elementsSecond, iterIndex),
         styleDefinitions,
-        styleAssignments,
+        styleApplications,
         styleRules,
         randomIndicesInherited,
         valueSets,
@@ -2159,92 +2350,71 @@
 
       //////////////////////////////////////////////////////////////////////////////
       return [
-        originalStructure,
-        generatorValues,
-        reorders,
-        reordersSecond,
+        elementsInherited.concat(elementsOriginal.filter(v => !structureMatches.find(w => w.to[0] === v[0][0] && w.to[1] === v[0][1]))),
+        generatedValues,
+        uniquenessConstraints,
+        reordersFirstInherited.concat(reordersFirst),
+        reordersSecondInherited.concat(reordersSecond),
         randomIndices,
       ]
     }
 
     else {
       return [
-        originalStructure,
-        [/* generatorValues */],
-        [/* reorders */],
-        [/* reordersSecond */],
-        {/* randomIndices */},
+        elementsInherited,
+        generatedValuesInherited,
+        uniquenessConstraintsInherited,
+        reordersFirstInherited,
+        reordersSecondInherited,
+        randomIndicesInherited,
       ]
     }
   }
 
   // numbered are sorted 0 -> n, then named are in order of appearance
-  function applyModifications(reorders, elements, orderConstraints, commands) {
+  function applyModifications(numberedSets, namedSets, orderConstraints, commands, reordersInherited, structureMatches) {
+
+    const [elements, reordersAlpha] = generateRandomization(numberedSets, namedSets);
+
+    const reorders = applyInheritedSetReorder(
+      reordersAlpha,
+      reordersInherited,
+      structureMatches,
+    );
 
     // modifies reorders
-    shareOrder(reorders, orderConstraints);
+    shareOrder(orderConstraints, reorders);
 
     // both modify elements
     applySetReorder(reorders, elements);
     applyCommands(commands, elements);
+
+    return [
+      reorders,
+      elements,
+    ]
   }
 
   const options = $$options;
 
   // document.addEventListener("DOMContentLoaded", function() {
-  if (window.Persistence && Persistence.isAvailable() &&
-     (document.querySelector('div#qa') === null ||
+  if (document.querySelector('div#qa') === null ||
        !(new RegExp('// \S\E\T RANDOMIZER BACK TEMPLATE'))
-       .test(document.querySelector('div#qa').innerHTML))) {
-    mainFront(options);
-  }
-  else {
-    createWarning();
-    mainFrontWithoutSaving(options);
-  }
-  // })
+       .test(document.querySelector('div#qa').innerHTML)) {
 
-  function getNullData() {
-    return [
-      [/* originalStructure */],
-      [/* generatedValues */],
-      [/* reorders */],
-      [/* reordersSecond */],
-      {/* randomIndices */},
-    ]
-  }
+    const theSaveData = main(options, getNullData(), true);
 
+    if (!window.Persistence) {
+      createWarningNotDefined();
+    }
 
-  function mainFront(options) {
+    else if (!Persistence.isAvailable()) {
+      createWarningNotAvailable();
+    }
 
-    const theSaveData = options
-      .reduce((accu, v) => {
-
-        const saveData = main(
-          true,
-          v.inputSyntax,
-          v.defaultStyle,
-          ...accu[1],
-        );
-
-        return [
-          (accu[0].push([
-            v.inputSyntax,
-            v.defaultStyle,
-            ...saveData,
-          ]), accu[0]),
-          saveData,
-        ]
-      }, [
-        [/* SRData to be */],
-        getNullData(),
-      ])[0];
-
-    saveData(theSaveData);
-  }
-
-  function mainFrontWithoutSaving(options) {
-    options.map(v => main(true, v.inputSyntax, v.defaultStyle, ...getNullData()));
+    else {
+      saveData(theSaveData);
+    }
   }
 
 }());

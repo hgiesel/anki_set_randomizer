@@ -8,11 +8,11 @@ import {
 
 const valueSetPattern = `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)`
 
-export function processRenderDirectives(originalStructure, defaultStyle, namedSets) {
+export function processRenderDirectives(elements, defaultStyle, namedSets) {
 
-  const styleDefinitions  = processStyleDefinitions(originalStructure, defaultStyle)
-  const styleApplications = processStyleApplications(originalStructure, styleDefinitions, namedSets)
-  const styleRules        = processStyleRules(originalStructure, styleDefinitions)
+  const styleDefinitions  = processStyleDefinitions(elements, defaultStyle)
+  const styleApplications = processStyleApplications(elements, styleDefinitions, namedSets)
+  const styleRules        = processStyleRules(elements, styleDefinitions)
 
   return [styleDefinitions, styleApplications, styleRules]
 }
@@ -42,7 +42,7 @@ function splitStylingDirectives(sd) {
   return result
 }
 
-function processStyleDefinitions(originalStructure, defaultStyle) {
+function processStyleDefinitions(elements, defaultStyle) {
 
   const styleDefinitions  = [
     {
@@ -58,7 +58,7 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
     {
       name: 'block',
       stylings: {
-        display: 'block',
+        block: true,
         openDelim: '',
         closeDelim: '',
         fieldPadding: 0,
@@ -74,9 +74,9 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
     `\\)$`
   )
 
-  originalStructure
+  elements
     .flat()
-    .map(v => [v, v[2].match(styleRegex)])
+    .map(v => [v, v[3].match(styleRegex)])
     .filter(v => v[1])
     .forEach(v => {
 
@@ -212,9 +212,9 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
           }
 
           else if (attributeName === 'clrsci' || attributeName === 'colorsCollectiveIndexing') {
-            const bool = attributeValue === 'true' || value === 'yes'
+            const bool = attributeValue === 'true' || attributeValue === 'yes'
               ? true
-              : attributeValue === 'false' || value === 'no'
+              : attributeValue === 'false' || attributeValue === 'no'
               ? false
               : null
 
@@ -224,10 +224,9 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
           }
 
           else if (attributeName === 'clrsrsi' || attributeName === 'colorsRandomStartIndex') {
-            const value = v.match(afterColonRegex)[1]
-            const bool = value === 'true' || value === 'yes'
+            const bool = attributeValue === 'true' || attributeValue === 'yes'
               ? true
-              : value === 'false' || value === 'no'
+              : attributeValue === 'false' || attributeValue === 'no'
               ? false
               : null
 
@@ -238,9 +237,9 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
 
 
           else if (attributeName === 'clssci' || attributeName === 'classesCollectiveIndexing') {
-            const bool = attributeValue === 'true' || value === 'yes'
+            const bool = attributeValue === 'true' || attributeValue === 'yes'
               ? true
-              : attributeValue === 'false' || value === 'no'
+              : attributeValue === 'false' || attributeValue === 'no'
               ? false
               : null
 
@@ -250,15 +249,26 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
           }
 
           else if (attributeName === 'clssrsi' || attributeName === 'classesRandomStartIndex') {
-            const value = v.match(afterColonRegex)[1]
-            const bool = value === 'true' || value === 'yes'
+            const bool = attributeValue === 'true' || attributeValue === 'yes'
               ? true
-              : value === 'false' || value === 'no'
+              : attributeValue === 'false' || attributeValue === 'no'
               ? false
               : null
 
             if (typeof bool === 'boolean') {
               sd.stylings['classes']['randomStartIndex'] = bool
+            }
+          }
+
+          else if (attributeName === 'blk' || attributeName === 'block') {
+            const bool = attributeValue === 'true' || attributeValue === 'yes'
+              ? true
+              : attributeValue === 'false' || attributeValue === 'no'
+              ? false
+              : null
+
+            if (typeof bool === 'boolean') {
+              sd.stylings['block'] = bool
             }
           }
 
@@ -271,7 +281,7 @@ function processStyleDefinitions(originalStructure, defaultStyle) {
   return styleDefinitions
 }
 
-function processStyleApplications(originalStructure, styleDefinitions, namedSets) {
+function processStyleApplications(elements, styleDefinitions, namedSets) {
   const applyRegex = new RegExp(
     `^\\$(?:apply|app|a)\\(` +
     `(${namePattern})` +
@@ -286,9 +296,9 @@ function processStyleApplications(originalStructure, styleDefinitions, namedSets
 
   const styleApplications = []
 
-  originalStructure
+  elements
     .flat()
-    .map(v => [v, v[2].match(applyRegex)])
+    .map(v => [v, v[3].match(applyRegex)])
     .filter(v => v[1])
     .forEach(v => {
 
@@ -304,11 +314,11 @@ function processStyleApplications(originalStructure, styleDefinitions, namedSets
 
       if (styleDefinitions.find(v => v.name === stylingName)) {
         const correspondingSets = getCorrespondingSets(
-          originalStructure,
+          elements,
           namedSets,
           absolutePos,
           absolutePosFromEnd,
-          v[0][0],
+          v[0][1],
           relativePos,
           otherNamedSet,
           otherNamedSetPos,
@@ -324,7 +334,7 @@ function processStyleApplications(originalStructure, styleDefinitions, namedSets
   return styleApplications
 }
 
-function processStyleRules(originalStructure, styleDefinitions) {
+function processStyleRules(elements, styleDefinitions) {
   const ruleRegex = new RegExp(
     `^\\$(?:rule|r)\\(` +
     `(${namePattern})` +
@@ -337,9 +347,9 @@ function processStyleRules(originalStructure, styleDefinitions) {
   )
 
   const styleRules = []
-  originalStructure
+  elements
     .flat()
-    .map(v => [v, v[2].match(ruleRegex)])
+    .map(v => [v, v[3].match(ruleRegex)])
     .filter(v => v[1])
     .forEach(v => {
 

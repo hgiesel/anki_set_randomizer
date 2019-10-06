@@ -31,20 +31,25 @@ import {
 
 import {
   matchStructures,
-  matchGeneratorValues,
+  matchGeneratedValues,
   reorderForRendering,
 } from './lib/matching.js'
 
 export function main(options, saveDataOld, frontside) {
 
+  // frontside will be run with indices (1, 2, 3, etc...)
+  // backside will be run with indices (-1, -2, -3, etc...)
+  // but technically they are run in a row
   const saveData = options
-    .reduce((accu, v) => main2(
+    .reduce((accu, v, iterIndex) => main2(
+      frontside ? (iterIndex + 1) : (-iterIndex - 1),
       frontside,
       v.inputSyntax,
       v.defaultStyle,
       ...accu,
     ), saveDataOld)
 
+  console.log('saveData', saveData)
   return saveData
 }
 
@@ -57,17 +62,19 @@ export function main(options, saveDataOld, frontside) {
 // reorders -> reordersSecond
 // [{name:1/name, length, sets, setLengths, order, lastMinute}]
 function main2(
+  iterIndex,
   frontside,
   inputSyntax,
   defaultStyle,
 
   elementsInherited,
-  generatorValuesInherited,
-  reordersInherited,
+  generatedValuesInherited,
+  uniquenessConstraintsInherited,
+  reordersFirstInherited,
   reordersSecondInherited,
   randomIndicesInherited,
 ) {
-  const form = formatter(inputSyntax)
+  const form = formatter(inputSyntax, iterIndex)
   const elementsOriginal = form.getElementsOriginal()
 
   if (form.isValid && (!frontside || !form.isContained) && elementsOriginal.length > 0) {
@@ -81,12 +88,14 @@ function main2(
     // FIRST RANDOMIZATION
     const [
       numberedSets,
-      generatorValues,
+      generatedValues,
+      uniquenessConstraints,
       valueSets,
     ] = processNumberedSets(
       elementsOriginal,
-      matchGeneratorValues(structureMatches, generatorValuesInherited),
-      [],
+      matchGeneratedValues(structureMatches, generatedValuesInherited),
+      uniquenessConstraintsInherited,
+      iterIndex,
     )
 
     const namedSets        = processNamedSets(elementsOriginal)
@@ -103,48 +112,45 @@ function main2(
       styleRules,
     ] = processRenderDirectives(elementsOriginal, defaultStyle, namedSets)
 
-    const [elementsFirst, reordersAlpha] = generateRandomization(numberedSets, namedSets)
-
-    const reorders = applyInheritedSetReorder(
-      reordersAlpha,
-      reordersInherited,
+    const [
+      reordersFirst,
+      elementsFirst,
+    ] = applyModifications(
+      numberedSets,
+      namedSets,
+      orderConstraints,
+      commands,
+      reordersFirstInherited,
       structureMatches,
     )
-
-    applyModifications(reorders, elementsFirst, orderConstraints, commands)
-
 
     //////////////////////////////////////////////////////////////////////////////
     // SECOND RANDOMIZATION
 
-    const [numberedSetsSecond, _1, _2] = processNumberedSets(
-      elementsFirst.map(set => set.filter(elem => elem[3] !== 'd')),
+    const [numberedSetsSecond, _1, _2, _3] = processNumberedSets(
+      elementsFirst.map(set => set.filter(elem => elem[4] !== 'd')),
       [],
+      [],
+      iterIndex,
       numberedSets.map(set => set.lastMinute),
     )
 
-    const [elementsSecond, reordersSecondAlpha] = generateRandomization(
-      numberedSetsSecond,
-      namedSets,
-    )
-
-    const reordersSecond = applyInheritedSetReorder(
-      reordersSecondAlpha,
-      reordersSecondInherited,
-      structureMatches,
-    )
-
-    applyModifications(
-      reordersSecond.filter(v => v.lastMinute),
+    const [
+      reordersSecond,
       elementsSecond,
+    ] = applyModifications(
+      numberedSetsSecond,
+      namedSets.filter(v => v.lastMinute),
       orderConstraints.filter(v => v.lastMinute),
       [],
+      reordersSecondInherited,
+      structureMatches,
     )
 
     //////////////////////////////////////////////////////////////////////////////
     // RENDERING
     const randomIndices = form.renderSets(
-      reorderForRendering(structureMatches, elementsSecond),
+      reorderForRendering(structureMatches, elementsSecond, iterIndex),
       styleDefinitions,
       styleApplications,
       styleRules,
@@ -155,32 +161,47 @@ function main2(
 
     //////////////////////////////////////////////////////////////////////////////
     return [
-      elementsOriginal,
-      generatorValues,
-      reorders,
-      reordersSecond,
+      elementsInherited.concat(elementsOriginal.filter(v => !structureMatches.find(w => w.to[0] === v[0][0] && w.to[1] === v[0][1]))),
+      generatedValues,
+      uniquenessConstraints,
+      reordersFirstInherited.concat(reordersFirst),
+      reordersSecondInherited.concat(reordersSecond),
       randomIndices,
     ]
   }
 
   else {
     return [
-      elementsOriginal,
-      [/* generatedValues */],
-      [/* reorders */],
-      [/* reordersSecond */],
-      {/* randomIndices */},
+      elementsInherited,
+      generatedValuesInherited,
+      uniquenessConstraintsInherited,
+      reordersFirstInherited,
+      reordersSecondInherited,
+      randomIndicesInherited,
     ]
   }
 }
 
 // numbered are sorted 0 -> n, then named are in order of appearance
-function applyModifications(reorders, elements, orderConstraints, commands) {
+function applyModifications(numberedSets, namedSets, orderConstraints, commands, reordersInherited, structureMatches) {
+
+  const [elements, reordersAlpha] = generateRandomization(numberedSets, namedSets)
+
+  const reorders = applyInheritedSetReorder(
+    reordersAlpha,
+    reordersInherited,
+    structureMatches,
+  )
 
   // modifies reorders
-  shareOrder(reorders, orderConstraints)
+  shareOrder(orderConstraints, reorders)
 
   // both modify elements
   applySetReorder(reorders, elements)
   applyCommands(commands, elements)
+
+  return [
+    reorders,
+    elements,
+  ]
 }

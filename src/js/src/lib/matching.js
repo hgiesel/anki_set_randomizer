@@ -3,7 +3,7 @@ function compareArrays(array, otherArray) {
     return false
   }
 
-  for (let i = 0, l=array.length; i < l; i++) {
+  for (let i = 0, l = array.length; i < l; i++) {
     // Check if we have nested arrays
     if (array[i] instanceof Array && otherArray[i] instanceof Array) {
       // recurse into the nested arrays
@@ -19,36 +19,37 @@ function compareArrays(array, otherArray) {
   return true
 }
 
-export function matchStructures(originalStructure, inheritedOriginalStructure) {
+export function matchStructures(elementsOriginal, elementsInherited) {
   const result = []
 
-  for (const set of originalStructure) {
-    for (const inheritedSet of inheritedOriginalStructure) {
+  for (const setInherited of elementsInherited) {
 
-      if (compareArrays(set.map(v => v[2]), inheritedSet.map(v => v[2]))
-        // Don't make n-to-m mappings, only 1-to-1:
-        && !result.find(v => v.from === inheritedSet[0][0])
-        && !result.find(v => v.to === set[0][0])) {
+    let match
+    if (match = elementsOriginal.find(set =>
+      compareArrays(set.map(v => v[2]), setInherited.map(v => v[2]))
+      // Don't make n-to-m mappings, only 1-to-1:
+      && !result.find(v => v.to[0] === set[0][0] && v.to[1] === set[0][1])
+    )) {
 
-        result.push({
-          from: inheritedSet[0][0],
-          to: set[0][0],
-        })
-      }
+      result.push({
+        from: setInherited[0].slice(0, 2),
+        to: match[0].slice(0, 2),
+      })
+
     }
   }
 
   return result
 }
 
-export function matchGeneratorValues(structureMatches, generatorValues) {
+export function matchGeneratedValues(structureMatches, generatedValues) {
   const result = []
 
-  for (const value of generatorValues) {
-    const match = structureMatches.find(v => v.from === value[0])
+  for (const value of generatedValues) {
+    const match = structureMatches.find(v => v.from[0] === value[0] && v.from[1] === value[1])
 
     if (match) {
-      result.push([match.to, value[1], value[2]])
+      result.push([...match.to, value[2], value[3]])
     }
   }
 
@@ -56,7 +57,7 @@ export function matchGeneratorValues(structureMatches, generatorValues) {
 }
 
 // important for collective color indexing
-export function reorderForRendering(structureMatches, reorderings) {
+export function reorderForRendering(structureMatches, reorderings, iterIndex) {
 
   const result = Array(reorderings.length)
 
@@ -68,10 +69,10 @@ export function reorderForRendering(structureMatches, reorderings) {
     .entries()
   ) {
 
-    const match = structureMatches.find(v => i === v.to)
+    const match = structureMatches.find(v => iterIndex === v.to[0] && i === v.to[1])
 
     if (match) {
-      result[match.from] = ro
+      result[match.from[1]] = ro
     }
     else {
       result.push(ro)

@@ -2,7 +2,7 @@ import {
   namePattern,
 } from './util.js'
 
-export function processCommands(originalStructure, numberedSets, namedSets) {
+export function processCommands(elements, numberedSets, namedSets) {
   const result = []
 
   const idxRegex      = `(?:(\\d+)|((?:\\+|-)\\d+)|n(-\\d+)|(${namePattern}))`
@@ -23,8 +23,16 @@ export function processCommands(originalStructure, numberedSets, namedSets) {
     `)?\\)$`
   )
 
-  for (const elem of originalStructure.flat()) {
-    const patternResult = elem[2]
+  for (const elem of elements.flat()) {
+
+    const [
+      iterIndex,
+      setIndex,
+      elemIndex,
+      theElem,
+    ] = elem
+
+    const patternResult = theElem
       .match(mainRegex)
 
     // pr[1]: copySymbol, pr[2]: moveSymbol, pr[3]: deleteSymbol
@@ -56,8 +64,8 @@ export function processCommands(originalStructure, numberedSets, namedSets) {
         patternResult[12],
         patternResult[13],
         patternResult[14],
-        elem[0],
-        originalStructure.length,
+        setIndex,
+        elements.length,
         namedSets,
       )
 
@@ -65,9 +73,9 @@ export function processCommands(originalStructure, numberedSets, namedSets) {
         patternResult[15],
         patternResult[16],
         toSetNameWasDefined,
-        toSetName[0] ? toSetName[0] : elem[0],
+        toSetName[0] ? toSetName[0] : setIndex,
         numberedSets,
-        elem[1],
+        elemIndex,
       )
 
       const [toSetNameNew, toSetPositionNew] = numberedSets
@@ -85,8 +93,8 @@ export function processCommands(originalStructure, numberedSets, namedSets) {
         patternResult[6],
         patternResult[7],
         patternResult[8],
-        elem[0],
-        originalStructure.length,
+        setIndex,
+        elements.length,
         namedSets,
       )
 
@@ -94,9 +102,9 @@ export function processCommands(originalStructure, numberedSets, namedSets) {
         patternResult[9],
         patternResult[10],
         true,
-        elem[0],
+        setIndex,
         numberedSets,
-        elem[1],
+        elemIndex,
       )
 
       if (

@@ -23,7 +23,7 @@ export function processNamedSets(elementsOriginal) {
 
   elementsOriginal
     .flat()
-    .map(v => [v, v[2].match(namedSetPattern)])
+    .map(v => [v, v[3].match(namedSetPattern)])
     .filter(v => v[1])
     // sort self-referring sets to beginning
     .reduce((accu, v) => {
@@ -49,7 +49,7 @@ export function processNamedSets(elementsOriginal) {
         namedSets,
         absolutePos,
         absolutePosFromEnd,
-        v[0][0],
+        v[0][1],
         relativePos,
         otherNamedSet,
         otherNamedSetPos,
@@ -59,6 +59,7 @@ export function processNamedSets(elementsOriginal) {
 
       if (!theNs) {
         const idx = namedSets.push({
+          iter: v[0][0],
           name: name,
           lastMinute: false,
           sets: []
@@ -97,7 +98,7 @@ export function processOrderConstraints(elementsOriginal, namedSets) {
 
   elementsOriginal
     .flat()
-    .map(v => [v, v[2].match(orderConstraintPattern)])
+    .map(v => [v, v[3].match(orderConstraintPattern)])
     .filter(v => v[1])
     .forEach(v => {
       const [
@@ -118,7 +119,7 @@ export function processOrderConstraints(elementsOriginal, namedSets) {
           namedSets,
           absolutePos,
           absolutePosFromEnd,
-          v[0][0],
+          v[0][1],
           relativePos,
           otherNamedSet,
           otherNamedSetPos,

@@ -21,24 +21,8 @@
 
 
 
-      1.09 Generators: Evaluations <br>
-
-      You cannot only pick from value sets, but you can also evaluate value sets themselves. At this point it behaves more like Clozes. <br>
-      The name of the meta element is "$evaluate(count, valueset, uniqueness_constraint)". "evaluate" can be shortenend to "eval", or just "e". Both arguments, "count", and "uniqueness_constraint", are optional. <br>
-
-      Example: What's the capital of Germany: [[$c1:Berlin:starts with B::$eval(c1:1)]] <br>
-
-      As you can see, it now shows the hint. Now try reversing... <br>
-
-      <hr>
-
-      And now, it shows the answer: [[$eval(c1:0)]]! <br>
-
-      So in short, the evaluations are like reversed picks: instead of generating the element where the pick element used to be, it generates the element where the value set used to be! <br>
-
-      And just like picks, evaluations also supports wildcards, counts, and uniqueness constraints: <br>
-
-      [[$gr|alpha|beta|gamma|delta::$eval(4, gr:*, uc)]] <br>
+      [[a::b::c::d::e]] <br>
+      [[u::v::w::x::y::z]] <br>
 
 
 

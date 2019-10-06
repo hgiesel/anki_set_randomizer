@@ -20,8 +20,8 @@ export function generateRandomization(
 }
 
 export function shareOrder(
-  setReorders,
   orderConstraints,
+  setReorders,
 ) {
   // modifies setReorders (!)
   orderConstraints

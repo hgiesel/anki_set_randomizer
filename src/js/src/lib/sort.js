@@ -85,7 +85,7 @@ export function applySetReorder(srs, elems) {
     if (!alreadySorted) {
       const flatSaveElems = sr
         .sets
-        .map(v => elems[v])
+        .map(v => elems[v[1]])
         .flat()
 
       sliceWithLengths(
@@ -93,7 +93,7 @@ export function applySetReorder(srs, elems) {
         sr.setLengths
       )
         .forEach((v, i) => {
-          elems[sr.sets[i]] = v
+          elems[sr.sets[i][1]] = v
         })
 
       appliedSrs.push(sr.sets)
@@ -110,6 +110,7 @@ export function applyInheritedSetReorder(reorders, inheritedReorders, structureM
     // named sets
     if ((typeof reorder.name === 'string') && (match = inheritedReorders.find(v => reorder.name === v.name))) {
       modifiedReorders.push({
+        iter: reorder.iter,
         name: reorder.name,
         length: reorder.length,
         sets: reorder.sets,
@@ -120,10 +121,11 @@ export function applyInheritedSetReorder(reorders, inheritedReorders, structureM
     }
 
     // numbered sets
-    else if (match = structureMatches.find(v => reorder.name === v.to)) {
-      const theReorder = inheritedReorders.find(v => v.name === match.from)
+    else if (match = structureMatches.find(v => reorder.iter === v.to[0] && reorder.name === v.to[1])) {
+      const theReorder = inheritedReorders.find(v => v.iter === match.from[0] && v.name === match.from[1])
 
       modifiedReorders.push({
+        iter: reorder.iter,
         name: reorder.name,
         length: theReorder.length,
         sets: theReorder.sets,
@@ -196,7 +198,7 @@ function applyCommand(cmd, elems) {
   let elemAmount = cmd[1]
 
   for (const elem of theElems) {
-    const elemType = elem[3]
+    const elemType = elem[4]
 
     if (elemType !== 'd' && elemType !== 'c') {
 
@@ -204,7 +206,7 @@ function applyCommand(cmd, elems) {
 
       if (cmdName === 'd' || cmdName === 'm') {
         // modifies elems
-        elem[3] = 'd'
+        elem[4] = 'd'
       }
 
       if (--elemAmount === 0) {
@@ -228,7 +230,7 @@ function applyCommand(cmd, elems) {
     while (elemCount > 0) {
       thePosition += elems[toSet]
         .slice(thePosition)
-        .findIndex(v => v[3] === 'n' || v[3] === 'd')
+        .findIndex(v => v[4] === 'n' || v[4] === 'd')
       thePosition++
       elemCount--
     }
