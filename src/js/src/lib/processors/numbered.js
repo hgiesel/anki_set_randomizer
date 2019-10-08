@@ -147,6 +147,20 @@ function evalValueSets(elements, evaluators, uniquenessConstraints, generatedVal
 
         wasStar = foundEvaluator[2] === star ? true : false
 
+        const valueId = foundEvaluator[2]
+        const valueCount = foundEvaluator[3]
+        const uniquenessConstraintName = foundEvaluator[4]
+
+        if (
+          uniquenessConstraintName &&
+          !uniquenessConstraints.find(v => v.name === uniquenessConstraintName)
+        ) {
+          uniquenessConstraints.push({
+            name: uniquenessConstraintName,
+            values: []
+          })
+        }
+
         let pregen
         if (pregen = generatedValues
           .find(gv => gv[1] === setIndex && gv[2] === elemIndex)) {
@@ -159,27 +173,22 @@ function evalValueSets(elements, evaluators, uniquenessConstraints, generatedVal
 
         else {
 
-          for (let i = 0; i < foundEvaluator[3]; i++) {
+          for (let failedOnce = false, i = 0; i < valueCount; i++) {
+
+            if (failedOnce) {
+              break
+            }
 
             let theValue = generateValue(
               valueSetName,
               valueSetIndex,
-              foundEvaluator[2] !== star ? foundEvaluator[2] : Math.floor(Math.random() * values.length),
+              valueId !== star ? valueId : Math.floor(Math.random() * values.length),
             )
-
-            const uniquenessConstraintName = foundEvaluator[4]
 
             if (uniquenessConstraintName) {
 
-              if (!uniquenessConstraints.find(v => v.name === uniquenessConstraintName)) {
-                uniquenessConstraints.push({
-                  name: uniquenessConstraintName,
-                  values: []
-                })
-              }
-
               let countIdx = 0
-              const countIdxMax = 1000
+              const countIdxMax = 100
 
               const uc = uniquenessConstraints
                 .find(v => v.name === uniquenessConstraintName)
@@ -193,7 +202,7 @@ function evalValueSets(elements, evaluators, uniquenessConstraints, generatedVal
                   Math.floor(Math.random() * values.length),
                 )
 
-                if (foundEvaluator[2] !== star) {
+                if (valueId !== star) {
                   countIdx = countIdxMax
                 }
                 else {
@@ -203,7 +212,9 @@ function evalValueSets(elements, evaluators, uniquenessConstraints, generatedVal
 
               if (countIdx === countIdxMax) {
                 theValue = null
+                failedOnce = true
               }
+
               else {
                 uniquenessConstraints
                   .find(v => v.name === uniquenessConstraintName)
@@ -212,7 +223,7 @@ function evalValueSets(elements, evaluators, uniquenessConstraints, generatedVal
               }
             }
 
-            if (theValue !== null) {
+            if (theValue !== null && theValue !== undefined) {
               resolvedValues.push(theValue)
             }
           }
@@ -365,8 +376,12 @@ function evalPicks(
 
         else {
 
-          for (let i = 0; i < count; i++) {
+          for (let failedOnce = false, i = 0; i < count; i++) {
             let resultValue
+
+            if (failedOnce) {
+              break;
+            }
 
             if (minValue && maxValue /* number pick */) {
               // generate a random integer or real number
@@ -382,7 +397,7 @@ function evalPicks(
               /* dealing with uc */
               if (theUc) {
                 let countIdx = 0
-                const countIdxMax = 1000
+                const countIdxMax = 100
 
                 while (theUc.values.includes(resultValue) &&
                   countIdx < countIdxMax) {
@@ -399,6 +414,7 @@ function evalPicks(
 
                 if (countIdx == countIdxMax) {
                   resultValue = null
+                  failedOnce = true
                 }
               }
             }
@@ -432,7 +448,7 @@ function evalPicks(
               /* dealing with uc */
               if (resultValue && theUc) {
                 let countIdx = 0
-                const countIdxMax = 1000
+                const countIdxMax = 100
 
                 while (theUc.values.includes(resultValue) && countIdx < countIdxMax) {
 
@@ -444,6 +460,7 @@ function evalPicks(
 
                 if (countIdx == countIdxMax) {
                   resultValue = null
+                  failedOnce = true
                 }
               }
             }
