@@ -10,17 +10,17 @@
 
   function createWarningNotDefined() {
     if (!document.querySelector('#set-randomizer--warning')) {
-      document.body.appendChild(getWarningDiv(
+      document.body.querySelector('#qa').appendChild(getWarningDiv(
         'Set-Randomizer: Anki-Persistence is not defined!\n' +
-        'Check "Tools > Set Randomizer Options" and make sure you enable "Inject anki-persistence"!'
+        'Check "Tools > Set Randomizer Options" and make sure you enable "Inject anki-persistence".'
       ));
     }
   }
 
-  function createWarningNotAvailable() {
-    if (!document.querySelector('#set-randomizer--warning')) {
-      document.body.appendChild(getWarningDiv(
-        'Set-Randomizer: Anki-Persistence does not work in the Card Preview and Template Editor.'
+  function createWarningNotAvailable(wereSetsUsed) {
+    if (wereSetsUsed /* only show Warning if you used some sets at all */ && !document.querySelector('#set-randomizer--warning')) {
+      document.body.querySelector('#qa').appendChild(getWarningDiv(
+        'Set-Randomizer: Anki-Persistence <a href="https://github.com/SimonLammer/anki-persistence">does not work here</a>. Randomization will be inconsistent.'
       ));
     }
   }
@@ -28,12 +28,15 @@
   function getWarningDiv(warningMessage) {
     const warningDiv = document.createElement('div');
     warningDiv.id = 'set-randomizer--warning';
-    warningDiv.innerText = warningMessage;
+    warningDiv.innerHTML = warningMessage;
     warningDiv.style.cssText = (
-      'width: 100%; height: 100%; ' +
-      'padding: 15px 0px; ' +
-      'font-size: 50%; ' +
-      'background-color: white; color: red;'
+      'color: firebrick;' +
+      'font-size: 40%; ' +
+      'background-color: white; ' +
+      'border: 2px solid red; ' +
+      'margin: 40px 10px 0px; ' +
+      'padding: 15px; ' +
+      'text-shadow: 0px 0px; ' /* avoid text-shadow from somewhere else */
     );
     return warningDiv
   }
@@ -2237,19 +2240,28 @@
 
   function main(options, saveDataOld, frontside) {
 
-    // frontside will be run with indices (1, 2, 3, etc...)
-    // backside will be run with indices (-1, -2, -3, etc...)
+    // frontside will be run with indices (-1, -2, -3, etc...)
+    // backside will be run with indices (1, 2, 3, etc...)
     // but technically they are run in a row
-    const saveData = options
-      .reduce((accu, v, iterIndex) => main2(
-        frontside ? (iterIndex + 1) : (-iterIndex - 1),
-        frontside,
-        v.inputSyntax,
-        v.defaultStyle,
-        ...accu,
-      ), saveDataOld);
+    const saveDataAndSetsUsed = options
+      .reduce((accu, v, iterIndex) => {
+        const [
+          saveDataNew,
+          wereSetsUsed,
+        ] = main2(
+          frontside ? (-iterIndex - 1) : (iterIndex + 1),
+          v.inputSyntax,
+          v.defaultStyle,
+          ...accu[0],
+        );
 
-    return saveData
+        return [saveDataNew, wereSetsUsed || accu[1]]
+      }, [
+        saveDataOld,
+        false /* no sets used is assumption */
+      ]);
+
+    return saveDataAndSetsUsed
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -2262,7 +2274,6 @@
   // [{name:1/name, length, sets, setLengths, order, lastMinute}]
   function main2(
     iterIndex,
-    frontside,
     inputSyntax,
     defaultStyle,
 
@@ -2276,7 +2287,7 @@
     const form = formatter(inputSyntax, iterIndex);
     const elementsOriginal = form.getElementsOriginal();
 
-    if (form.isValid && (!frontside || !form.isContained) && elementsOriginal.length > 0) {
+    if (form.isValid && (!form.isContained) && elementsOriginal.length > 0) {
 
       const structureMatches = matchStructures(
         elementsOriginal,
@@ -2360,25 +2371,25 @@
       );
 
       //////////////////////////////////////////////////////////////////////////////
-      return [
+      return [[
         elementsInherited.concat(elementsOriginal.filter(v => !structureMatches.find(w => w.to[0] === v[0][0] && w.to[1] === v[0][1]))),
         generatedValues,
         uniquenessConstraints,
         reordersFirstInherited.concat(reordersFirst),
         reordersSecondInherited.concat(reordersSecond),
         randomIndices,
-      ]
+      ], true]
     }
 
     else {
-      return [
+      return [[
         elementsInherited,
         generatedValuesInherited,
         uniquenessConstraintsInherited,
         reordersFirstInherited,
         reordersSecondInherited,
         randomIndicesInherited,
-      ]
+      ], false]
     }
   }
 
@@ -2410,21 +2421,22 @@
     ]
   }
 
-  const options = $$options;
+  front();
 
-  // document.addEventListener("DOMContentLoaded", function() {
-  if (document.querySelector('div#qa') === null ||
-       !(new RegExp('// \S\E\T RANDOMIZER BACK TEMPLATE'))
-       .test(document.querySelector('div#qa').innerHTML)) {
+  function front() {
+    const options = $$options;
 
-    const theSaveData = main(options, getNullData(), true);
+    const [
+      theSaveData,
+      wereSetsUsed,
+    ] = main(options, getNullData(), true);
 
     if (!window.Persistence) {
       createWarningNotDefined();
     }
 
     else if (!Persistence.isAvailable()) {
-      createWarningNotAvailable();
+      createWarningNotAvailable(wereSetsUsed);
     }
 
     else {

@@ -37,19 +37,28 @@ import {
 
 export function main(options, saveDataOld, frontside) {
 
-  // frontside will be run with indices (1, 2, 3, etc...)
-  // backside will be run with indices (-1, -2, -3, etc...)
+  // frontside will be run with indices (-1, -2, -3, etc...)
+  // backside will be run with indices (1, 2, 3, etc...)
   // but technically they are run in a row
-  const saveData = options
-    .reduce((accu, v, iterIndex) => main2(
-      frontside ? (iterIndex + 1) : (-iterIndex - 1),
-      frontside,
-      v.inputSyntax,
-      v.defaultStyle,
-      ...accu,
-    ), saveDataOld)
+  const saveDataAndSetsUsed = options
+    .reduce((accu, v, iterIndex) => {
+      const [
+        saveDataNew,
+        wereSetsUsed,
+      ] = main2(
+        frontside ? (-iterIndex - 1) : (iterIndex + 1),
+        v.inputSyntax,
+        v.defaultStyle,
+        ...accu[0],
+      )
 
-  return saveData
+      return [saveDataNew, wereSetsUsed || accu[1]]
+    }, [
+      saveDataOld,
+      false /* no sets used is assumption */
+    ])
+
+  return saveDataAndSetsUsed
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -62,7 +71,6 @@ export function main(options, saveDataOld, frontside) {
 // [{name:1/name, length, sets, setLengths, order, lastMinute}]
 function main2(
   iterIndex,
-  frontside,
   inputSyntax,
   defaultStyle,
 
@@ -76,7 +84,7 @@ function main2(
   const form = formatter(inputSyntax, iterIndex)
   const elementsOriginal = form.getElementsOriginal()
 
-  if (form.isValid && (!frontside || !form.isContained) && elementsOriginal.length > 0) {
+  if (form.isValid && (!form.isContained) && elementsOriginal.length > 0) {
 
     const structureMatches = matchStructures(
       elementsOriginal,
@@ -160,25 +168,25 @@ function main2(
     )
 
     //////////////////////////////////////////////////////////////////////////////
-    return [
+    return [[
       elementsInherited.concat(elementsOriginal.filter(v => !structureMatches.find(w => w.to[0] === v[0][0] && w.to[1] === v[0][1]))),
       generatedValues,
       uniquenessConstraints,
       reordersFirstInherited.concat(reordersFirst),
       reordersSecondInherited.concat(reordersSecond),
       randomIndices,
-    ]
+    ], true]
   }
 
   else {
-    return [
+    return [[
       elementsInherited,
       generatedValuesInherited,
       uniquenessConstraintsInherited,
       reordersFirstInherited,
       reordersSecondInherited,
       randomIndicesInherited,
-    ]
+    ], false]
   }
 }
 

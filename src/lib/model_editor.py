@@ -26,6 +26,9 @@ def setup_models(config):
         if settings['enabled']:
             update_model_template(model, settings)
 
+def gen_data_attributes(side):
+    return f'data-name="Set Randomizer {side} Template" data-version="{version_string}"'
+
 def remove_model_template(model):
     front_name = '_front' + model['id'] + '.js'
     back_name = '_back' + model['id'] + '.js'
@@ -36,14 +39,14 @@ def remove_model_template(model):
     for template in model['tmpls']:
 
         template['qfmt'] = re.sub(
-            '\n?<script>\n// SET RANDOMIZER FRONT TEMPLATE .*</script>',
+            '\n?<script[^>]*Set Randomizer[^>]*>.*</script>',
             '',
             template['qfmt'],
             flags=re.MULTILINE | re.DOTALL,
         ).strip()
 
         template['afmt'] = re.sub(
-            '\n?<script>\n// SET RANDOMIZER BACK TEMPLATE .*</script>',
+            '\n?<script[^>]*Set Randomizer[^>]*>.*</script>',
             '',
             template['afmt'],
             flags=re.MULTILINE | re.DOTALL,
@@ -52,9 +55,6 @@ def remove_model_template(model):
 
 def update_model_template(model, settings):
     dir_path = os.path.dirname(os.path.realpath(__file__))
-
-    front_name = '_front' + model['id'] + '.js'
-    back_name = '_back' + model['id'] + '.js'
 
     with io.open(f'{dir_path}/../js/dist/front.js', mode='r', encoding='utf-8') as template_front:
         js_front = BetterTemplate(template_front.read()).substitute(
@@ -71,32 +71,37 @@ def update_model_template(model, settings):
 
     if settings['pasteIntoTemplate']:
         for template in model['tmpls']:
-            template['qfmt'] = (f'{template["qfmt"]}\n\n<script>\n' +
-                                f'// SET RANDOMIZER FRONT TEMPLATE {version_string}\n' +
-                                f'{anki_persistence if settings["injectAnkiPersistence"] else ""}{js_front}' +
-                                f'</script>')
-            template['afmt'] = (f'{template["afmt"]}\n\n<script>\n' +
-                                f'// SET RANDOMIZER BACK TEMPLATE {version_string}\n' +
-                                f'{anki_persistence if settings["injectAnkiPersistence"] else ""}{js_back}' +
-                                f'</script>')
+            template['qfmt'] = (
+                f'{template["qfmt"]}\n\n<script {gen_data_attributes("Front")}>\n' +
+                f'{anki_persistence if settings["injectAnkiPersistence"] else ""}{js_front}' +
+                f'</script>'
+            )
+
+            template['afmt'] = (
+                f'{template["afmt"]}\n\n<script {gen_data_attributes("Back")}>\n' +
+                f'{anki_persistence if settings["injectAnkiPersistence"] else ""}{js_back}' +
+                f'</script>'
+            )
 
     else:
+        front_name = '_front' + model['id'] + '.js'
+        back_name = '_back' + model['id'] + '.js'
 
         front_template = f"""\n
-<script>
-// SET RANDOMIZER FRONT TEMPLATE {version_string}
+<script {gen_data_attributes("Front")}>
   var script = document.createElement("script")
   script.src = "{front_name}"
   document.getElementsByTagName('head')[0].appendChild(script)
-</script>"""
+</script>
+        """
 
         back_template = f"""\n
-<script>
-// SET RANDOMIZER BACK TEMPLATE {version_string}
+<script {gen_data_attributes("Back")}>
   var script = document.createElement("script")
   script.src = "{back_name}"
   document.getElementsByTagName('head')[0].appendChild(script)
-</script>"""
+</script>
+        """
 
         mw.col.media.writeData(front_name, ((anki_persistence
                                              if settings['injectAnkiPersistence']
