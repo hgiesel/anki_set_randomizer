@@ -210,86 +210,108 @@ export default function formatter(inputSyntax, iterIndex) {
 
     const defaultStyle = styleDefinitions.find(v => v.name === 'default').stylings
 
-    styleDefinitions
-      .forEach(def => {
-        def.stylings.randomIndices = randomIndices[def.name] || []
-        def.stylings.nextIndex = 0
-      })
+    const propAccessor = function(appliedStyleName, ruleStyleName=null, theDefaultStyle=defaultStyle) {
 
-    const propAccessor = function(styleName, ruleStyleName=null, theDefaultStyle=defaultStyle) {
-
-      const theStyle = styleName
-        ? styleDefinitions.find(v => v.name === styleName).stylings
-        : {}
+      const theAppliedStyle = appliedStyleName
+        ? styleDefinitions.find(v => v.name === appliedStyleName).stylings
+        : null
 
       const theRuleStyle = ruleStyleName
         ? styleDefinitions.find(v => v.name === ruleStyleName).stylings
-        : {}
+        : null
 
-      const getProp = function(propName, propName2) {
+      const getProp = function(propName=null, propNameSub=null) {
 
-        const result = propName2 === undefined
-          ? theRuleStyle[propName] !== undefined
-            ? theRuleStyle[propName]
-            : theStyle[propName] !== undefined
-              ? theStyle[propName]
-              : theDefaultStyle[propName]
-
-          : theRuleStyle[propName] !== undefined && theRuleStyle[propName][propName2] !== undefined
-            ? theRuleStyle[propName][propName2]
-            : theStyle[propName] !== undefined && theStyle[propName][propName2] !== undefined
-              ? theStyle[propName][propName2]
-              : theDefaultStyle[propName][propName2]
-
-        return result
+        if (propName && propNameSub) {
+          return (theRuleStyle && theRuleStyle[propName] && theRuleStyle[propName][propNameSub])
+            || (theAppliedStyle && theAppliedStyle[propName] && theRuleStyle[propName][propNameSub])
+            || (theDefaultStyle[propName][propNameSub])
+        }
+        else if (propName) {
+          return (theRuleStyle && theRuleStyle[propName])
+            || (theAppliedStyle && theAppliedStyle[propName])
+            || (theDefaultStyle[propName])
+        }
+        else {
+          return theRuleStyle || theAppliedStyle || theDefaultStyle
+        }
       }
 
       let currentIndex
 
-      const getColorIndex = function() {
+      const getNextIndex = function(type /* colors or classes */) {
 
         let theIndex
-        if (currentIndex === undefined) {
-          if (getProp('colors', 'collectiveIndexing') && getProp('colors', 'randomStartIndex')) {
+        const theProp = getProp(type)
 
-            if (getProp('colors', 'randomIndices').length === 0) {
-              theIndex = Math.floor(Math.random() * getProp('colors', 'values').length)
-              getProp('randomIndices').push(theIndex)
+        if (currentIndex === undefined) {
+          if (theProp.collectiveIndexing && theProp.randomStartIndex) {
+
+            if (theProp.randomIndices.length === 0) {
+              theIndex = Math.floor(Math.random() * theProp.values.length)
+              theProp.randomIndices.push(theIndex)
             }
             else {
-              theIndex = getProp('nextIndex') === 0
-                ? getProp('randomIndices')[0]
-                : getProp('nextIndex') % getProp('colors', 'values').length
+              theIndex = theProp.nextIndex === 0
+                ? theProp.randomIndices[0]
+                : theProp.nextIndex % theProp.values.length
             }
 
           }
-          else if (getProp('colors', 'collectiveIndexing')) {
-            theIndex = (getProp('nextIndex')) % getProp('colors', 'values').length
+
+          else if (theProp.collectiveIndexing) {
+            theIndex = (theProp.nextIndex) % theProp.values.length
           }
-          else if (getProp('colors', 'randomStartIndex')) {
-            theIndex = Math.floor(Math.random() * getProp('colors', 'values').length)
-            getProp('randomIndices').push(theIndex)
+
+          else if (theProp.randomStartIndex) {
+
+            if (!theProp.setIndex) {
+              theProp.setIndex = 0
+            }
+
+            theIndex = theProp.randomIndices[theProp.setIndex]
+
+            if (theIndex === undefined) {
+              theIndex = Math.floor(Math.random() * theProp.values.length)
+              theProp.randomIndices.push(theIndex)
+            }
+
+            theProp.setIndex += 1
           }
+
           else {
             theIndex = 0
           }
         }
 
         else {
-          theIndex = ++currentIndex % getProp('colors', 'values').length
+          theIndex = ++currentIndex % theProp.values.length
         }
 
         currentIndex = theIndex
-        theStyle.nextIndex = currentIndex + 1
+        theProp.nextIndex = currentIndex + 1
 
         return theIndex
       }
 
       return {
         getProp: getProp,
-        getColorIndex: getColorIndex,
+        getNextIndex: getNextIndex,
       }
 
+    }
+
+    const importIndices = function() {
+
+      styleDefinitions
+        .forEach(def => {
+          ;['colors', 'classes'].forEach(type => {
+            def.stylings[type].randomIndices = randomIndices[def.name]
+              ? randomIndices[def.name][type]
+              : []
+            def.stylings[type].nextIndex = 0
+          })
+        })
     }
 
     const exportIndices = function() {
@@ -297,11 +319,17 @@ export default function formatter(inputSyntax, iterIndex) {
 
       styleDefinitions
         .forEach(def => {
-          result[def.name] = def.stylings.randomIndices
+          result[def.name] = {}
+
+          ;['colors', 'classes'].forEach(type => {
+            result[def.name][type] = def.stylings[type].randomIndices
+          })
         })
 
       return result
     }
+
+    importIndices()
 
     return {
       defaultStyle: defaultStyle,
@@ -354,7 +382,7 @@ export default function formatter(inputSyntax, iterIndex) {
 
 
         if (elemType !== 'd') {
-          const theIndex = pa.getColorIndex()
+          const theIndex = pa.getNextIndex('colors')
 
           const colorChoice = pa.getProp('colors', 'values')
             ? ` color: ${pa.getProp('colors', 'values')[theIndex]};`
@@ -433,6 +461,7 @@ export default function formatter(inputSyntax, iterIndex) {
       }
     }
 
+    console.log(sa.exportIndices())
     return sa.exportIndices()
   }
 

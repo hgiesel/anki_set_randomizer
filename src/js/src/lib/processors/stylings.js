@@ -52,16 +52,20 @@ function processStyleDefinitions(elements, defaultStyle) {
     {
       name: 'none',
       stylings: {
+        colors: {},
+        classes: {},
         display: 'none',
       },
     },
     {
       name: 'block',
       stylings: {
-        block: true,
+        colors: {},
+        classes: {},
         openDelim: '',
         closeDelim: '',
         fieldPadding: 0,
+        block: true,
       },
     },
   ]
@@ -133,14 +137,16 @@ function processStyleDefinitions(elements, defaultStyle) {
             sd.stylings['colors']['values'] = attributeValue
               .split(',')
               .map(v => v.trim())
+              .filter(v => v.length > 0)
           }
           else if (attributeName === 'clss' || attributeName === 'classes') {
             sd.stylings['classes']['values'] = attributeValue
               .split(',')
               .map(v => v.trim())
+              .filter(v => v.length > 0)
           }
 
-          else if (attributeName === 'clrsr' || attributeName === 'colorRules') {
+          else if (attributeName === 'clrr' || attributeName === 'colorRules') {
             sd.stylings['colors']['rules'] = partitionList(attributeValue
               .split(',')
               .map(w => w.trim()), 2
@@ -175,7 +181,7 @@ function processStyleDefinitions(elements, defaultStyle) {
               })
               .filter(w => w && w.length === 4)
           }
-          else if (attributeName === 'clssr' || attributeName === 'classRules') {
+          else if (attributeName === 'clsr' || attributeName === 'classRules') {
             sd.stylings['classes']['rules'] = partitionList(attributeValue
               .split(',')
               .map(w => w.trim()), 2
@@ -211,7 +217,7 @@ function processStyleDefinitions(elements, defaultStyle) {
               .filter(w => w && w.length === 4)
           }
 
-          else if (attributeName === 'clrsci' || attributeName === 'colorsCollectiveIndexing') {
+          else if (attributeName === 'clrci' || attributeName === 'colorsCollectiveIndexing') {
             const bool = attributeValue === 'true' || attributeValue === 'yes'
               ? true
               : attributeValue === 'false' || attributeValue === 'no'
@@ -223,7 +229,7 @@ function processStyleDefinitions(elements, defaultStyle) {
             }
           }
 
-          else if (attributeName === 'clrsrsi' || attributeName === 'colorsRandomStartIndex') {
+          else if (attributeName === 'clrrsi' || attributeName === 'colorsRandomStartIndex') {
             const bool = attributeValue === 'true' || attributeValue === 'yes'
               ? true
               : attributeValue === 'false' || attributeValue === 'no'
@@ -236,7 +242,7 @@ function processStyleDefinitions(elements, defaultStyle) {
           }
 
 
-          else if (attributeName === 'clssci' || attributeName === 'classesCollectiveIndexing') {
+          else if (attributeName === 'clsci' || attributeName === 'classesCollectiveIndexing') {
             const bool = attributeValue === 'true' || attributeValue === 'yes'
               ? true
               : attributeValue === 'false' || attributeValue === 'no'
@@ -248,7 +254,7 @@ function processStyleDefinitions(elements, defaultStyle) {
             }
           }
 
-          else if (attributeName === 'clssrsi' || attributeName === 'classesRandomStartIndex') {
+          else if (attributeName === 'clsrsi' || attributeName === 'classesRandomStartIndex') {
             const bool = attributeValue === 'true' || attributeValue === 'yes'
               ? true
               : attributeValue === 'false' || attributeValue === 'no'

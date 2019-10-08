@@ -68,7 +68,7 @@ function evalEvaluations(elements) {
       const uniquenessConstraint = match[7]
 
       evaluators.push([
-        valueSetName,
+        valueSetName === '*' ? star : valueSetName,
         !Number.isNaN(maybeNumberSetIndex) ? maybeNumberSetIndex : star,
         !Number.isNaN(maybeNumberValueIndex) ? maybeNumberValueIndex : star,
         count != undefined ? Number(count) : 1,
@@ -343,6 +343,8 @@ function evalPicks(
           ? star
           : valueSetName
 
+        console.log('pick:vsn', valueSetNameName)
+
         const valueSetSetIndex = !Number.isNaN(maybeValueSetSetIndex)
           ? maybeValueSetSetIndex
           : match[7] ? star : 0
@@ -423,12 +425,12 @@ function evalPicks(
 
               const foundValueSet = valueSets[
                 valueSetNameName === star
-                ? Object.keys(valueSets)[Math.floor(Math.random() * valueSets.length)]
+                ? Object.keys(valueSets)[Math.floor(Math.random() * Object.keys(valueSets).length)]
                 : valueSetNameName
               ]
 
               const vidx = valueSetSetIndex === star
-                ? Math.floor(Math.random() * valueValueSet.length)
+                ? Math.floor(Math.random() * foundValueSet.length)
                 : valueSetSetIndex
 
               const foundValueSubSet = foundValueSet && foundValueSet.length > 0

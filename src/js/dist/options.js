@@ -17,7 +17,7 @@ $$options = [
       fieldSeparator: ' ',
 
       colors: {
-        values: ['lightgreen', 'green', 'darkgreen'],
+        values: ['lightgreen', 'red', 'darkgreen', 'anthrazit'],
         collectiveIndexing: true,
         randomStartIndex: false,
       },
@@ -47,9 +47,9 @@ $$options = [
       fieldSeparator: ' ',
 
       colors: {
-        values: ['lightgreen', 'green', 'darkgreen'],
-        collectiveIndexing: true,
-        randomStartIndex: false,
+        values: ['lightgreen', 'green', 'darkgreen', 'red'],
+        collectiveIndexing: false,
+        randomStartIndex: true,
       },
 
       classes: {
