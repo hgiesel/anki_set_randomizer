@@ -14,21 +14,38 @@ import {
 
 export default function formatter(inputSyntax, iterIndex) {
 
+  let _isInvalid
+  let _isContained
+
+  const isInvalid = function() {
+    return _isInvalid
+  }
+
+  const isContained = function() {
+    return _isContained
+  }
+
   // the original NodeList
   const _htmlContent  = {}
   const getHtml = function(theSelector=inputSyntax.cssSelector) {
+    _isInvalid   = false
+    _isContained = false
+
     if (_htmlContent[theSelector]) {
       return _htmlContent[theSelector]
     }
     else {
-      const theHtml = document.querySelectorAll(theSelector)
 
-      return _htmlContent[theSelector] = theHtml
+      try {
+        return _htmlContent[theSelector] = document.querySelectorAll(theSelector)
+      }
+      catch {
+        _isInvalid = true
+        return _htmlContent[theSelector] = document.createDocumentFragment().childNodes
+      }
+
     }
   }
-
-  let isValid     = true
-  let isContained = false
 
   const elemDelim = '%%sr%%ELEMDELIM%%'
 
@@ -43,7 +60,7 @@ export default function formatter(inputSyntax, iterIndex) {
       const theHtml = getHtml(theSelector)
 
       if (!theHtml || theHtml.length === 0) {
-        isValid = false
+        _isInvalid = true
         return _rawStructure[theSelector] = ''
       }
 
@@ -55,7 +72,7 @@ export default function formatter(inputSyntax, iterIndex) {
         theRawStructure.includes('SET RANDOMIZER FRONT TEMPLATE') ||
         theRawStructure.includes('SET RANDOMIZER BACK TEMPLATE')
       ) {
-        isContained = true
+        _isContained = true
       }
 
       return _rawStructure[theSelector] = theRawStructure
@@ -89,7 +106,7 @@ export default function formatter(inputSyntax, iterIndex) {
         exprRegex = RegExp(exprString, 'gm')
       }
       catch {
-        isValid = false
+        _isInvalid = true
         return _foundStructure[theSelector] = []
       }
 
@@ -485,6 +502,7 @@ export default function formatter(inputSyntax, iterIndex) {
   return {
     getElementsOriginal: getElementsOriginal,
     renderSets: renderSets,
-    isValid: isValid,
+    isInvalid: isInvalid,
+    isContained: isContained,
   }
 }

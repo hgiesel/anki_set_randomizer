@@ -13,7 +13,6 @@ import {
 back()
 
 function back() {
-
   const options = $$options
 
   if (!window.Persistence) {
