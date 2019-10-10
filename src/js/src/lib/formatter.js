@@ -14,6 +14,7 @@ import {
 
 export default function formatter(inputSyntax, iterIndex) {
 
+<<<<<<< Updated upstream
   // the original NodeList
   const _htmlContent  = {}
   const getHtml = function(theSelector=inputSyntax.cssSelector) {
@@ -57,6 +58,13 @@ export default function formatter(inputSyntax, iterIndex) {
       ) {
         isContained = true
       }
+=======
+  let _rawStructure = {}
+  const exprRegex = RegExp(
+    `${escapeString(options.inputSyntax.openDelim)}` +
+    `((?:.|\n|\r)*?)` + // match everything including newlines
+    `${escapeString(options.inputSyntax.closeDelim)}`, 'g')
+>>>>>>> Stashed changes
 
       return _rawStructure[theSelector] = theRawStructure
     }
@@ -81,6 +89,7 @@ export default function formatter(inputSyntax, iterIndex) {
     else {
       const theFoundStructure = []
 
+<<<<<<< Updated upstream
       const theRawStructure = getRawStructure(theSelector)
 
       let exprRegex
@@ -94,6 +103,9 @@ export default function formatter(inputSyntax, iterIndex) {
       }
 
       let m = exprRegex.exec(theRawStructure)
+=======
+      const rawStructure = []
+>>>>>>> Stashed changes
 
       while (m) {
         theFoundStructure.push(m[1])
@@ -294,10 +306,34 @@ export default function formatter(inputSyntax, iterIndex) {
         return theIndex
       }
 
+<<<<<<< Updated upstream
       return {
         getProp: getProp,
         getNextIndex: getNextIndex,
       }
+=======
+      const theFieldSeparator = customRendering.fieldSeparator === undefined
+        ? options.outputSyntax.fieldSeparator
+        : customRendering.fieldSeparator
+      const theFieldPadding  = customRendering.fieldPadding === undefined
+        ? options.fieldPadding
+        : customRendering.fieldPadding
+
+      const theOpenDelim =
+        '<section style="display: inline;" class="set-randomizer--open-delim">\n' +
+        (customRendering.openDelim === undefined
+          ? options.outputSyntax.openDelim
+          : customRendering.openDelim) + '\n' +
+        '</section>\n'
+
+      const theCloseDelim =
+        '<section style="display: inline;" class="set-randomizer--close-delim">\n' +
+        (customRendering.closeDelim === undefined
+          ? options.outputSyntax.closeDelim
+          : customRendering.closeDelim) + '\n' +
+        '</section>\n'
+
+>>>>>>> Stashed changes
 
     }
 
@@ -393,6 +429,7 @@ export default function formatter(inputSyntax, iterIndex) {
             ? ' display: block;'
             : ''
 
+<<<<<<< Updated upstream
           const style = `style="padding: 0px ${pa.getProp('fieldPadding')}px;${colorChoice}${blockDisplay}"`
 
           const pickedValue = vp.pickValue(elemContent, pa.getProp('colors', 'rules'), pa.getProp('classes', 'rules'))
@@ -405,12 +442,26 @@ export default function formatter(inputSyntax, iterIndex) {
 
             actualValues.push(theValue)
           }
+=======
+          const className   = `class="set-randomizer--element set-randomizer--element-index-${element[0]}-${element[1]}"`
+          const colorChoice = theColors[theIndex] ? ` color: ${theColors[theIndex]};` : ''
+          const blockStyle  = customRendering.display === 'block' ? ' display: block;' : ''
+
+          const style       = `style="padding: 0px ${theFieldPadding}px;${colorChoice}${blockStyle}"`
+
+          actualValues.push(
+            `<section ${className} ${style}>\n` +
+            `${element[2]}\n` +
+            `</section>\n`
+          )
+>>>>>>> Stashed changes
         }
       }
 
       if (pa.getProp('display') === 'none') {
         stylizedResults[set.order] = ''
       }
+<<<<<<< Updated upstream
       else if (actualValues.length === 0 || pa.getProp('display') === 'empty') {
         stylizedResults[set.order] =
           `${pa.getProp('openDelim')}` +
@@ -422,6 +473,28 @@ export default function formatter(inputSyntax, iterIndex) {
           `${pa.getProp('openDelim')}` +
           `${actualValues.join(pa.getProp('fieldSeparator'))}` +
           `${pa.getProp('closeDelim')}`
+=======
+      else if (actualValues.length === 0 || customRendering.display === 'empty') {
+        stylizedResults[set.order] =
+        `${theOpenDelim}\n` +
+        `${options.outputSyntax.emptySet}\n` +
+        `${theCloseDelim}\n`
+      }
+      else {
+        console.log(
+          `${theOpenDelim}\n` +
+          `${actualValues.join(theFieldSeparator)}\n` +
+          `${theCloseDelim}\n`
+        )
+        stylizedResults[set.order] =
+          `${theOpenDelim}\n` +
+          `${actualValues.join(theFieldSeparator)}\n` +
+          `${theCloseDelim}\n`
+      }
+
+      if (customRendering.colors !== undefined) {
+        absoluteIndex = absoluteIndexSave
+>>>>>>> Stashed changes
       }
     }
 
