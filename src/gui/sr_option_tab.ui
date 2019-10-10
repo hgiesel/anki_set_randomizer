@@ -22,6 +22,9 @@
      <height>241</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Every iteration has a default style with the name &amp;quot;default&amp;quot;. If no other style is applied, and no rule is applicable, the &amp;quot;default&amp;quot; style will be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
    <property name="title">
     <string>Default style</string>
    </property>
@@ -35,7 +38,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A list of CSS colors. The first field will be displayed with the first color. Colors will be repeated, if fields exceed colors.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A list of CSS colors. The first field will be displayed with the first color. Colors will be repeated, if fields exceed colors. Shortcut: clrs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>CSS colors</string>
@@ -67,7 +70,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>Normally, the choice of color is reset for each new randomized set. With this option, all elements collectively will iterate through the colors. E.g. Two sets with one element each will both have color 1, with this option turned on, the second one will have color 2.</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Normally, the choice of a color is reset for each new randomized set. With this option, all elements collectively will iterate through the colors. E.g. Two sets with one element each will both have color 1, with this option turned on, the second one will have color 2. Shortcut: clrci.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>Collective Color Indexing</string>
@@ -86,7 +89,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>Normally, the choice of color always start with color 1. With this option turned on, the first color will be chosen at random, before normally iterating through the colors again.</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Normally, the choice of a color always start with color 1. With this option turned on, the first color will be chosen at random, before normally iterating through the colors again. Shortcut: clrrsi.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>Random Start Color Index</string>
@@ -100,6 +103,9 @@
       <width>101</width>
       <height>21</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The opening delimiter of the randomized sets after processing. Shortcut: od.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>Open delimiter</string>
@@ -127,6 +133,9 @@
       <height>21</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The closing delimiter of the randomized sets after processing. Shortcut: cd.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
     <property name="text">
      <string>Close delimiter</string>
     </property>
@@ -152,6 +161,9 @@
       <width>101</width>
       <height>21</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The field padding of the randomized sets after processing. Shortcut: fp.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>Field padding</string>
@@ -232,7 +244,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>Normally, the choice of color always start with color 1. With this option turned on, the first color will be chosen at random, before normally iterating through the colors again.</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Normally, the choice of a class always start with class 1. With this option turned on, the first class will be chosen at random, before normally iterating through the classes again. Shortcut: clsrsi.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>Random Start Class Index</string>
@@ -248,7 +260,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>Normally, the choice of color is reset for each new randomized set. With this option, all elements collectively will iterate through the colors. E.g. Two sets with one element each will both have color 1, with this option turned on, the second one will have color 2.</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Normally, the choice of a class is reset for each new randomized set. With this option, all elements collectively will iterate through the classes. E.g. Two sets with one element each will both have class 1, with this option turned on, the second one will have class 2. Shortcut: clsci.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>Collective Class Indexing</string>
@@ -283,7 +295,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A list of CSS colors. The first field will be displayed with the first color. Colors will be repeated, if fields exceed colors.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A list of HTML classes. The first field will be displayed with the first class. Classes will be repeated, if fields exceed classes. Shortcut: clss.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>HTML classes</string>
@@ -299,6 +311,9 @@
      <height>241</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The input syntax of the iteration. This will be used to detect sets in the card content.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
    <property name="title">
     <string>Input syntax</string>
    </property>
@@ -312,7 +327,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A CSS query to select the elements which contain all Multiple Choices.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A CSS query to select the elements which contain all sets. This can contain queries for classes, or multiple separated by commas. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>CSS selector</string>
@@ -341,7 +356,7 @@
      </rect>
     </property>
     <property name="toolTip">
-     <string>Check if you want to generate the div tags for the card. Check if this if you have no idea how to edit card templates.</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Advanced feature. Check this if you want to treat the content of the &amp;quot;Open Delimiter&amp;quot;, &amp;quot;Close Delimiter&amp;quot;, and &amp;quot;Field separator&amp;quot; as regular expressions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>Input syntax are regular expressions</string>
@@ -355,6 +370,9 @@
       <width>101</width>
       <height>21</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The closing delimiter of the randomized sets before processing.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>Close delimiter</string>
@@ -395,6 +413,9 @@
       <height>21</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The opening delimiter of the randomized sets before processing.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
     <property name="text">
      <string>Open delimiter</string>
     </property>
@@ -407,6 +428,9 @@
       <width>101</width>
       <height>21</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The field separator of the randomized sets before processing.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="text">
      <string>Field separator</string>
