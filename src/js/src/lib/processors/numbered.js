@@ -163,7 +163,7 @@ function evalValueSets(elements, evaluators, uniquenessConstraints, generatedVal
 
         let pregen
         if (pregen = generatedValues
-          .find(gv => gv[1] === setIndex && gv[2] === elemIndex)) {
+          .find(gv => gv[0] === iterIndex && gv[1] === setIndex && gv[2] === elemIndex)) {
 
           resolvedValues.push(...pregen[3])
 

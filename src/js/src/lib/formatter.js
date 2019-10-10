@@ -223,14 +223,30 @@ export default function formatter(inputSyntax, iterIndex) {
       const getProp = function(propName=null, propNameSub=null) {
 
         if (propName && propNameSub) {
-          return (theRuleStyle && theRuleStyle[propName] && theRuleStyle[propName][propNameSub])
-            || (theAppliedStyle && theAppliedStyle[propName] && theRuleStyle[propName][propNameSub])
-            || (theDefaultStyle[propName][propNameSub])
+
+          if (theRuleStyle && theRuleStyle[propName] && theRuleStyle[propName][propNameSub] !== undefined) {
+            return theRuleStyle[propName][propNameSub]
+          }
+          else if (theAppliedStyle && theAppliedStyle[propName] && theAppliedStyle[propName][propNameSub] !== undefined) {
+            return theAppliedStyle[propName][propNameSub]
+          }
+          else {
+            return theDefaultStyle[propName][propNameSub]
+          }
+
         }
         else if (propName) {
-          return (theRuleStyle && theRuleStyle[propName])
-            || (theAppliedStyle && theAppliedStyle[propName])
-            || (theDefaultStyle[propName])
+
+          if (theRuleStyle && theRuleStyle[propName] !== undefined) {
+            return theRuleStyle[propName]
+          }
+          else if (theAppliedStyle && theAppliedStyle[propName] !== undefined) {
+            return theAppliedStyle[propName]
+          }
+          else {
+            return theDefaultStyle[propName]
+          }
+
         }
         else {
           return theRuleStyle || theAppliedStyle || theDefaultStyle
@@ -243,24 +259,24 @@ export default function formatter(inputSyntax, iterIndex) {
 
         let theIndex
         const theProp = getProp(type)
+        const propValueLength = getProp(type, 'values').length
 
         if (currentIndex === undefined) {
           if (theProp.collectiveIndexing && theProp.randomStartIndex) {
 
             if (theProp.randomIndices.length === 0) {
-              theIndex = Math.floor(Math.random() * theProp.values.length)
+              theIndex = Math.floor(Math.random() * propValueLength)
               theProp.randomIndices.push(theIndex)
             }
             else {
               theIndex = theProp.nextIndex === 0
                 ? theProp.randomIndices[0]
-                : theProp.nextIndex % theProp.values.length
+                : theProp.nextIndex % propValueLength
             }
-
           }
 
           else if (theProp.collectiveIndexing) {
-            theIndex = (theProp.nextIndex) % theProp.values.length
+            theIndex = theProp.nextIndex % propValueLength
           }
 
           else if (theProp.randomStartIndex) {
@@ -272,7 +288,7 @@ export default function formatter(inputSyntax, iterIndex) {
             theIndex = theProp.randomIndices[theProp.setIndex]
 
             if (theIndex === undefined) {
-              theIndex = Math.floor(Math.random() * theProp.values.length)
+              theIndex = Math.floor(Math.random() * propValueLength)
               theProp.randomIndices.push(theIndex)
             }
 
@@ -285,7 +301,7 @@ export default function formatter(inputSyntax, iterIndex) {
         }
 
         else {
-          theIndex = ++currentIndex % theProp.values.length
+          theIndex = ++currentIndex % propValueLength
         }
 
         currentIndex = theIndex
@@ -352,6 +368,8 @@ export default function formatter(inputSyntax, iterIndex) {
     const sa = stylingsAccessor(styleDefinitions, randomIndices)
     const vp = valuePicker(valueSets, styleRules)
 
+    console.log('sd', styleDefinitions)
+
     const stylizedResults = Array(reordering.length)
 
     for (const set of reordering) {
@@ -384,7 +402,7 @@ export default function formatter(inputSyntax, iterIndex) {
         if (elemType !== 'd') {
           const theIndex = pa.getNextIndex('colors')
 
-          const colorChoice = pa.getProp('colors', 'values')
+          const colorChoice = !Number.isNaN(theIndex)
             ? ` color: ${pa.getProp('colors', 'values')[theIndex]};`
             : ''
 
@@ -461,7 +479,6 @@ export default function formatter(inputSyntax, iterIndex) {
       }
     }
 
-    console.log(sa.exportIndices())
     return sa.exportIndices()
   }
 

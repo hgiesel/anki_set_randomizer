@@ -3,7 +3,6 @@ import formatter from './lib/formatter.js'
 import {
   applySetReorder,
   applyCommands,
-  applyInheritedSetReorder,
 } from './lib/sort.js'
 
 import {
@@ -32,6 +31,7 @@ import {
 import {
   matchStructures,
   matchGeneratedValues,
+  matchSetReorder,
   reorderForRendering,
 } from './lib/matching.js'
 
@@ -87,12 +87,14 @@ function main2(
   if (form.isValid && (!form.isContained) && elementsOriginal.length > 0) {
 
     const structureMatches = matchStructures(
-      elementsOriginal,
       elementsInherited,
+      elementsOriginal,
     )
 
     //////////////////////////////////////////////////////////////////////////////
     // FIRST RANDOMIZATION
+
+
     const [
       numberedSets,
       generatedValues,
@@ -133,7 +135,6 @@ function main2(
 
     //////////////////////////////////////////////////////////////////////////////
     // SECOND RANDOMIZATION
-
     const [numberedSetsSecond, _1, _2, _3] = processNumberedSets(
       elementsFirst.map(set => set.filter(elem => elem[4] !== 'd')),
       [],
@@ -199,10 +200,10 @@ function applyModifications(numberedSets, namedSets, orderConstraints, commands,
     ? reordersAlpha
     : reordersAlpha.filter(v => v.lastMinute)
 
-  const reorders = applyInheritedSetReorder(
-    reordersBeta,
-    reordersInherited,
+  const reorders = matchSetReorder(
     structureMatches,
+    reordersInherited,
+    reordersBeta,
   )
 
   // modifies reorders

@@ -21,9 +21,26 @@
 
 
 
-      [[abc::def::ghi]] <br>
-      [[xyz::meh::123]] <br>
+      5.02. Styling directives: Display statement <br>
 
+      "display": <br>
+      This one is bit special. It has several statements which change elements in a very drastic way: <br>
+
+      [[You don't even notice me!::Bienvenue::Welcome::Youkoso::$style(vanish, dp:none)::$apply(vanish)]] [[$c(1, -1)]]. <br>
+
+      [[I::am::not::randomized::at::all!::$pick(0:10:10)::$s(s1, display:orig)::$a(s1)]] <br>
+
+      * "display:sort": This causes elements to be sorted according to their original appearance on the card: <br>
+      [[alpha::beta::gamma::delta::epsilon::$s(s2, display:sort)::$a(s2)]] <br>
+      [[a::b::c::d::e::$a(s2)]] <br>
+      [[$m(2, -2)::$m(2, -1)::$a(s2)]] <br>
+
+      * "display:empty": This causes elements to shown as empty, even though they might have multiple elements: [[Even::though::I::have::so::many::elements::I::still::appear::empty::$s(s3, dp:empty)::$a(s3)]] <br>
+
+      * "block:true": Even though not technically a display attribute, it still is very useful: <br>
+
+      [[When your text wraps multiple lines it's helpful to have this attribute. <br>
+      See how this line is colored in correctly.::$s(s4, blk:true, od:,cd:)::$a(s4)]] <br>
 
 
 

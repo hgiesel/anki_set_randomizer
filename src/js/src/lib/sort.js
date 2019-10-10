@@ -8,22 +8,6 @@ function rotate(arr, count) {
   arr.push.apply(arr, arr.splice(0, count))
 }
 
-function complementArrays(elems1, elems2) {
-  const result = []
-
-  for (const e of elems1) {
-    result.push(e)
-  }
-
-  for (const e of elems2) {
-    if (!result.includes(e)) {
-      result.push(e)
-    }
-  }
-
-  return result
-}
-
 function sortWithIndices(elems, indices) {
   const result = []
 
@@ -106,51 +90,6 @@ export function applySetReorder(srs, elems) {
       appliedSrs.push(sr.sets)
     }
   }
-}
-
-export function applyInheritedSetReorder(reorders, inheritedReorders, structureMatches) {
-  const modifiedReorders = []
-
-  for (const reorder of reorders) {
-    let match, reorderInherited
-
-    // named sets
-    if ((typeof reorder.name === 'string') && (match = inheritedReorders.find(v => reorder.name === v.name))) {
-
-      modifiedReorders.push({
-        iter: reorder.iter,
-        name: reorder.name,
-        length: reorder.length,
-        sets: reorder.sets,
-        setLengths: reorder.setLengths,
-        order: complementArrays(match.order, reorder.order),
-        lastMinute: reorder.lastMinute,
-      })
-    }
-
-    // numbered sets
-    else if (
-      (match = structureMatches.find(m => reorder.iter === m.to[0] && reorder.name === m.to[1])) &&
-      (reorderInherited = inheritedReorders.find(reo => reo.iter === match.from[0] && reo.name === match.from[1]))
-    ) {
-      modifiedReorders.push({
-        iter: reorder.iter,
-        name: reorder.name,
-        length: reorder.length,
-        sets: reorder.sets,
-        setLengths: reorder.setLengths,
-        order: reorderInherited.order,
-        lastMinute: reorder.lastMinute,
-      })
-    }
-
-    // new sets
-    else {
-      modifiedReorders.push(reorder)
-    }
-  }
-
-  return modifiedReorders
 }
 
 // values states include 'n', 'c', 'd'
