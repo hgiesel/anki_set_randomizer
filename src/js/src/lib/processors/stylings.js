@@ -73,7 +73,7 @@ function processStyleDefinitions(elements, defaultStyle) {
   const styleRegex = new RegExp(
     `^\\$(?:style|s)\\(` +
     `(${namePattern})` +
-    `\\s*,\\s*` +
+    `\\s*,\\s` +
     `(.*)` + // styling directives
     `\\)$`
   )
@@ -291,7 +291,7 @@ function processStyleApplications(elements, styleDefinitions, namedSets) {
   const applyRegex = new RegExp(
     `^\\$(?:apply|app|a)\\(` +
     `(${namePattern})` +
-    `(?:\\s*,\\s*` +
+    `(?:\\s*,\\s` +
     `(?:` + // second arg
     `(\\d+)|(n-\\d+)|((?:\\+|-)\\d+)|` + // numbered set
     `(${namePattern})(?::(\\d+|n?-\\d+))?` + // named set arg
@@ -344,7 +344,7 @@ function processStyleRules(elements, styleDefinitions) {
   const ruleRegex = new RegExp(
     `^\\$(?:rule|r)\\(` +
     `(${namePattern})` +
-    `(?:\\s*,\\s*` +
+    `(?:\\s*,\\s` +
     `(?:` + // second arg
     valueSetPattern +
     `)` +
