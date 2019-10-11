@@ -85,7 +85,7 @@ function main2(
   const elementsOriginal = form.getElementsOriginal()
 
   console.log(form.isInvalid(), form.isContained(), elementsOriginal.length)
-  if (!(form.isInvalid() || form.isContained() || elementsOriginal.length === 0)) {
+  if (!form.isInvalid() /* && !form.isContained() */ && elementsOriginal.length === 0) {
 
     const structureMatches = matchStructures(
       elementsInherited,
