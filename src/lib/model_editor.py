@@ -30,8 +30,8 @@ def gen_data_attributes(side):
     return f'data-name="Set Randomizer {side} Template" data-version="{version_string}"'
 
 def remove_model_template(model):
-    front_name = '_front' + model['id'] + '.js'
-    back_name = '_back' + model['id'] + '.js'
+    front_name = f'_front{model["id"]}.js'
+    back_name = f'_back{model["id"]}.js'
 
     mw.col.media.syncDelete(front_name)
     mw.col.media.syncDelete(back_name)
@@ -72,20 +72,20 @@ def update_model_template(model, settings):
     if settings['pasteIntoTemplate']:
         for template in model['tmpls']:
             template['qfmt'] = (
-                f'{template["qfmt"]}\n\n<script {gen_data_attributes("Front")}>\n' +
-                f'{anki_persistence if settings["injectAnkiPersistence"] else ""}{js_front}' +
+                f'{template["qfmt"]}\n\n<script {gen_data_attributes("Front")}>\n'
+                f'{anki_persistence if settings["injectAnkiPersistence"] else ""}{js_front}'
                 f'</script>'
             )
 
             template['afmt'] = (
-                f'{template["afmt"]}\n\n<script {gen_data_attributes("Back")}>\n' +
-                f'{anki_persistence if settings["injectAnkiPersistence"] else ""}{js_back}' +
+                f'{template["afmt"]}\n\n<script {gen_data_attributes("Back")}>\n'
+                f'{anki_persistence if settings["injectAnkiPersistence"] else ""}{js_back}'
                 f'</script>'
             )
 
     else:
-        front_name = '_front' + model['id'] + '.js'
-        back_name = '_back' + model['id'] + '.js'
+        front_name = f'_front{model["id"]}.js'
+        back_name = f'_back{model["id"]}.js'
 
         front_template = f"""\n
 <script {gen_data_attributes("Front")}>

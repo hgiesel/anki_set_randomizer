@@ -1,10 +1,5 @@
 {
     "name": "Set Randomizer",
     "package": "set-randomizer",
-    "ankiweb_id": "1164532380",
-    "author": "Henrik Giesel",
-    "version": "v2.1",
-    "homepage": "https://github.com/hgiesel/anki-set-randomizer.git",
-    "conflicts": [],
-    "mod": 0
+    "conflicts": []
 }
