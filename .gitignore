@@ -8,5 +8,5 @@ meta.json
 *.ankiaddon
 
 # Compiled js output
-**/dist/front.js
-**/dist/back.js
+/src/js/dist/front.js
+/src/js/dist/back.js
