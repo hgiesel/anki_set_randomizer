@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SROptionTab</class>
- <widget class="QWidget" name="SROptionTab">
+ <class>SRInjectionTab</class>
+ <widget class="QWidget" name="SRInjectionTab">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>796</width>
-    <height>253</height>
+    <width>792</width>
+    <height>252</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,7 +38,9 @@
      </rect>
     </property>
     <property name="plainText">
-     <string>sadfasfas</string>
+     <string>['&amp;',
+ ['card', 'includes', 'FrontBack'],
+ ['|', ['tag', 'endsWith', 'context'], ['tag', 'endsWith', 'xxx']]]</string>
     </property>
    </widget>
   </widget>
@@ -97,12 +99,6 @@
      <property name="text">
       <string>$eval(tone)</string>
      </property>
-     <property name="checkState">
-      <enum>Checked</enum>
-     </property>
-     <property name="flags">
-      <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-     </property>
     </item>
     <item>
      <property name="text">
@@ -114,13 +110,7 @@
     </item>
     <item>
      <property name="text">
-      <string>$style(tone, clrs:[pink], fltr:true)</string>
-     </property>
-     <property name="checkState">
-      <enum>Unchecked</enum>
-     </property>
-     <property name="flags">
-      <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsEnabled</set>
+      <string>$style(tone, clrs:[pink], fltr:yes)</string>
      </property>
     </item>
    </widget>

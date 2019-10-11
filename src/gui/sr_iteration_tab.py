@@ -2,40 +2,40 @@ from aqt.qt import QDialog, QWidget, QAction
 from anki.hooks import addHook
 
 from ..lib import config
-from . import sr_option_tab_ui
+from . import sr_iteration_tab_ui
 
-class SROptionTab(QWidget):
+class SRIterationTab(QWidget):
 
-    def __init__(self, parent, option_data):
+    def __init__(self, parent, iteration_data):
         super().__init__(parent=parent)
 
-        self.ui = sr_option_tab_ui.Ui_SROptionTab()
+        self.ui = sr_iteration_tab_ui.Ui_SRIterationTab()
         self.ui.setupUi(self)
 
-        self.setupUi(option_data)
+        self.setupUi(iteration_data)
 
-    def setupUi(self, option_data):
+    def setupUi(self, iteration_data):
         # input syntax
-        self.ui.cssSelectorLineEdit.setText(option_data.input_syntax.css_selector)
-        self.ui.isRegexCheckBox.setChecked(option_data.input_syntax.is_regex)
-        self.ui.isOpenDelimLineEdit.setText(option_data.input_syntax.open_delim)
-        self.ui.isCloseDelimLineEdit.setText(option_data.input_syntax.close_delim)
-        self.ui.isFieldSeparatorLineEdit.setText(option_data.input_syntax.field_separator)
+        self.ui.cssSelectorLineEdit.setText(iteration_data.input_syntax.css_selector)
+        self.ui.isRegexCheckBox.setChecked(iteration_data.input_syntax.is_regex)
+        self.ui.isOpenDelimLineEdit.setText(iteration_data.input_syntax.open_delim)
+        self.ui.isCloseDelimLineEdit.setText(iteration_data.input_syntax.close_delim)
+        self.ui.isFieldSeparatorLineEdit.setText(iteration_data.input_syntax.field_separator)
 
         # default style
-        self.ui.cssColorsLineEdit.setText(', '.join(option_data.default_style.colors.values))
-        self.ui.cssColorsRandomStartIndexCheckBox.setChecked(option_data.default_style.colors.random_start_index)
-        self.ui.cssColorsCollectiveIndexingCheckBox.setChecked(option_data.default_style.colors.collective_indexing)
+        self.ui.cssColorsLineEdit.setText(', '.join(iteration_data.default_style.colors.values))
+        self.ui.cssColorsRandomStartIndexCheckBox.setChecked(iteration_data.default_style.colors.random_start_index)
+        self.ui.cssColorsCollectiveIndexingCheckBox.setChecked(iteration_data.default_style.colors.collective_indexing)
 
-        self.ui.htmlClassesLineEdit.setText(', '.join(option_data.default_style.classes.values))
-        self.ui.htmlClassesRandomStartIndexCheckBox.setChecked(option_data.default_style.classes.random_start_index)
-        self.ui.htmlClassesCollectiveIndexingCheckBox.setChecked(option_data.default_style.classes.collective_indexing)
+        self.ui.htmlClassesLineEdit.setText(', '.join(iteration_data.default_style.classes.values))
+        self.ui.htmlClassesRandomStartIndexCheckBox.setChecked(iteration_data.default_style.classes.random_start_index)
+        self.ui.htmlClassesCollectiveIndexingCheckBox.setChecked(iteration_data.default_style.classes.collective_indexing)
 
-        self.ui.dsOpenDelimLineEdit.setText(option_data.default_style.open_delim)
-        self.ui.dsCloseDelimLineEdit.setText(option_data.default_style.close_delim)
-        self.ui.dsFieldSeparatorLineEdit.setText(option_data.default_style.field_separator)
-        self.ui.fieldPaddingSpinBox.setValue(option_data.default_style.field_padding)
-        self.ui.emptySetLineEdit.setText(option_data.default_style.empty_set)
+        self.ui.dsOpenDelimLineEdit.setText(iteration_data.default_style.open_delim)
+        self.ui.dsCloseDelimLineEdit.setText(iteration_data.default_style.close_delim)
+        self.ui.dsFieldSeparatorLineEdit.setText(iteration_data.default_style.field_separator)
+        self.ui.fieldPaddingSpinBox.setValue(iteration_data.default_style.field_padding)
+        self.ui.emptySetLineEdit.setText(iteration_data.default_style.empty_set)
 
     def enableChange(self, state=True):
         self.ui.cssSelectorLineEdit.setReadOnly(not state)
@@ -71,7 +71,8 @@ class SROptionTab(QWidget):
 
     def exportData(self):
 
-        return config.SROption(
+        return config.SRIteration(
+            True,
             config.SRInputSyntax(
                 self.ui.cssSelectorLineEdit.text(),
                 self.ui.isOpenDelimLineEdit.text(),

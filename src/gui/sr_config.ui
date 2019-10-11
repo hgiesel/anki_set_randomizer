@@ -8,7 +8,7 @@
     <x>0</x>
     <y>0</y>
     <width>836</width>
-    <height>465</height>
+    <height>439</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -98,7 +98,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
-    <widget class="QCheckBox" name="injectAnkiPersistenceCheckBox">
+    <widget class="QCheckBox" name="insertAnkiPersistenceCheckBox">
      <property name="geometry">
       <rect>
        <x>490</x>
@@ -111,7 +111,7 @@
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Advanced. Inject anki-persistence. You should only uncheck this, if you already use anki-persistence in your templates, and you don't want to include it twice. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="text">
-      <string>Inject anki-persistence</string>
+      <string>Insert anki-persistence</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -189,7 +189,7 @@
         <enum>QTabWidget::North</enum>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <property name="elideMode">
         <enum>Qt::ElideLeft</enum>
@@ -245,7 +245,7 @@
          <bool>false</bool>
         </property>
        </widget>
-       <widget class="QPushButton" name="duplicateIterationPushButton_2">
+       <widget class="QPushButton" name="copyFrontsideToBacksidePushButton">
         <property name="geometry">
          <rect>
           <x>290</x>
@@ -264,7 +264,7 @@
          <bool>false</bool>
         </property>
        </widget>
-       <widget class="QPushButton" name="duplicateIterationPushButton_4">
+       <widget class="QPushButton" name="copyBacksideToFrontsidePushButton">
         <property name="geometry">
          <rect>
           <x>90</x>
@@ -320,7 +320,7 @@
        </widget>
        <widget class="QWidget" name="tab">
         <attribute name="title">
-         <string>Injection 2</string>
+         <string>I2</string>
         </attribute>
        </widget>
       </widget>
@@ -339,7 +339,7 @@
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <widget class="QPushButton" name="duplicateIterationPushButton_3">
+       <widget class="QPushButton" name="createNewInjectionPushButton">
         <property name="geometry">
          <rect>
           <x>480</x>
@@ -358,7 +358,7 @@
          <bool>false</bool>
         </property>
        </widget>
-       <widget class="QPushButton" name="duplicateIterationPushButton_5">
+       <widget class="QPushButton" name="createNewStatementPushButton">
         <property name="geometry">
          <rect>
           <x>280</x>
@@ -377,7 +377,7 @@
          <bool>false</bool>
         </property>
        </widget>
-       <widget class="QPushButton" name="duplicateIterationPushButton_6">
+       <widget class="QPushButton" name="deleteCurrentStatementPushButton">
         <property name="geometry">
          <rect>
           <x>80</x>
@@ -397,7 +397,7 @@
         </property>
        </widget>
       </widget>
-      <widget class="QPushButton" name="duplicateIterationPushButton_7">
+      <widget class="QPushButton" name="validateConditionsPushButton">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -417,7 +417,7 @@
        </property>
       </widget>
       <zorder>injectionButtons</zorder>
-      <zorder>duplicateIterationPushButton_7</zorder>
+      <zorder>validateConditionsPushButton</zorder>
       <zorder>injectionTabs</zorder>
      </widget>
     </widget>

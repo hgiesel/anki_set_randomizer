@@ -3,7 +3,7 @@
     {
       "modelName": "Default",
       "enabled": false,
-      "injectAnkiPersistence": true,
+      "insertAnkiPersistence": true,
       "pasteIntoTemplate": true,
       "iterations": [
         {
@@ -40,14 +40,21 @@
           }
         }
       ],
-      "injections": []
+      "injections": [
+        {
+          "name": "Example Injection",
+          "enabled": false,
+          "conditions": ["&", ["|", ["tag", "startsWith", "allred"], ["card", "endsWith", "Red"], ["iter", "includes", "1"]]],
+          "statements": ["$style(default, clrs:[red])"]
+        }
+      ]
     },
     {
       "modelName": "Cloze",
       "enabled": false,
-      "injectAnkiPersistence": true,
+      "insertAnkiPersistence": true,
       "pasteIntoTemplate": true,
-      "options": [
+      "iterations": [
         {
           "enabled": true,
           "inputSyntax": {
@@ -87,9 +94,9 @@
     {
       "modelName": "Cloze (overlapping)",
       "enabled": false,
-      "injectAnkiPersistence": true,
+      "insertAnkiPersistence": true,
       "pasteIntoTemplate": true,
-      "options": [
+      "iterations": [
         {
           "enabled": true,
           "inputSyntax": {
