@@ -17,6 +17,16 @@ export function processRenderDirectives(elements, defaultStyle, namedSets) {
   return [styleDefinitions, styleApplications, styleRules]
 }
 
+function getBool(attributeValue) {
+  const bool = attributeValue === 'true' || attributeValue === 'yes'
+    ? true
+    : attributeValue === 'false' || attributeValue === 'no'
+    ? false
+    : null
+
+  return bool
+}
+
 function splitStylingDirectives(sd) {
 
   const result = []
@@ -112,174 +122,161 @@ function processStyleDefinitions(elements, defaultStyle) {
             attributeValue,
           ] = v
 
-          if (attributeName === 'od' || attributeName === 'openDelim') {
-            sd.stylings['openDelim'] = attributeValue
-          }
-          else if (attributeName === 'cd' || attributeName === 'closeDelim') {
-            sd.stylings['closeDelim'] = attributeValue
-          }
+          let value
 
-          else if (attributeName === 'fs' || attributeName === 'fieldSeparator') {
-            sd.stylings['fieldSeparator'] = attributeValue
-          }
-          else if (attributeName === 'fp' || attributeName === 'fieldPadding') {
-            const value = Number(attributeValue)
-            if (value >= 0) {
-              sd.stylings['fieldPadding'] = value
-            }
-          }
+          switch (attributeName) {
+            case 'od': case 'openDelim':
+              sd.stylings['openDelim'] = attributeValue
+              break
 
-          else if (attributeName === 'es' || attributeName === 'emptySet') {
-            sd.stylings['emptySet'] = attributeValue
-          }
+            case 'cd': case 'closeDelim':
+              sd.stylings['closeDelim'] = attributeValue
+              break
 
-          else if (attributeName === 'clrs' || attributeName === 'colors') {
-            sd.stylings['colors']['values'] = attributeValue
-              .split(',')
-              .map(v => v.trim())
-              .filter(v => v.length > 0)
-          }
-          else if (attributeName === 'clss' || attributeName === 'classes') {
-            sd.stylings['classes']['values'] = attributeValue
-              .split(',')
-              .map(v => v.trim())
-              .filter(v => v.length > 0)
-          }
+            case 'fs': case 'fieldSeparator':
+              sd.stylings['fieldSeparator'] = attributeValue
+              break
 
-          else if (attributeName === 'clrr' || attributeName === 'colorRules') {
-            sd.stylings['colors']['rules'] = partitionList(attributeValue
-              .split(',')
-              .map(w => w.trim()), 2
-            )
-              .map(w => {
+            case 'fp': case 'fieldPadding':
 
-                if (w.length !== 2) {
-                  return w
-                }
+              if ((value = Number(attributeValue)) >= 0) {
+                sd.stylings['fieldPadding'] = value
+              }
+              break
 
-                const regexResult = w[1].match(`^${valueSetPattern}$`)
+            case 'es': case 'emptySet':
+              sd.stylings['emptySet'] = attributeValue
+              break
 
-                if (!regexResult) {
-                  return null
-                }
+            case 'clrs': case 'colors':
+              sd.stylings['colors']['values'] = attributeValue
+                .split(',')
+                .map(v => v.trim())
+                .filter(v => v.length > 0)
+              break
 
-                const [
-                  _,
-                  valueSetName,
-                  valueSetSetIndex,
-                  valueSetSetStar,
-                  valueSetValueIndex,
-                  valueSetValueStar,
-                ] = regexResult
+            case 'clss': case 'classes':
+              sd.stylings['classes']['values'] = attributeValue
+                .split(',')
+                .map(v => v.trim())
+                .filter(v => v.length > 0)
+              break
 
-                return [
-                  w[0],
-                  valueSetName === '*' ? star : valueSetName,
-                  valueSetSetIndex ? Number(valueSetSetIndex) : star,
-                  valueSetValueIndex ? Number(valueSetValueIndex) : star,
-                ]
-              })
-              .filter(w => w && w.length === 4)
-          }
-          else if (attributeName === 'clsr' || attributeName === 'classRules') {
-            sd.stylings['classes']['rules'] = partitionList(attributeValue
-              .split(',')
-              .map(w => w.trim()), 2
-            )
-              .map(w => {
+            case 'clrr': case 'colorRules':
+              sd.stylings['colors']['rules'] = partitionList(attributeValue
+                .split(',')
+                .map(w => w.trim()), 2
+              )
+                .map(w => {
 
-                if (w.length !== 2) {
-                  return w
-                }
+                  if (w.length !== 2) {
+                    return w
+                  }
 
-                const regexResult = w[1].match(`^${valueSetPattern}$`)
+                  const regexResult = w[1].match(`^${valueSetPattern}$`)
 
-                if (!regexResult) {
-                  return null
-                }
+                  if (!regexResult) {
+                    return null
+                  }
 
-                const [
-                  _,
-                  valueSetName,
-                  valueSetSetIndex,
-                  valueSetSetStar,
-                  valueSetValueIndex,
-                  valueSetValueStar,
-                ] = regexResult
+                  const [
+                    _,
+                    valueSetName,
+                    valueSetSetIndex,
+                    valueSetSetStar,
+                    valueSetValueIndex,
+                    valueSetValueStar,
+                  ] = regexResult
 
-                return [
-                  w[0],
-                  valueSetName === '*' ? star : valueSetName,
-                  valueSetSetIndex ? Number(valueSetSetIndex) : star,
-                  valueSetValueIndex ? Number(valueSetValueIndex) : star,
-                ]
-              })
-              .filter(w => w && w.length === 4)
-          }
+                  return [
+                    w[0],
+                    valueSetName === '*' ? star : valueSetName,
+                    valueSetSetIndex ? Number(valueSetSetIndex) : star,
+                    valueSetValueIndex ? Number(valueSetValueIndex) : star,
+                  ]
+                })
+                .filter(w => w && w.length === 4)
 
-          else if (attributeName === 'clrci' || attributeName === 'colorsCollectiveIndexing') {
-            const bool = attributeValue === 'true' || attributeValue === 'yes'
-              ? true
-              : attributeValue === 'false' || attributeValue === 'no'
-              ? false
-              : null
+            case 'clsr': case 'classRules':
+              sd.stylings['classes']['rules'] = partitionList(attributeValue
+                .split(',')
+                .map(w => w.trim()), 2
+              )
+                .map(w => {
 
-            if (typeof bool === 'boolean') {
-              sd.stylings['colors']['collectiveIndexing'] = bool
-            }
-          }
+                  if (w.length !== 2) {
+                    return w
+                  }
 
-          else if (attributeName === 'clrrsi' || attributeName === 'colorsRandomStartIndex') {
-            const bool = attributeValue === 'true' || attributeValue === 'yes'
-              ? true
-              : attributeValue === 'false' || attributeValue === 'no'
-              ? false
-              : null
+                  const regexResult = w[1].match(`^${valueSetPattern}$`)
 
-            if (typeof bool === 'boolean') {
-              sd.stylings['colors']['randomStartIndex'] = bool
-            }
-          }
+                  if (!regexResult) {
+                    return null
+                  }
 
+                  const [
+                    _,
+                    valueSetName,
+                    valueSetSetIndex,
+                    valueSetSetStar,
+                    valueSetValueIndex,
+                    valueSetValueStar,
+                  ] = regexResult
 
-          else if (attributeName === 'clsci' || attributeName === 'classesCollectiveIndexing') {
-            const bool = attributeValue === 'true' || attributeValue === 'yes'
-              ? true
-              : attributeValue === 'false' || attributeValue === 'no'
-              ? false
-              : null
+                  return [
+                    w[0],
+                    valueSetName === '*' ? star : valueSetName,
+                    valueSetSetIndex ? Number(valueSetSetIndex) : star,
+                    valueSetValueIndex ? Number(valueSetValueIndex) : star,
+                  ]
+                })
+                .filter(w => w && w.length === 4)
 
-            if (typeof bool === 'boolean') {
-              sd.stylings['classes']['collectiveIndexing'] = bool
-            }
-          }
+            case 'clrci': case 'colorsCollectiveIndexing':
 
-          else if (attributeName === 'clsrsi' || attributeName === 'classesRandomStartIndex') {
-            const bool = attributeValue === 'true' || attributeValue === 'yes'
-              ? true
-              : attributeValue === 'false' || attributeValue === 'no'
-              ? false
-              : null
+              if (typeof (value = getBool(attributeValue)) === 'boolean') {
+                sd.stylings['colors']['collectiveIndexing'] = value
+              }
+              break;
 
-            if (typeof bool === 'boolean') {
-              sd.stylings['classes']['randomStartIndex'] = bool
-            }
-          }
+            case 'clrrsi': case 'colorsRandomStartIndex':
 
-          else if (attributeName === 'blk' || attributeName === 'block') {
-            const bool = attributeValue === 'true' || attributeValue === 'yes'
-              ? true
-              : attributeValue === 'false' || attributeValue === 'no'
-              ? false
-              : null
+              if (typeof (value = getBool(attributeValue)) === 'boolean') {
+                sd.stylings['colors']['randomStartIndex'] = value
+              }
+              break;
 
-            if (typeof bool === 'boolean') {
-              sd.stylings['block'] = bool
-            }
-          }
+            case 'clsci': case 'classesCollectiveIndexing':
 
-          else if (attributeName === 'dp' || attributeName === 'display') {
-            sd.stylings['display'] = attributeValue
+              if (typeof (value = getBool(attributeValue)) === 'boolean') {
+                sd.stylings['classes']['collectiveIndexing'] = value
+              }
+              break;
+
+            case 'clsrsi': case 'classesRandomStartIndex':
+
+              if (typeof (value = getBool(attributeValue)) === 'boolean') {
+                sd.stylings['classes']['randomStartIndex'] = value
+              }
+              break;
+
+            case 'blk': case 'block':
+
+              if (typeof (value = getBool(attributeValue)) === 'boolean') {
+                sd.stylings['block'] = value
+              }
+              break;
+
+            case 'fltr': case 'filter':
+
+              if (typeof (value = getBool(attributeValue)) === 'boolean') {
+                sd.stylings['filter'] = value
+              }
+              break;
+
+            case 'dp': case 'display':
+              sd.stylings['display'] = attributeValue
+              break;
           }
         })
     })

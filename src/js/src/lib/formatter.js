@@ -16,6 +16,9 @@ import {
   treatNewlines,
 } from './util.js'
 
+const htmlTagsRegex = new RegExp('<.*?>', 'g')
+const htmlTagsNoBrRegex = new RegExp('<(?!br>).*?>', 'g')
+
 export default function formatter(inputSyntax, iterIndex) {
 
   let _isInvalid
@@ -437,9 +440,17 @@ export default function formatter(inputSyntax, iterIndex) {
 
           if (pickedValue) {
 
-            const theValue = pa.getProp('block')
-              ? `<record ${className} ${style}><div>${treatNewlines(elemContent)}</div></record>`
-              : `<record ${className} ${style}>${pickedValue}</record>`
+            const filterHtml = pa.getProp('filter')
+            const displayBlock = pa.getProp('block')
+            console.log(pickedValue, filterHtml, pa.getProp())
+
+            const theValue = filterHtml
+              ? displayBlock
+                ? `<record ${className} ${style}><div>${treatNewlines(pickedValue).replace(htmlTagsNoBrRegex, '')}</div></record>`
+                : `<record ${className} ${style}><div>${pickedValue.replace(htmlTagsRegex, '')}</div></record>`
+              : displayBlock
+                ? `<record ${className} ${style}><div>${treatNewlines(pickedValue)}</div></record>`
+                : `<record ${className} ${style}><div>${pickedValue}</div></record>`
 
             actualValues.push(theValue)
           }
