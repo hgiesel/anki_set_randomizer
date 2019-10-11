@@ -84,7 +84,8 @@ function main2(
   const form = formatter(inputSyntax, iterIndex)
   const elementsOriginal = form.getElementsOriginal()
 
-  if (!(form.isInvalid || form.isContained || elementsOriginal.length === 0)) {
+  console.log(form.isInvalid(), form.isContained(), elementsOriginal.length)
+  if (!(form.isInvalid() || form.isContained() || elementsOriginal.length === 0)) {
 
     const structureMatches = matchStructures(
       elementsInherited,
