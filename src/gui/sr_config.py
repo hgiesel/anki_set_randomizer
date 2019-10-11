@@ -1,3 +1,4 @@
+from itertools import groupby
 from ..lib.config import write_config_data
 from ..lib.model_editor import setup_models
 
@@ -5,11 +6,14 @@ from aqt.qt import QDialog, QWidget, QAction
 from aqt.utils import getText, showWarning, showInfo
 from anki.hooks import addHook
 
-from .sr_config_ui import Ui_SRConfig
+from .ui.sr_config_ui import Ui_SRConfig
 from .sr_iteration_tab import SRIterationTab
 from .sr_injection_tab import SRInjectionTab
 
 from ..lib.config import (SRSetting, SRIteration, SRInjection)
+
+def sort_negative_first(v):
+    return abs(int(v)) * 2 if int(v) < 0 else abs(int(v)) * 2 + 1
 
 def write_data_back(config_data):
     write_config_data(config_data)

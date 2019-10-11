@@ -1,11 +1,20 @@
 # Dependency directories
 node_modules/
 .DS_Store
+_Store
+.AppleDouble
+.LSOverride
 .envrc
-*.log
 
+*.log
+tags
+
+# Specific to this repository
 meta.json
 *.ankiaddon
+
+# Compiled gui
+/src/gui/ui/*.py
 
 # Compiled js output
 /src/js/dist/front.js

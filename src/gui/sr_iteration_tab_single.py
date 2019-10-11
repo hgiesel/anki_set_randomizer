@@ -2,14 +2,14 @@ from aqt.qt import QDialog, QWidget, QAction
 from anki.hooks import addHook
 
 from ..lib import config
-from .ui import sr_iteration_tab_ui
+from .ui import sr_iteration_tab_single_ui
 
 class SRIterationTab(QWidget):
 
     def __init__(self, parent, iteration_data):
         super().__init__(parent=parent)
 
-        self.ui = sr_iteration_tab_ui.Ui_SRIterationTab()
+        self.ui = sr_iteration_tab_single_ui.Ui_SRIterationTabSingle()
         self.ui.setupUi(self)
 
         self.setupUi(iteration_data)
@@ -99,36 +99,36 @@ class SRIterationTab(QWidget):
         self.ui.emptySetLineEdit.setEnabled(state)
 
         # input syntax
-        self.ui.cssSelectorLineEdit.setReadOnly(not state)
-        self.ui.cssSelectorLineEdit.setEnabled(state)
-        self.ui.isRegexCheckBox.setEnabled(state)
-        self.ui.isOpenDelimLineEdit.setReadOnly(not state)
-        self.ui.isOpenDelimLineEdit.setEnabled(state)
-        self.ui.isCloseDelimLineEdit.setReadOnly(not state)
-        self.ui.isCloseDelimLineEdit.setEnabled(state)
-        self.ui.isFieldSeparatorLineEdit.setReadOnly(not state)
-        self.ui.isFieldSeparatorLineEdit.setEnabled(state)
+        self.ui.cssSelectorLineEdit_2.setReadOnly(not state)
+        self.ui.cssSelectorLineEdit_2.setEnabled(state)
+        self.ui.isRegexCheckBox_2.setEnabled(state)
+        self.ui.isOpenDelimLineEdit_2.setReadOnly(not state)
+        self.ui.isOpenDelimLineEdit_2.setEnabled(state)
+        self.ui.isCloseDelimLineEdit_2.setReadOnly(not state)
+        self.ui.isCloseDelimLineEdit_2.setEnabled(state)
+        self.ui.isFieldSeparatorLineEdit_2.setReadOnly(not state)
+        self.ui.isFieldSeparatorLineEdit_2.setEnabled(state)
 
         # default style
-        self.ui.cssColorsLineEdit.setReadOnly(not state)
-        self.ui.cssColorsLineEdit.setEnabled(state)
-        self.ui.cssColorsRandomStartIndexCheckBox.setEnabled(state)
-        self.ui.cssColorsCollectiveIndexingCheckBox.setEnabled(state)
+        self.ui.cssColorsLineEdit_2.setReadOnly(not state)
+        self.ui.cssColorsLineEdit_2.setEnabled(state)
+        self.ui.cssColorsRandomStartIndexCheckBox_2.setEnabled(state)
+        self.ui.cssColorsCollectiveIndexingCheckBox_2.setEnabled(state)
 
-        self.ui.htmlClassesLineEdit.setReadOnly(not state)
-        self.ui.htmlClassesLineEdit.setEnabled(state)
-        self.ui.htmlClassesRandomStartIndexCheckBox.setEnabled(state)
-        self.ui.htmlClassesCollectiveIndexingCheckBox.setEnabled(state)
+        self.ui.htmlClassesLineEdit_2.setReadOnly(not state)
+        self.ui.htmlClassesLineEdit_2.setEnabled(state)
+        self.ui.htmlClassesRandomStartIndexCheckBox_2.setEnabled(state)
+        self.ui.htmlClassesCollectiveIndexingCheckBox_2.setEnabled(state)
 
-        self.ui.dsOpenDelimLineEdit.setReadOnly(not state)
-        self.ui.dsOpenDelimLineEdit.setEnabled(state)
-        self.ui.dsCloseDelimLineEdit.setReadOnly(not state)
-        self.ui.dsCloseDelimLineEdit.setEnabled(state)
-        self.ui.dsFieldSeparatorLineEdit.setReadOnly(not state)
-        self.ui.dsFieldSeparatorLineEdit.setEnabled(state)
-        self.ui.fieldPaddingSpinBox.setEnabled(state)
-        self.ui.emptySetLineEdit.setReadOnly(not state)
-        self.ui.emptySetLineEdit.setEnabled(state)
+        self.ui.dsOpenDelimLineEdit_2.setReadOnly(not state)
+        self.ui.dsOpenDelimLineEdit_2.setEnabled(state)
+        self.ui.dsCloseDelimLineEdit_2.setReadOnly(not state)
+        self.ui.dsCloseDelimLineEdit_2.setEnabled(state)
+        self.ui.dsFieldSeparatorLineEdit_2.setReadOnly(not state)
+        self.ui.dsFieldSeparatorLineEdit_2.setEnabled(state)
+        self.ui.fieldPaddingSpinBox_2.setEnabled(state)
+        self.ui.emptySetLineEdit_2.setReadOnly(not state)
+        self.ui.emptySetLineEdit_2.setEnabled(state)
 
     def exportData(self):
 

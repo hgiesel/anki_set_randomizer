@@ -2,7 +2,7 @@ from aqt.qt import QDialog, QWidget, QAction
 from anki.hooks import addHook
 
 from ..lib import config
-from . import sr_injection_tab_ui
+from .ui import sr_injection_tab_ui
 
 class SRInjectionTab(QWidget):
 
