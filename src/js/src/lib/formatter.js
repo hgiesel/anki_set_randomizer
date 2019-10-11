@@ -47,11 +47,12 @@ export default function formatter(inputSyntax, iterIndex) {
     }
   }
 
-  const elemDelim = '%%sr%%ELEMDELIM%%'
+  const elemDelim = '\%\%sr\%\%ELEMDELIM\%\%'
 
   // a single big string with inserted elemDelims
   const _rawStructure = {}
   const getRawStructure = function(theSelector=inputSyntax.cssSelector) {
+
     if (_rawStructure[theSelector]) {
       return _rawStructure[theSelector]
     }
@@ -384,8 +385,6 @@ export default function formatter(inputSyntax, iterIndex) {
 
     const sa = stylingsAccessor(styleDefinitions, randomIndices)
     const vp = valuePicker(valueSets, styleRules)
-
-    console.log('sd', styleDefinitions)
 
     const stylizedResults = Array(reordering.length)
 

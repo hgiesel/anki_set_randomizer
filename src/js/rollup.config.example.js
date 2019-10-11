@@ -15,6 +15,7 @@ export default {
   output: {
     file: '../../docs/example.js',
     format: 'iife', // immediately-invoked function expression — suitable for <script> tags
+    name: 'SetRandomizer',
     // sourcemap: true
   },
   plugins: [

@@ -343,8 +343,6 @@ function evalPicks(
           ? star
           : valueSetName
 
-        console.log('pick:vsn', valueSetNameName)
-
         const valueSetSetIndex = !Number.isNaN(maybeValueSetSetIndex)
           ? maybeValueSetSetIndex
           : match[7] ? star : 0

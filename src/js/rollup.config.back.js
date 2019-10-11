@@ -17,6 +17,7 @@ export default {
   output: {
     file: 'dist/back.js',
     format: 'iife', // immediately-invoked function expression — suitable for <script> tags
+    name: 'SetRandomizer',
     // sourcemap: true
   },
   plugins: [

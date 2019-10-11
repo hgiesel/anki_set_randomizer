@@ -14,8 +14,6 @@ export function matchStructures(elementsInherited, elementsOriginal) {
       && !result.find(v => v.to[0] === set[0][0] && v.to[1] === set[0][1])
     )) {
 
-      console.log('lala', setInherited, match)
-
       // inherited set moved FROM position TO new position
       // used to be found at FROM position, but now is found at TO position
       result.push({
@@ -115,8 +113,6 @@ export function reorderForRendering(structureMatches, reorderings, iterIndex) {
     .entries()
   ) {
 
-    console.log('ro', ro)
-
     const match = structureMatches
       .find(v =>
         iterIndex === v.to[0] &&
@@ -129,9 +125,6 @@ export function reorderForRendering(structureMatches, reorderings, iterIndex) {
       resultNew.push(ro)
     }
   }
-
-  console.log('reo1', reorderings)
-  console.log('reo2', resultMatched.filter(v => v).concat(resultNew))
 
   return resultMatched.filter(v => v).concat(resultNew)
 }
