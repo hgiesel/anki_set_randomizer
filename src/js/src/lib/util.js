@@ -37,3 +37,7 @@ export function compareArrays(array, otherArray) {
   }
   return true
 }
+
+export function getSrToken(components) {
+  return `%%sr%%${components.join('%%')}%%`
+}

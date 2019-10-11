@@ -7,6 +7,10 @@ import {
 } from './processors/util.js'
 
 import {
+  getSrToken,
+} from './util.js'
+
+import {
   escapeString,
   escapeHtml,
   treatNewlines,
@@ -47,7 +51,7 @@ export default function formatter(inputSyntax, iterIndex) {
     }
   }
 
-  const elemDelim = '\%\%sr\%\%ELEMDELIM\%\%'
+  const elemDelim = getSrToken(['ELEMDELIM'])
 
   // a single big string with inserted elemDelims
   const _rawStructure = {}
