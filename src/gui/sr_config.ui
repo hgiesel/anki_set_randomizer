@@ -7,17 +7,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>826</width>
-    <height>469</height>
+    <width>836</width>
+    <height>465</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Set Randomizer Options</string>
+   <string>Set Randomizer Settings</string>
   </property>
   <widget class="QTabWidget" name="tabWidgetMain">
    <property name="geometry">
     <rect>
-     <x>5</x>
+     <x>10</x>
      <y>10</y>
      <width>815</width>
      <height>421</height>
@@ -42,9 +42,9 @@
     <widget class="QComboBox" name="cardTypeSelector">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>271</width>
+       <x>0</x>
+       <y>-10</y>
+       <width>281</width>
        <height>41</height>
       </rect>
      </property>
@@ -64,7 +64,7 @@
      <property name="geometry">
       <rect>
        <x>290</x>
-       <y>10</y>
+       <y>-10</y>
        <width>191</width>
        <height>41</height>
       </rect>
@@ -89,7 +89,7 @@
      <property name="geometry">
       <rect>
        <x>-70</x>
-       <y>50</y>
+       <y>30</y>
        <width>1001</width>
        <height>21</height>
       </rect>
@@ -98,35 +98,11 @@
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
-    <widget class="QTabWidget" name="iterationTabs">
-     <property name="geometry">
-      <rect>
-       <x>5</x>
-       <y>80</y>
-       <width>800</width>
-       <height>281</height>
-      </rect>
-     </property>
-     <property name="tabPosition">
-      <enum>QTabWidget::North</enum>
-     </property>
-     <property name="currentIndex">
-      <number>0</number>
-     </property>
-     <property name="elideMode">
-      <enum>Qt::ElideLeft</enum>
-     </property>
-     <widget class="QWidget" name="iterationTab1">
-      <attribute name="title">
-       <string>Iteration XXX</string>
-      </attribute>
-     </widget>
-    </widget>
     <widget class="QCheckBox" name="injectAnkiPersistenceCheckBox">
      <property name="geometry">
       <rect>
        <x>490</x>
-       <y>10</y>
+       <y>-10</y>
        <width>161</width>
        <height>41</height>
       </rect>
@@ -147,84 +123,11 @@
       <bool>false</bool>
      </property>
     </widget>
-    <widget class="QFrame" name="buttonFrame">
-     <property name="geometry">
-      <rect>
-       <x>400</x>
-       <y>360</y>
-       <width>401</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-     <widget class="QPushButton" name="deleteIterationPushButton">
-      <property name="geometry">
-       <rect>
-        <x>50</x>
-        <y>0</y>
-        <width>111</width>
-        <height>32</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Delete</string>
-      </property>
-      <property name="checkable">
-       <bool>false</bool>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="repositionIterationPushButton">
-      <property name="geometry">
-       <rect>
-        <x>170</x>
-        <y>0</y>
-        <width>113</width>
-        <height>32</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Reposition</string>
-      </property>
-      <property name="checkable">
-       <bool>false</bool>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="duplicateIterationPushButton">
-      <property name="geometry">
-       <rect>
-        <x>290</x>
-        <y>0</y>
-        <width>113</width>
-        <height>32</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Duplicate</string>
-      </property>
-      <property name="checkable">
-       <bool>false</bool>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </widget>
     <widget class="QCheckBox" name="pasteIntoTemplateCheckBox">
      <property name="geometry">
       <rect>
        <x>660</x>
-       <y>10</y>
+       <y>-10</y>
        <width>141</width>
        <height>41</height>
       </rect>
@@ -244,6 +147,279 @@
      <property name="tristate">
       <bool>false</bool>
      </property>
+    </widget>
+    <widget class="QTabWidget" name="partTabs">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>50</y>
+       <width>811</width>
+       <height>341</height>
+      </rect>
+     </property>
+     <property name="tabPosition">
+      <enum>QTabWidget::North</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <property name="elideMode">
+      <enum>Qt::ElideLeft</enum>
+     </property>
+     <property name="tabsClosable">
+      <bool>false</bool>
+     </property>
+     <property name="movable">
+      <bool>false</bool>
+     </property>
+     <widget class="QWidget" name="iterationTab">
+      <attribute name="title">
+       <string>Iterations</string>
+      </attribute>
+      <widget class="QTabWidget" name="iterationTabs">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>811</width>
+         <height>281</height>
+        </rect>
+       </property>
+       <property name="tabPosition">
+        <enum>QTabWidget::North</enum>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <property name="elideMode">
+        <enum>Qt::ElideLeft</enum>
+       </property>
+       <property name="tabsClosable">
+        <bool>true</bool>
+       </property>
+       <property name="movable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="iterationTab1">
+        <attribute name="title">
+         <string>Iteration XXX</string>
+        </attribute>
+       </widget>
+       <widget class="QWidget" name="tab_2">
+        <attribute name="title">
+         <string>Iteration 2</string>
+        </attribute>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="iterationButtons">
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>280</y>
+         <width>691</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QPushButton" name="duplicateIterationPushButton">
+        <property name="geometry">
+         <rect>
+          <x>490</x>
+          <y>0</y>
+          <width>201</width>
+          <height>32</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Duplicate Current Iteration</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="duplicateIterationPushButton_2">
+        <property name="geometry">
+         <rect>
+          <x>290</x>
+          <y>0</y>
+          <width>201</width>
+          <height>32</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Copy Frontside to Backside</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="duplicateIterationPushButton_4">
+        <property name="geometry">
+         <rect>
+          <x>90</x>
+          <y>0</y>
+          <width>201</width>
+          <height>32</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Copy Backside to Frontside</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="injectionTab">
+      <attribute name="title">
+       <string>Injections</string>
+      </attribute>
+      <widget class="QTabWidget" name="injectionTabs">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>821</width>
+         <height>281</height>
+        </rect>
+       </property>
+       <property name="tabPosition">
+        <enum>QTabWidget::North</enum>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <property name="elideMode">
+        <enum>Qt::ElideLeft</enum>
+       </property>
+       <property name="tabsClosable">
+        <bool>true</bool>
+       </property>
+       <property name="movable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="iterationTab1_3">
+        <attribute name="title">
+         <string>Injection XXX</string>
+        </attribute>
+       </widget>
+       <widget class="QWidget" name="tab">
+        <attribute name="title">
+         <string>Injection 2</string>
+        </attribute>
+       </widget>
+      </widget>
+      <widget class="QFrame" name="injectionButtons">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>280</y>
+         <width>681</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <widget class="QPushButton" name="duplicateIterationPushButton_3">
+        <property name="geometry">
+         <rect>
+          <x>480</x>
+          <y>0</y>
+          <width>201</width>
+          <height>32</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Create New Injection</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="duplicateIterationPushButton_5">
+        <property name="geometry">
+         <rect>
+          <x>280</x>
+          <y>0</y>
+          <width>201</width>
+          <height>32</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Create New Statement</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="duplicateIterationPushButton_6">
+        <property name="geometry">
+         <rect>
+          <x>80</x>
+          <y>0</y>
+          <width>201</width>
+          <height>32</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Delete Current Statement</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QPushButton" name="duplicateIterationPushButton_7">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>280</y>
+         <width>201</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Validate Conditions</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+      <zorder>injectionButtons</zorder>
+      <zorder>duplicateIterationPushButton_7</zorder>
+      <zorder>injectionTabs</zorder>
+     </widget>
     </widget>
    </widget>
    <widget class="QWidget" name="tabAbout">
@@ -266,8 +442,7 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.AppleSystemUIFont'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'.SF NS Text'; font-weight:600;&quot;&gt;Anki Set Randomizer&lt;/span&gt;&lt;span style=&quot; font-family:'.SF NS Text';&quot;&gt; was developed by &lt;/span&gt;&lt;a href=&quot;https://github.com/hgiesel&quot;&gt;&lt;span style=&quot; font-family:'.SF NS Text'; text-decoration: underline; color:#0000ff;&quot;&gt;Henrik Giesel (hgiesel)&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'.SF NS Text';&quot;&gt;. &lt;br /&gt;🐇 If you like my work consider supporting me on &lt;/span&gt;&lt;a href=&quot;https://ko-fi.com/hgiesel&quot;&gt;&lt;span style=&quot; font-family:'.SF NS Text'; text-decoration: underline; color:#0000ff;&quot;&gt;Ko-Fi&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'.SF NS Text';&quot;&gt;. 🐇&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'.SF NS Text'; font-weight:600;&quot;&gt;Anki Persistence&lt;/span&gt;&lt;span style=&quot; font-family:'.SF NS Text';&quot;&gt; was developed by &lt;/span&gt;&lt;a href=&quot;https://github.com/SimonLammer/anki-persistence&quot;&gt;&lt;span style=&quot; font-family:'.SF NS Text'; text-decoration: underline; color:#0000ff;&quot;&gt;Simmon Lammer&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'.SF NS Text';&quot;&gt;.&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'.SF NS Text';&quot;&gt;For more information about how to use Set Randomizer, you should check out &lt;/span&gt;&lt;a href=&quot;https://hgiesel.github.io/anki-set-randomizer/&quot;&gt;&lt;span style=&quot; font-family:'.SF NS Text'; text-decoration: underline; color:#0000ff;&quot;&gt;the docs&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'.SF NS Text';&quot;&gt; (work in progress).&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'.SF NS Text';&quot;&gt;Thanks to reddit user u/im__aarkay for testing v2.0 on AnkiDroid.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'.SF NS Text';&quot;&gt;For more information about how to use Set Randomizer, you should check out &lt;/span&gt;&lt;a href=&quot;https://hgiesel.github.io/anki-set-randomizer/&quot;&gt;&lt;span style=&quot; font-family:'.SF NS Text'; text-decoration: underline; color:#0000ff;&quot;&gt;the docs&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'.SF NS Text';&quot;&gt; (work in progress).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="openExternalLinks">
       <bool>true</bool>
@@ -278,7 +453,7 @@ p, li { white-space: pre-wrap; }
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>650</x>
      <y>430</y>
      <width>181</width>
      <height>41</height>

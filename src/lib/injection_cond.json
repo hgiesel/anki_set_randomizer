@@ -1,0 +1,62 @@
+{
+  "definitions": {
+    "cond": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": [
+        {
+          "type": "string",
+          "enum": [
+            "card",
+            "tag",
+            "iter"
+          ]
+        },
+        {
+          "type": "string",
+          "enum": [
+            "=",
+            "!=",
+            "includes",
+            "startsWith",
+            "endsWith"
+          ]
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "comb": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string",
+          "enum": [
+            "&",
+            "|"
+          ]
+        }
+      ],
+      "additionalItems": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/comb"
+          },
+          {
+            "$ref": "#/definitions/cond"
+          }
+        ]
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/definitions/cond"
+    },
+    {
+      "$ref": "#/definitions/comb"
+    }
+  ]
+}

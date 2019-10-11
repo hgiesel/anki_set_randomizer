@@ -5,14 +5,15 @@
       "enabled": false,
       "injectAnkiPersistence": true,
       "pasteIntoTemplate": true,
-      "options": [
+      "iterations": [
         {
+          "enabled": true,
           "inputSyntax": {
             "cssSelector": "div#qa",
             "openDelim": "[[",
-              "closeDelim": "]]",
-              "fieldSeparator": "::",
-              "isRegex": false
+            "closeDelim": "]]",
+            "fieldSeparator": "::",
+            "isRegex": false
           },
           "defaultStyle": {
             "colors": {
@@ -38,7 +39,8 @@
             "emptySet": "…"
           }
         }
-      ]
+      ],
+      "injections": []
     },
     {
       "modelName": "Cloze",
@@ -47,6 +49,7 @@
       "pasteIntoTemplate": true,
       "options": [
         {
+          "enabled": true,
           "inputSyntax": {
             "cssSelector": "div#qa",
             "openDelim": "<<",
@@ -78,7 +81,8 @@
             "emptySet": "…"
           }
         }
-      ]
+      ],
+      "injections": []
     },
     {
       "modelName": "Cloze (overlapping)",
@@ -87,6 +91,7 @@
       "pasteIntoTemplate": true,
       "options": [
         {
+          "enabled": true,
           "inputSyntax": {
             "cssSelector": "div#clozed",
             "openDelim": "<<",
@@ -118,7 +123,8 @@
             "emptySet": "…"
           }
         }
-      ]
+      ],
+      "injections": []
     }
   ]
 }
