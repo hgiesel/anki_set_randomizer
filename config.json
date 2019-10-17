@@ -7,13 +7,48 @@
       "pasteIntoTemplate": true,
       "iterations": [
         {
+          "name": "-1",
           "enabled": true,
           "inputSyntax": {
             "cssSelector": "div#qa",
             "openDelim": "[[",
-            "closeDelim": "]]",
-            "fieldSeparator": "::",
-            "isRegex": false
+              "closeDelim": "]]",
+              "fieldSeparator": "::",
+              "isRegex": false
+          },
+          "defaultStyle": {
+            "colors": {
+              "values": [
+                "orange",
+                "olive",
+                "maroon",
+                "aqua",
+                "fuchsia"
+              ],
+              "randomStartIndex": false,
+              "collectiveIndexing": true
+            },
+            "classes": {
+              "values": [],
+              "randomStartIndex": false,
+              "collectiveIndexing": true
+            },
+            "fieldPadding": 2,
+            "fieldSeparator": " ",
+            "openDelim": "〔",
+            "closeDelim": "〕",
+            "emptySet": "…"
+          }
+        },
+        {
+          "name": "+1",
+          "enabled": true,
+          "inputSyntax": {
+            "cssSelector": "div#qa",
+            "openDelim": "[[",
+              "closeDelim": "]]",
+              "fieldSeparator": "::",
+              "isRegex": false
           },
           "defaultStyle": {
             "colors": {
@@ -56,6 +91,41 @@
       "pasteIntoTemplate": true,
       "iterations": [
         {
+          "name": "-1",
+          "enabled": true,
+          "inputSyntax": {
+            "cssSelector": "div#qa",
+            "openDelim": "<<",
+            "closeDelim": ">>",
+            "fieldSeparator": ";;",
+            "isRegex": false
+          },
+          "defaultStyle": {
+            "colors": {
+              "values": [
+                "orange",
+                "olive",
+                "maroon",
+                "aqua",
+                "fuchsia"
+              ],
+              "randomStartIndex": false,
+              "collectiveIndexing": true
+            },
+            "classes": {
+              "values": [],
+              "randomStartIndex": false,
+              "collectiveIndexing": true
+            },
+            "fieldPadding": 2,
+            "fieldSeparator": " ",
+            "openDelim": "〔",
+            "closeDelim": "〕",
+            "emptySet": "…"
+          }
+        },
+        {
+          "name": "+1",
           "enabled": true,
           "inputSyntax": {
             "cssSelector": "div#qa",
@@ -98,6 +168,41 @@
       "pasteIntoTemplate": true,
       "iterations": [
         {
+          "name": "-1",
+          "enabled": true,
+          "inputSyntax": {
+            "cssSelector": "div#clozed",
+            "openDelim": "<<",
+            "closeDelim": ">>",
+            "fieldSeparator": ";;",
+            "isRegex": false
+          },
+          "defaultStyle": {
+            "colors": {
+              "values": [
+                "orange",
+                "olive",
+                "maroon",
+                "aqua",
+                "fuchsia"
+              ],
+              "randomStartIndex": false,
+              "collectiveIndexing": true
+            },
+            "classes": {
+              "values": [],
+              "randomStartIndex": false,
+              "collectiveIndexing": true
+            },
+            "fieldPadding": 2,
+            "fieldSeparator": " ",
+            "openDelim": "〔",
+            "closeDelim": "〕",
+            "emptySet": "…"
+          }
+        },
+        {
+          "name": "+1",
           "enabled": true,
           "inputSyntax": {
             "cssSelector": "div#clozed",

@@ -11,14 +11,14 @@ from string import Template
 
 from aqt.utils import showInfo
 
-from .config import serialize_config
+from .config import serialize_settings
 from .utils import version_string
 
 class BetterTemplate(Template):
     delimiter = '$$'
 
-def setup_models(config):
-    for settings in serialize_config(config)['settings']:
+def setup_models(settings):
+    for settings in serialize_settings(settings):
         model = mw.col.models.byName(settings['modelName'])
 
         remove_model_template(model)
@@ -55,15 +55,18 @@ def remove_model_template(model):
 
 def update_model_template(model, settings):
     dir_path = os.path.dirname(os.path.realpath(__file__))
+    minimal_sep = (',', ':')
 
     with io.open(f'{dir_path}/../js/dist/front.js', mode='r', encoding='utf-8') as template_front:
         js_front = BetterTemplate(template_front.read()).substitute(
-            options=json.dumps(settings['options'])
+            iterations=json.dumps([iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('-')], separators=minimal_sep),
+            injections=json.dumps([inj for inj in settings['injections'] if inj['enabled']], separators=minimal_sep),
         )
 
     with io.open(f'{dir_path}/../js/dist/back.js', mode='r', encoding='utf-8') as template_back:
         js_back =  BetterTemplate(template_back.read()).substitute(
-            options=json.dumps(settings['options'])
+            iterations=json.dumps([iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('+')], separators=minimal_sep),
+            injections=json.dumps([inj for inj in settings['injections'] if inj['enabled']], separators=minimal_sep),
         )
 
     with io.open(f'{dir_path}/../js/dist/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:
@@ -73,13 +76,13 @@ def update_model_template(model, settings):
         for template in model['tmpls']:
             template['qfmt'] = (
                 f'{template["qfmt"]}\n\n<script {gen_data_attributes("Front")}>\n'
-                f'{anki_persistence if settings["injectAnkiPersistence"] else ""}{js_front}'
+                f'{anki_persistence if settings["insertAnkiPersistence"] else ""}{js_front}'
                 f'</script>'
             )
 
             template['afmt'] = (
                 f'{template["afmt"]}\n\n<script {gen_data_attributes("Back")}>\n'
-                f'{anki_persistence if settings["injectAnkiPersistence"] else ""}{js_back}'
+                f'{anki_persistence if settings["insertAnkiPersistence"] else ""}{js_back}'
                 f'</script>'
             )
 
@@ -104,10 +107,10 @@ def update_model_template(model, settings):
         """
 
         mw.col.media.writeData(front_name, ((anki_persistence
-                                             if settings['injectAnkiPersistence']
+                                             if settings['insertAnkiPersistence']
                                              else '') + js_front).encode('ascii'))
         mw.col.media.writeData(back_name, ((anki_persistence
-                                            if settings['injectAnkiPersistence']
+                                            if settings['insertAnkiPersistence']
                                             else '') + js_back).encode('ascii'))
 
         for template in model['tmpls']:

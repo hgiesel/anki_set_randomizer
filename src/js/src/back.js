@@ -13,7 +13,8 @@ import {
 back()
 
 function back() {
-  const options = $$options
+  const iterations = $$iterations
+  const injections = $$injections
 
   if (!window.Persistence) {
     createWarningNotDefined()
@@ -23,12 +24,12 @@ function back() {
     const [
       _,
       wereSetsUsed,
-    ] = main(options, getNullData(), false)
+    ] = main(iterations, getNullData(), false)
 
     createWarningNotAvailable(wereSetsUsed)
   }
 
   else {
-    main(options, getData(), false)
+    main(iterations, getData(), false)
   }
 }

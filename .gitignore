@@ -14,7 +14,7 @@ meta.json
 *.ankiaddon
 
 # Compiled gui
-/src/gui/ui/*.py
+/src/gui/*.py
 
 # Compiled js output
 /src/js/dist/front.js

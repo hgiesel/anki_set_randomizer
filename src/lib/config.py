@@ -17,7 +17,7 @@ from .config_types import (
     INPUT_SYNTAX_CLOZE, INPUT_SYNTAX_CLOZE_OL,
 )
 
-def serialize_config(settings):
+def serialize_settings(settings):
     settings_serialized = []
 
     for s in settings:
@@ -28,6 +28,7 @@ def serialize_config(settings):
             'insertAnkiPersistence': s.insert_anki_persistence,
             'pasteIntoTemplate': s.paste_into_template,
             'iterations': [{
+                'name': it.name,
                 'enabled': it.enabled,
                 'inputSyntax': {
                     'cssSelector': it.input_syntax.css_selector,
@@ -55,16 +56,16 @@ def serialize_config(settings):
                 }
             } for it in s.iterations],
             'injections': [{
-                'enabled': inj.enabled,
                 'name': inj.name,
+                'enabled': inj.enabled,
                 'conditions': inj.conditions,
                 'statements': inj.statements,
             } for inj in s.injections],
         })
 
-    return {'settings': settings_serialized}
+    return settings_serialized
 
-def deserialize_config(model_name, model_setting, access_func):
+def deserialize_setting(model_name, model_setting, access_func):
 
     return SRSetting(
         model_name,
@@ -72,6 +73,7 @@ def deserialize_config(model_name, model_setting, access_func):
         access_func([model_setting], ['insertAnkiPersistence']),
         access_func([model_setting], ['pasteIntoTemplate']),
         [SRIteration(
+            access_func([iteration], ['name']),
             access_func([iteration], ['enabled']),
             SRInputSyntax(
                 access_func([iteration], ['inputSyntax', 'cssSelector']),
@@ -99,22 +101,21 @@ def deserialize_config(model_name, model_setting, access_func):
             ),
         ) for iteration in access_func([model_setting], ['iterations'])],
         [SRInjection(
-            access_func([injection], ['enabled']),
             access_func([injection], ['name']),
+            access_func([injection], ['enabled']),
             access_func([injection], ['conditions']),
             access_func([injection], ['statements']),
         ) for injection in access_func([model_setting], ['injections'])],
     )
 
-def deserialize_config_with_default(model_names, config):
+def deserialize_settings_with_default(model_names, settings):
     model_settings = []
+
+    from aqt.utils import showInfo
 
     for model_name in model_names:
 
-        found = filter(
-            lambda v: v['modelName'] == model_name,
-            config,
-        )
+        found = filter(lambda v: v['modelName'] == model_name, settings)
 
         model_default = (
             SETTINGS_CLOZE_OL
@@ -124,14 +125,15 @@ def deserialize_config_with_default(model_names, config):
                   else SETTINGS_DEFAULT)
         )
 
-        try: # next() might find nothing
+        try:
             safe_get = safenav_preset([model_default])
 
             model_settings.append(
-                deserialize_config(model_name, next(found), safe_get)
+                deserialize_setting(model_name, next(found), safe_get)
             )
 
-        except:
+        except StopIteration as e:
+
             model_settings.append(
                 SRSetting(
                     model_name,
@@ -145,18 +147,20 @@ def deserialize_config_with_default(model_names, config):
 
     return model_settings
 
-def get_config_data():
+def get_settings():
     CONFIG = mw.addonManager.getConfig(__name__)
 
     model_names = []
     for model in mw.col.models.models.values():
         model_names.append(model['name'])
 
-    return deserialize_config_with_default(model_names, safenav([CONFIG], ['settings'], default=[]))
+    return deserialize_settings_with_default(model_names, safenav([CONFIG], ['settings'], default=[]))
 
-# write config to config.json
-def write_config_data(config_data):
-    mw.addonManager.writeConfig(__name__, serialize_config(config_data))
+# write config data to config.json
+def write_settings(settings):
+    mw.addonManager.writeConfig(__name__, {
+        "settings": serialize_settings(settings)
+    })
 
 SCRIPTNAME = path.dirname(path.realpath(__file__))
 
@@ -165,19 +169,19 @@ with open(path.join(SCRIPTNAME, '../../config.json'), encoding='utf-8') as confi
 
     settings = json.load(config)['settings']
 
-    SETTINGS_DEFAULT = deserialize_config(
+    SETTINGS_DEFAULT = deserialize_setting(
         'Default',
         settings[0],
         safenav,
     )
 
-    SETTINGS_CLOZE = deserialize_config(
+    SETTINGS_CLOZE = deserialize_setting(
         'Cloze',
         settings[1],
         safenav,
     )
 
-    SETTINGS_CLOZE_OL = deserialize_config(
+    SETTINGS_CLOZE_OL = deserialize_setting(
         'Cloze (overlapping)',
         settings[2],
         safenav,

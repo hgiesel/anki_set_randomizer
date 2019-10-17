@@ -1,0 +1,19 @@
+= UI Structure
+
+* `sr_config` is only for note type selector:
+** will make a move to another place in the GUI easier (e.g. "Manage Note Types")
+** updates its `sr_config_tabwidget` in place when note type changes
+
+* `sr_config_modelselector` is only the model selector
+
+* `sr_config_tabwidget` doesn't have a save option
+** should be dealt by an upper layer
+
+* `sr_config_tabwidget` is *per note type*
+
+. `sr_config` -> `sr_config_tabwidget` -> ( `sr_general_tab`, `sr_iteration_tab`, `sr_injection_tab` )
+
+. `sr_iteration_tab` -> [ `sr_iteration_frontback` ] -> ( `sr_iteration_config`, `sr_iteration_config` )
+. `sr_injection_tab` -> `sr_injection_config`
+
+

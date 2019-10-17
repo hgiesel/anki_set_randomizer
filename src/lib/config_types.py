@@ -9,17 +9,18 @@ SRSetting = namedtuple('SRSetting', [
     'injections',              # list of SRInjections
 ])
 
+SRInjection = namedtuple('SRInjection', [
+    'name',
+    'enabled', # bool
+    'conditions', # condition structure
+    'statements', # array of strings
+])
+
 SRIteration = namedtuple('SRIteration', [
+    'name',
     'enabled',       # bool
     'input_syntax',
     'default_style',
-])
-
-SRInjection = namedtuple('SRInjection', [
-    'enabled', # bool
-    'name',
-    'conditions', # condition structure
-    'statements', # array of strings
 ])
 
 SRInputSyntax = namedtuple('SRInputSyntax', [

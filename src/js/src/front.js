@@ -12,12 +12,13 @@ import {
 front()
 
 function front() {
-  const options = $$options
+  const iterations = $$iterations
+  const injections = $$injections
 
   const [
     theSaveData,
     wereSetsUsed,
-  ] = main(options, getNullData(), true)
+  ] = main(iterations, getNullData(), true)
 
   if (!window.Persistence) {
     createWarningNotDefined()

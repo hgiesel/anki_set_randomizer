@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SRConfigTabwidget</class>
+ <widget class="QTabWidget" name="SRConfigTabwidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>419</width>
+    <height>246</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>TabWidget</string>
+  </property>
+  <property name="currentIndex">
+   <number>2</number>
+  </property>
+  <widget class="SRGeneralTab" name="generalTab">
+   <attribute name="title">
+    <string>General</string>
+   </attribute>
+  </widget>
+  <widget class="SRIterationTab" name="iterationTab">
+   <attribute name="title">
+    <string>Iterations</string>
+   </attribute>
+  </widget>
+  <widget class="SRInjectionTab" name="injectionTab">
+   <attribute name="title">
+    <string>Injections</string>
+   </attribute>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SRGeneralTab</class>
+   <extends>QWidget</extends>
+   <header>anki_set_randomizer/src/gui/custom/sr_general_tab</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SRIterationTab</class>
+   <extends>QWidget</extends>
+   <header>anki_set_randomizer/src/gui/custom/sr_iteration_tab</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SRInjectionTab</class>
+   <extends>QWidget</extends>
+   <header>anki_set_randomizer/src/gui/custom/sr_injection_tab</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
