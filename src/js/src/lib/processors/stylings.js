@@ -68,6 +68,14 @@ function processStyleDefinitions(elements, defaultStyle) {
       },
     },
     {
+      name: 'meta',
+      stylings: {
+        colors: {},
+        classes: {},
+        display: 'meta',
+      },
+    },
+    {
       name: 'block',
       stylings: {
         colors: {},

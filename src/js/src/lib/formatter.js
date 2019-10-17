@@ -19,7 +19,7 @@ import {
 const htmlTagsRegex = new RegExp('<.*?>', 'g')
 const htmlTagsNoBrRegex = new RegExp('<(?!br>).*?>', 'g')
 
-export default function formatter(inputSyntax, iterIndex) {
+export default function formatter(inputSyntax, injections, iterIndex) {
 
   let _isInvalid
   let _isContained
@@ -137,18 +137,24 @@ export default function formatter(inputSyntax, iterIndex) {
     }
 
     else {
-      const theElementsOriginal = []
       const theFoundStructure = getFoundStructure(theSelector)
 
-      for (const [i, group] of theFoundStructure.entries()) {
-        const splitGroup = group
-          .split(inputSyntax.isRegex
-            ? new RegExp(inputSyntax.fieldSeparator)
-            : inputSyntax.fieldSeparator)
-          .map((elem, j) => [iterIndex, i, j, elem, 'n'])
+      const splitElements = []
 
-        theElementsOriginal.push(splitGroup)
-      }
+      let injectFound = false
+
+      const preElementsOriginal = theFoundStructure
+        .map(group => group.split(inputSyntax.isRegex
+          ? new RegExp(inputSyntax.fieldSeparator)
+          : inputSyntax.fieldSeparator))
+        .flatMap(v => v.length === 1 && v[0] === '$inject'
+          ? (injectFound = true, injections)
+          : [v])
+
+      const theElementsOriginal = (injectFound
+        ? preElementsOriginal
+        : preElementsOriginal.concat(injections))
+        .map((set, i) => set.map((elem, j) => [iterIndex, i, j, elem, 'n']))
 
       return _elementsOriginal[theSelector] = theElementsOriginal
     }
@@ -442,7 +448,6 @@ export default function formatter(inputSyntax, iterIndex) {
 
             const filterHtml = pa.getProp('filter')
             const displayBlock = pa.getProp('block')
-            console.log(pickedValue, filterHtml, pa.getProp())
 
             const theValue = filterHtml
               ? displayBlock
@@ -466,6 +471,9 @@ export default function formatter(inputSyntax, iterIndex) {
           `${pa.getProp('emptySet')}` +
           `${pa.getProp('closeDelim')}`
       }
+      else if (pa.getProp('display') === 'meta') {
+        stylizedResults[set.order] = null
+      }
       else {
         stylizedResults[set.order] =
           `${pa.getProp('openDelim')}` +
@@ -477,13 +485,15 @@ export default function formatter(inputSyntax, iterIndex) {
     let theRawStructure = getRawStructure(theSelector)
 
     for (const [i, value] of getFoundStructure(theSelector).entries()) {
-      theRawStructure = theRawStructure
-        .replace(
-          (inputSyntax.isRegex
-            ? new RegExp(`${inputSyntax.openDelim}${escapeString(value)}${inputSyntax.closeDelim}`)
-            : `${inputSyntax.openDelim}${value}${inputSyntax.closeDelim}`),
-          `${stylizedResults[i]}`
-        )
+      if (stylizedResults[i] !== null /* when display:meta */) {
+        theRawStructure = theRawStructure
+          .replace(
+            (inputSyntax.isRegex
+              ? new RegExp(`${inputSyntax.openDelim}${escapeString(value)}${inputSyntax.closeDelim}`)
+              : `${inputSyntax.openDelim}${value}${inputSyntax.closeDelim}`),
+            `${stylizedResults[i]}`
+          )
+      }
     }
 
     const theHtml = getHtml(theSelector)

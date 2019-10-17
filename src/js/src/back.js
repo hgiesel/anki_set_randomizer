@@ -6,15 +6,20 @@ import {
 } from './save.js'
 
 import {
+  parseInjections,
+} from './inject.js'
+
+import {
   main,
 } from './main.js'
-
 
 back()
 
 function back() {
   const iterations = $$iterations
   const injections = $$injections
+
+  const injectionsParsed = parseInjections(injections, iterations.map(v => v.name))
 
   if (!window.Persistence) {
     createWarningNotDefined()
@@ -24,12 +29,12 @@ function back() {
     const [
       _,
       wereSetsUsed,
-    ] = main(iterations, getNullData(), false)
+    ] = main(iterations, injectionsParsed, getNullData(), false)
 
     createWarningNotAvailable(wereSetsUsed)
   }
 
   else {
-    main(iterations, getData(), false)
+    main(iterations, injectionsParsed, getData(), false)
   }
 }

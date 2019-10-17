@@ -35,21 +35,22 @@ import {
   reorderForRendering,
 } from './lib/matching.js'
 
-export function main(options, saveDataOld, frontside) {
+export function main(iterations, injectionsParsed, saveDataOld, frontside) {
 
   // frontside will be run with indices (-1, -2, -3, etc...)
   // backside will be run with indices (1, 2, 3, etc...)
   // but technically they are run in a row
-  const saveDataAndSetsUsed = options
-    .reduce((accu, v, iterIndex) => {
+  const saveDataAndSetsUsed = iterations
+    .reduce((accu, v, i) => {
       const [
         saveDataNew,
         wereSetsUsed,
       ] = main2(
-        frontside ? (-iterIndex - 1) : (iterIndex + 1),
+        v.name,
         v.inputSyntax,
         v.defaultStyle,
         ...accu[0],
+        injectionsParsed[i],
       )
 
       return [saveDataNew, wereSetsUsed || accu[1]]
@@ -80,8 +81,10 @@ function main2(
   reordersFirstInherited,
   reordersSecondInherited,
   randomIndicesInherited,
+
+  injections,
 ) {
-  const form = formatter(inputSyntax, iterIndex)
+  const form = formatter(inputSyntax, injections, iterIndex)
   const elementsOriginal = form.getElementsOriginal()
 
   if (!form.isInvalid() /* && !form.isContained() */ && elementsOriginal.length > 0) {
@@ -93,7 +96,6 @@ function main2(
 
     //////////////////////////////////////////////////////////////////////////////
     // FIRST RANDOMIZATION
-
 
     const [
       numberedSets,

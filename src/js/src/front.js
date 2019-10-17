@@ -6,6 +6,10 @@ import {
 } from './save.js'
 
 import {
+  parseInjections,
+} from './inject.js'
+
+import {
   main,
 } from './main.js'
 
@@ -15,10 +19,12 @@ function front() {
   const iterations = $$iterations
   const injections = $$injections
 
+  const injectionsParsed = parseInjections(injections, iterations.map(v => v.name))
+
   const [
     theSaveData,
     wereSetsUsed,
-  ] = main(iterations, getNullData(), true)
+  ] = main(iterations, injectionsParsed, getNullData(), true)
 
   if (!window.Persistence) {
     createWarningNotDefined()
