@@ -18,14 +18,14 @@ class SRGeneralTab(QWidget):
 
         self.ui.nameLineEdit.setText(modelName)
         self.ui.enableCheckBox.setChecked(enabled)
-        self.ui.pasteIntoCardTemplateCheckBox.setChecked(pasteIntoTemplate)
         self.ui.insertAnkiPersistenceCheckBox.setChecked(insertAnkiPersistence)
+        self.ui.pasteIntoCardTemplateCheckBox.setChecked(pasteIntoTemplate)
 
     def exportData(self):
 
         return [
             self.ui.nameLineEdit.text(),
             self.ui.enableCheckBox.isChecked(),
-            self.ui.pasteIntoCardTemplateCheckBox.isChecked(),
             self.ui.insertAnkiPersistenceCheckBox.isChecked(),
+            self.ui.pasteIntoCardTemplateCheckBox.isChecked(),
         ]
