@@ -151,10 +151,12 @@ export default function formatter(inputSyntax, injections, iterIndex) {
           : inputSyntax.fieldSeparator))
         .flatMap(v => v.length === 1 && v[0] === '$inject'
           ? !injectFound
-            ? (injectFound = true, injections.map(v => v.concat(makeInjectionsMeta)))
-            : []
+            ? (injectFound = true, [v].concat(injections.map(v => v.concat(makeInjectionsMeta))))
+            : [v]
           : [v])
         .map((set, i) => set.map((elem, j) => [iterIndex, i, j, elem, 'n']))
+
+      console.log(theElementsOriginal)
 
       return _elementsOriginal[theSelector] = theElementsOriginal
     }
@@ -396,6 +398,9 @@ export default function formatter(inputSyntax, injections, iterIndex) {
     theSelector=inputSyntax.cssSelector
   ) {
 
+    console.log(numberedSets)
+    console.log('reo', reordering)
+
     const sa = stylingsAccessor(styleDefinitions, randomIndices)
     const vp = valuePicker(valueSets, styleRules)
 
@@ -452,10 +457,12 @@ export default function formatter(inputSyntax, injections, iterIndex) {
             const theValue = filterHtml
               ? displayBlock
                 ? `<record ${className} ${style}><div>${treatNewlines(pickedValue).replace(htmlTagsNoBrRegex, '')}</div></record>`
-                : `<record ${className} ${style}><div>${pickedValue.replace(htmlTagsRegex, '')}</div></record>`
+                : `<record ${className} ${style}>${pickedValue.replace(htmlTagsRegex, '')}</record>`
               : displayBlock
                 ? `<record ${className} ${style}><div>${treatNewlines(pickedValue)}</div></record>`
-                : `<record ${className} ${style}><div>${pickedValue}</div></record>`
+                : `<record ${className} ${style}>${pickedValue}</record>`
+
+            console.log('options', filterHtml, displayBlock, theValue)
 
             actualValues.push(theValue)
           }
