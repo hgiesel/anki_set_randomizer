@@ -139,21 +139,21 @@ export default function formatter(inputSyntax, injections, iterIndex) {
     else {
       const theFoundStructure = getFoundStructure(theSelector)
 
-      const splitElements = []
+      const makeInjectionsMeta = "$apply(meta)"
+      const injectionKeyword = "$inject"
 
       let injectFound = false
 
-      const preElementsOriginal = theFoundStructure
+      const theElementsOriginal = theFoundStructure
+        .concat([injectionKeyword])
         .map(group => group.split(inputSyntax.isRegex
           ? new RegExp(inputSyntax.fieldSeparator)
           : inputSyntax.fieldSeparator))
         .flatMap(v => v.length === 1 && v[0] === '$inject'
-          ? (injectFound = true, injections)
+          ? !injectFound
+            ? (injectFound = true, injections.map(v => v.concat(makeInjectionsMeta)))
+            : []
           : [v])
-
-      const theElementsOriginal = (injectFound
-        ? preElementsOriginal
-        : preElementsOriginal.concat(injections))
         .map((set, i) => set.map((elem, j) => [iterIndex, i, j, elem, 'n']))
 
       return _elementsOriginal[theSelector] = theElementsOriginal

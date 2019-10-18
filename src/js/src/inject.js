@@ -1,7 +1,4 @@
-const tags = '{{Tags}}'.split(' ')
-const cardType = '{{Card}}'
-
-export function parseInjections(injections, iterIds) {
+export function parseInjections(injections, iterIds, tags, cardType) {
 
   const result = iterIds.map(iter => {
 
@@ -9,8 +6,8 @@ export function parseInjections(injections, iterIds) {
       switch (condition[0]) {
         case 'card':
           return condition[1] === '='
-          ? cardType === condition[2]
-          : condition[1] === '!='
+            ? cardType === condition[2]
+            : condition[1] === '!='
             ? cardType !== condition[2]
             : cardType[condition[1]](condition[2])
 
@@ -19,16 +16,19 @@ export function parseInjections(injections, iterIds) {
             condition[1] === '='
             ? v === condition[2]
             : condition[1] === '!='
-              ? v !== condition[2]
-              : v[condition[1]](condition[2]))
-          .reduce((accu, v) => accu || v, false)
+            ? v !== condition[2]
+            : v[condition[1]](condition[2]))
+              .reduce((accu, v) => accu || v, false)
 
         case 'iter':
           return condition[1] === '='
-          ? iter === condition[2]
-          : condition[1] === '!='
+            ? iter === condition[2]
+            : condition[1] === '!='
             ? iter !== condition[2]
             : iter[condition[1]](condition[2])
+
+        case '!':
+          return !condition[1]
 
         case '&':
           return condition.slice(1).map(v => parseConditions(v)).reduce((accu, v) => accu && v)
@@ -44,7 +44,7 @@ export function parseInjections(injections, iterIds) {
         : found
     }
 
-    return injections.reduce(parseInjection, []).map(v => (v.push('$apply(meta)'), v))
+    return injections.reduce(parseInjection, [])
   })
 
   return result

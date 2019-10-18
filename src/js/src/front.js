@@ -19,7 +19,15 @@ function front() {
   const iterations = $$iterations
   const injections = $$injections
 
-  const injectionsParsed = parseInjections(injections, iterations.map(v => v.name))
+  const tags = '{{Tags}}'.split(' ')
+  const cardType = '{{Card}}'
+
+  const injectionsParsed = parseInjections(
+    injections,
+    iterations.map(v => v.name),
+    tags,
+    cardType,
+  )
 
   const [
     theSaveData,
