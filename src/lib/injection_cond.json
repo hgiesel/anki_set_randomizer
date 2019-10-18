@@ -1,6 +1,7 @@
 {
   "definitions": {
-    "cond": {
+
+    "condition": {
       "type": "array",
       "minItems": 3,
       "maxItems": 3,
@@ -28,7 +29,35 @@
         }
       ]
     },
-    "comb": {
+
+    "negation": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": [
+        {
+          "type": "string",
+          "enum": [
+            "!"
+          ]
+        }
+      ],
+      "additionalItems": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/condition"
+          },
+          {
+            "$ref": "#/definitions/negation"
+          },
+          {
+            "$ref": "#/definitions/conjunction+disjunction"
+          }
+        ]
+      }
+    },
+
+    "conjunction+disjunction": {
       "type": "array",
       "items": [
         {
@@ -42,21 +71,29 @@
       "additionalItems": {
         "oneOf": [
           {
-            "$ref": "#/definitions/comb"
+            "$ref": "#/definitions/condition"
           },
           {
-            "$ref": "#/definitions/cond"
+            "$ref": "#/definitions/negation"
+          },
+          {
+            "$ref": "#/definitions/conjunction+disjunction"
           }
         ]
       }
     }
+
   },
+
   "oneOf": [
     {
-      "$ref": "#/definitions/cond"
+      "$ref": "#/definitions/condition"
     },
     {
-      "$ref": "#/definitions/comb"
+      "$ref": "#/definitions/negation"
+    },
+    {
+      "$ref": "#/definitions/conjunction+disjunction"
     }
   ]
 }
