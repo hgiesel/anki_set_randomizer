@@ -1,9 +1,11 @@
 import {
+  getData,
   saveData,
-  createWarningNotDefined,
-  createWarningNotAvailable,
-  getNullData,
 } from './save.js'
+
+import {
+  createWarnings,
+} from './util.js'
 
 import {
   parseInjections,
@@ -32,17 +34,8 @@ function front() {
   const [
     theSaveData,
     wereSetsUsed,
-  ] = main(iterations, injectionsParsed, getNullData(), true)
+  ] = main(iterations, injectionsParsed, getData(), true)
 
-  if (!window.Persistence) {
-    createWarningNotDefined()
-  }
-
-  else if (!Persistence.isAvailable()) {
-    createWarningNotAvailable(wereSetsUsed)
-  }
-
-  else {
-    saveData(theSaveData)
-  }
+  saveData(theSaveData)
+  createWarnings(wereSetsUsed)
 }

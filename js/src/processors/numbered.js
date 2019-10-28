@@ -1,8 +1,11 @@
 import {
   namePattern,
   positionPattern,
-  star,
 } from './util.js'
+
+import {
+  star,
+} from '../util.js'
 
 function generateRandomValue(min, max, extra, isReal) {
   const preValue = Math.random() * (max - min) + min

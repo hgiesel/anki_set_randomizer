@@ -3,8 +3,11 @@ import {
   positionPattern,
   getCorrespondingSets,
   partitionList,
-  star,
 } from './util.js'
+
+import {
+  star,
+} from '../util.js'
 
 const valueSetPattern = `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)`
 

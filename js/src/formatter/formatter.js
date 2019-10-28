@@ -4,16 +4,13 @@
 
 import {
   star,
-} from './processors/util.js'
-
-import {
-  getSrToken,
-} from './util.js'
+} from '../util.js'
 
 import {
   escapeString,
   escapeHtml,
   treatNewlines,
+  getSrToken,
 } from './util.js'
 
 const htmlTagsRegex = new RegExp('<.*?>', 'g')

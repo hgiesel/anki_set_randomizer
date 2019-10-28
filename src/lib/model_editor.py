@@ -54,22 +54,22 @@ def remove_model_template(model):
 
 
 def update_model_template(model, settings):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+    js_path = f'{os.path.dirname(os.path.realpath(__file__))}/../../js/dist'
     minimal_sep = (',', ':')
 
-    with io.open(f'{dir_path}/../js/dist/front.js', mode='r', encoding='utf-8') as template_front:
+    with io.open(f'{js_path}/front.js', mode='r', encoding='utf-8') as template_front:
         js_front = BetterTemplate(template_front.read()).substitute(
             iterations=json.dumps([iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('-')], separators=minimal_sep),
             injections=json.dumps([inj for inj in settings['injections'] if inj['enabled']], separators=minimal_sep),
         )
 
-    with io.open(f'{dir_path}/../js/dist/back.js', mode='r', encoding='utf-8') as template_back:
+    with io.open(f'{js_path}/back.js', mode='r', encoding='utf-8') as template_back:
         js_back =  BetterTemplate(template_back.read()).substitute(
             iterations=json.dumps([iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('+')], separators=minimal_sep),
             injections=json.dumps([inj for inj in settings['injections'] if inj['enabled']], separators=minimal_sep),
         )
 
-    with io.open(f'{dir_path}/../js/dist/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:
+    with io.open(f'{js_path}/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:
         anki_persistence = template_anki_persistence.read() + '\n'
 
     if settings['pasteIntoTemplate']:

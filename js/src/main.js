@@ -1,26 +1,26 @@
-import formatter from './lib/formatter.js'
+import formatter from './formatter/formatter.js'
+
+import {
+  processNumberedSets,
+} from './processors/numbered.js'
+
+import {
+  processNamedSets,
+  processOrderConstraints,
+} from './processors/randomization.js'
+
+import {
+  processRenderDirectives,
+} from './processors/stylings.js'
+
+import {
+  processCommands,
+} from './processors/commands.js'
 
 import {
   applySetReorder,
   applyCommands,
 } from './lib/sort.js'
-
-import {
-  processNumberedSets,
-} from './lib/processors/numbered.js'
-
-import {
-  processNamedSets,
-  processOrderConstraints,
-} from './lib/processors/randomization.js'
-
-import {
-  processRenderDirectives,
-} from './lib/processors/stylings.js'
-
-import {
-  processCommands,
-} from './lib/processors/commands.js'
 
 import {
   shareOrder,

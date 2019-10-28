@@ -1,9 +1,10 @@
 import {
   getData,
-  createWarningNotDefined,
-  createWarningNotAvailable,
-  getNullData,
 } from './save.js'
+
+import {
+  createWarnings,
+} from './util.js'
 
 import {
   parseInjections,
@@ -29,20 +30,10 @@ function back() {
     cardType,
   )
 
-  if (!window.Persistence) {
-    createWarningNotDefined()
-  }
+  const [
+    _,
+    wereSetsUsed,
+  ] = main(iterations, injectionsParsed, getData(), false)
 
-  else if (!Persistence.isAvailable()) {
-    const [
-      _,
-      wereSetsUsed,
-    ] = main(iterations, injectionsParsed, getNullData(), false)
-
-    createWarningNotAvailable(wereSetsUsed)
-  }
-
-  else {
-    main(iterations, injectionsParsed, getData(), false)
-  }
+  createWarnings(wereSetsUsed)
 }

@@ -17,5 +17,5 @@ meta.json
 /src/gui/*.py
 
 # Compiled js output
-/src/js/dist/front.js
-/src/js/dist/back.js
+/js/dist/front.js
+/js/dist/back.js
