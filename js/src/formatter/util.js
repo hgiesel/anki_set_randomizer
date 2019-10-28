@@ -1,7 +1,3 @@
-export function getSrToken(components) {
-  return `%%sr%%${components.join('%%')}%%`
-}
-
 export function escapeString(str) {
   return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }

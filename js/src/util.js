@@ -1,5 +1,19 @@
 export const star = Symbol('star')
 
+export function isSRToken(token) {
+  return token.startsWith('%%sr%%')
+}
+
+export function fromSRToken(token) {
+  return token
+    .split('%%')
+    .slice(2, -1)
+}
+
+export function toSRToken(components) {
+  return `%%sr%%${components.join('%%')}%%`
+}
+
 export function createWarnings(wereSetsUsed) {
   if (!document.querySelector('#set-randomizer--warning')) {
     if (!window.Persistence) {

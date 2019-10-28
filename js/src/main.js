@@ -5,10 +5,6 @@ import {
 } from './processors/process.js'
 
 import {
-  processNumberedSets,
-} from './processors/numbered.js'
-
-import {
   processNamedSets,
   processOrderConstraints,
 } from './processors/shuffling.js'
@@ -75,7 +71,7 @@ export function main(iterations, injectionsParsed, saveDataOld, frontside) {
 // reorders -> reordersSecond
 // [{name:1/name, length, sets, setLengths, order, lastMinute}]
 function main2(
-  iterIndex,
+  iterName,
   inputSyntax,
   defaultStyle,
 
@@ -88,7 +84,7 @@ function main2(
 
   injections,
 ) {
-  const form = formatter(inputSyntax, injections, iterIndex)
+  const form = formatter(inputSyntax, injections, iterName)
   const elementsOriginal = form.getElementsOriginal()
 
   if (!form.isInvalid() /* && !form.isContained() */ && elementsOriginal.length > 0) {
@@ -100,17 +96,16 @@ function main2(
 
     //////////////////////////////////////////////////////////////////////////////
     // FIRST RANDOMIZATION
-
     const [
       numberedSets,
       generatedValues,
       uniquenessConstraints,
       valueSets,
-    ] = processNumberedSets(
+    ] = process(
       elementsOriginal,
       matchGeneratedValues(structureMatches, generatedValuesInherited),
       uniquenessConstraintsInherited,
-      iterIndex,
+      iterName,
     )
 
     const namedSets        = processNamedSets(elementsOriginal)
@@ -144,12 +139,12 @@ function main2(
 
     //////////////////////////////////////////////////////////////////////////////
     // SECOND RANDOMIZATION
-    const [numberedSetsSecond, _1, _2, _3] = processNumberedSets(
-      elementsFirst.map(set => set.filter(elem => elem[4] !== 'd')),
+    const [numberedSetsSecond, _1, _2, _3] = process(
+      elementsFirst,
       [],
       [],
-      iterIndex,
-      numberedSets.map(set => set.lastMinute),
+      iterName,
+      numberedSets.map,
     )
 
     const [
@@ -168,7 +163,7 @@ function main2(
     //////////////////////////////////////////////////////////////////////////////
     // RENDERING
     const randomIndices = form.renderSets(
-      reorderForRendering(structureMatches, elementsSecond, iterIndex),
+      reorderForRendering(structureMatches, elementsSecond, iterName),
       styleDefinitions,
       styleApplications,
       styleRules,

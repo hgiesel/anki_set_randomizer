@@ -10,8 +10,13 @@ import {
   escapeString,
   escapeHtml,
   treatNewlines,
-  getSrToken,
 } from './util.js'
+
+import {
+  toSRToken,
+  fromSRToken,
+  isSRToken,
+} from '../util.js'
 
 const htmlTagsRegex = new RegExp('<.*?>', 'g')
 const htmlTagsNoBrRegex = new RegExp('<(?!br>).*?>', 'g')
@@ -51,7 +56,7 @@ export default function formatter(inputSyntax, injections, iterIndex) {
     }
   }
 
-  const elemDelim = getSrToken(['ELEMDELIM'])
+  const elemDelim = toSRToken(['ELEMDELIM'])
 
   // a single big string with inserted elemDelims
   const _rawStructure = {}
@@ -156,22 +161,21 @@ export default function formatter(inputSyntax, injections, iterIndex) {
 
   const valuePicker = function(valueSets, styleRules) {
 
-    const valueRegex = new RegExp('%%(.+)%%(\\d+)%%(\\d+)%%')
-
     const pickStyle = function(elements) {
 
       for (let i = elements.length - 1; i >= 0 ;i--) {
 
-        let m
-        if (m = elements[i].match(valueRegex)) {
-          const valueSetName = m[1]
-          const valueSubSet  = Number(m[2])
-          const valueIndex   = Number(m[3])
+        if (isSRToken(elements[i])) {
+          const components = fromSRToken(elements[i])
+
+          const valueSetName = components[1]
+          const valueSubSet = Number(components[2])
+          const valueIndex = Number(components[3])
 
           const theValue = styleRules.find(v =>
-            (v[1] == star || v[1] === valueSetName) &&
-            (v[2] == star || v[2] === valueSubSet) &&
-            (v[3] == star || v[3] === valueIndex)
+            (v[1] === star || v[1] === valueSetName) &&
+            (v[2] === star || v[2] === valueSubSet) &&
+            (v[3] === star || v[3] === valueIndex)
           )
 
           if (theValue !== undefined) {
@@ -186,17 +190,18 @@ export default function formatter(inputSyntax, injections, iterIndex) {
 
     const pickValue = function(name, colorRules, classRules) {
 
-      const m = name.match(valueRegex)
-
-      if (!m) {
+      if (!isSRToken(name)) {
         return name
       }
 
-      const valueSetName = m[1]
-      const valueSubSet  = Number(m[2])
-      const valueIndex   = Number(m[3])
+      const components = fromSRToken(name)
+
+      const valueSetName = components[1]
+      const valueSubSet  = Number(components[2])
+      const valueIndex   = Number(components[3])
 
       let theValue
+
       try {
         theValue = valueSets[valueSetName][valueSubSet].values[valueIndex]
         if (theValue === undefined) {
