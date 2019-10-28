@@ -159,34 +159,7 @@ export default function formatter(inputSyntax, injections, iterIndex) {
     }
   }
 
-  const valuePicker = function(valueSets, styleRules) {
-
-    const pickStyle = function(elements) {
-
-      for (let i = elements.length - 1; i >= 0 ;i--) {
-
-        if (isSRToken(elements[i])) {
-          const components = fromSRToken(elements[i])
-
-          const valueSetName = components[1]
-          const valueSubSet = Number(components[2])
-          const valueIndex = Number(components[3])
-
-          const theValue = styleRules.find(v =>
-            (v[1] === star || v[1] === valueSetName) &&
-            (v[2] === star || v[2] === valueSubSet) &&
-            (v[3] === star || v[3] === valueIndex)
-          )
-
-          if (theValue !== undefined) {
-            return theValue[0]
-          }
-
-        }
-      }
-
-      return null
-    }
+  const valuePicker = function(valueSets) {
 
     const pickValue = function(name, colorRules, classRules) {
 
@@ -231,56 +204,80 @@ export default function formatter(inputSyntax, injections, iterIndex) {
     }
 
     return {
-      pickStyle: pickStyle,
       pickValue: pickValue,
     }
   }
 
   const stylingsAccessor = function(styleDefinitions, randomIndices) {
 
-    const defaultStyle = styleDefinitions.find(v => v.name === 'default').stylings
+    const propAccessor = function(appliedStyleNames) {
 
-    const propAccessor = function(appliedStyleName, ruleStyleName=null, theDefaultStyle=defaultStyle) {
+      const styles = appliedStyleNames
+        .flatMap(name => {
+          const maybeStyle = styleDefinitions
+            .find(s => s.name === name)
 
-      const theAppliedStyle = appliedStyleName
-        ? styleDefinitions.find(v => v.name === appliedStyleName).stylings
-        : null
-
-      const theRuleStyle = ruleStyleName
-        ? styleDefinitions.find(v => v.name === ruleStyleName).stylings
-        : null
-
-      const getProp = function(propName=null, propNameSub=null) {
-
-        if (propName && propNameSub) {
-
-          if (theRuleStyle && theRuleStyle[propName] && theRuleStyle[propName][propNameSub] !== undefined) {
-            return theRuleStyle[propName][propNameSub]
+          if (maybeStyle) {
+            return maybeStyle.stylings
           }
-          else if (theAppliedStyle && theAppliedStyle[propName] && theAppliedStyle[propName][propNameSub] !== undefined) {
-            return theAppliedStyle[propName][propNameSub]
+
+          return []
+        })
+
+      /* safenav */
+      const getProp = function(props, preds=[], defaultValue=null) {
+
+        const nothing = {}
+        const access = (record, prop) => {
+
+          if (Object.is(record, nothing)) {
+            return nothing
           }
+
+          try {
+            if (typeof prop === 'number') {
+              return prop < record.length
+                ? record[prop]
+                : nothing
+            }
+
+            else if (typeof prop === 'string') {
+              return prop in record
+                ? record[prop]
+                : nothing
+            }
+
+            else {
+              return record[prop]
+            }
+
+          }
+          catch {
+            return nothing
+          }
+        }
+
+        const result = styles.reduce((found_record, record) => {
+
+          if (!Object.is(found_record, nothing)) {
+            return found_record
+          }
+
           else {
-            return theDefaultStyle[propName][propNameSub]
+            const preresult = props.reduce(access, record)
+
+            return preds.reduce((shortcutValue, pred) => {
+              return shortcutValue && pred(preresult)
+            }, true)
+              ? preresult
+              : nothing
           }
 
-        }
-        else if (propName) {
+        }, nothing)
 
-          if (theRuleStyle && theRuleStyle[propName] !== undefined) {
-            return theRuleStyle[propName]
-          }
-          else if (theAppliedStyle && theAppliedStyle[propName] !== undefined) {
-            return theAppliedStyle[propName]
-          }
-          else {
-            return theDefaultStyle[propName]
-          }
-
-        }
-        else {
-          return theRuleStyle || theAppliedStyle || theDefaultStyle
-        }
+        return Object.is(result, nothing)
+          ? defaultValue
+          : result
       }
 
       let currentIndex
@@ -288,8 +285,8 @@ export default function formatter(inputSyntax, injections, iterIndex) {
       const getNextIndex = function(type /* colors or classes */) {
 
         let theIndex
-        const theProp = getProp(type)
-        const propValueLength = getProp(type, 'values').length
+        const theProp = getProp([type])
+        const propValueLength = getProp([type, 'values']).length
 
         if (currentIndex === undefined) {
           if (theProp.collectiveIndexing && theProp.randomStartIndex) {
@@ -378,7 +375,6 @@ export default function formatter(inputSyntax, injections, iterIndex) {
     importIndices()
 
     return {
-      defaultStyle: defaultStyle,
       propAccessor: propAccessor,
       exportIndices: exportIndices,
     }
@@ -388,7 +384,6 @@ export default function formatter(inputSyntax, injections, iterIndex) {
     reordering,
     styleDefinitions,
     styleApplications,
-    styleRules,
     randomIndices,
     valueSets,
     numberedSets,
@@ -396,23 +391,22 @@ export default function formatter(inputSyntax, injections, iterIndex) {
   ) {
 
     const sa = stylingsAccessor(styleDefinitions, randomIndices)
-    const vp = valuePicker(valueSets, styleRules)
+    const vp = valuePicker(valueSets)
 
     const stylizedResults = Array(reordering.length)
 
     for (const set of reordering) {
 
       const actualValues = []
-      const styleName = styleApplications[set.order]
-      const pa = sa.propAccessor(styleName, vp.pickStyle(set
-        .rendering
-        .map(v => v[3])
-      ))
 
-      if (pa.getProp('display') === 'sort') {
+      const pa = sa.propAccessor(
+        styleApplications[set.order],
+      )
+
+      if (pa.getProp(['display']) === 'sort') {
         set.rendering.sort()
       }
-      else if (pa.getProp('display') === 'orig') {
+      else if (pa.getProp(['display']) === 'orig') {
         set.rendering = numberedSets.find(v => v.name === set.order).elements
       }
 
@@ -431,22 +425,22 @@ export default function formatter(inputSyntax, injections, iterIndex) {
           const theIndex = pa.getNextIndex('colors')
 
           const colorChoice = !Number.isNaN(theIndex)
-            ? ` color: ${pa.getProp('colors', 'values')[theIndex]};`
+            ? ` color: ${pa.getProp(['colors', 'values'])[theIndex]};`
             : ''
 
           const className = `class="set-randomizer--element set-randomizer--element-index-${setIndex}-${elemIndex}"`
-          const blockDisplay = pa.getProp('block')
+          const blockDisplay = pa.getProp(['block'])
             ? ' display: block;'
             : ''
 
-          const style = `style="padding: 0px ${pa.getProp('fieldPadding')}px;${colorChoice}${blockDisplay}"`
+          const style = `style="padding: 0px ${pa.getProp(['fieldPadding'])}px;${colorChoice}${blockDisplay}"`
 
-          const pickedValue = vp.pickValue(elemContent, pa.getProp('colors', 'rules'), pa.getProp('classes', 'rules'))
+          const pickedValue = vp.pickValue(elemContent, pa.getProp(['colors', 'rules']), pa.getProp(['classes', 'rules']))
 
           if (pickedValue) {
 
-            const filterHtml = pa.getProp('filter')
-            const displayBlock = pa.getProp('block')
+            const filterHtml = pa.getProp(['filter'])
+            const displayBlock = pa.getProp(['block'])
 
             const theValue = filterHtml
               ? displayBlock
@@ -461,23 +455,23 @@ export default function formatter(inputSyntax, injections, iterIndex) {
         }
       }
 
-      if (pa.getProp('display') === 'none') {
+      if (pa.getProp(['display']) === 'none') {
         stylizedResults[set.order] = ''
       }
-      else if (actualValues.length === 0 || pa.getProp('display') === 'empty') {
+      else if (actualValues.length === 0 || pa.getProp(['display']) === 'empty') {
         stylizedResults[set.order] =
-          `${pa.getProp('openDelim')}` +
-          `${pa.getProp('emptySet')}` +
-          `${pa.getProp('closeDelim')}`
+          `${pa.getProp(['openDelim'])}` +
+          `${pa.getProp(['emptySet'])}` +
+          `${pa.getProp(['closeDelim'])}`
       }
-      else if (pa.getProp('display') === 'meta') {
+      else if (pa.getProp(['display']) === 'meta') {
         stylizedResults[set.order] = null
       }
       else {
         stylizedResults[set.order] =
-          `${pa.getProp('openDelim')}` +
-          `${actualValues.join(pa.getProp('fieldSeparator'))}` +
-          `${pa.getProp('closeDelim')}`
+          `${pa.getProp(['openDelim'])}` +
+          `${actualValues.join(pa.getProp(['fieldSeparator']))}` +
+          `${pa.getProp(['closeDelim'])}`
       }
     }
 

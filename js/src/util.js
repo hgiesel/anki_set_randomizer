@@ -1,7 +1,7 @@
 export const star = Symbol('star')
 
-export function isSRToken(token) {
-  return token.startsWith('%%sr%%')
+export function isSRToken(token, name='') {
+  return token.startsWith(`%%sr%%${name}`)
 }
 
 export function fromSRToken(token) {

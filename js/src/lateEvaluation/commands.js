@@ -1,8 +1,12 @@
 export function processCommand(
   namedSets, elementLength,
+
+  iterName, setIndex, posIndex,
+
   copySymbol, moveSymbol, deleteSymbol, amount,
-  fromAbsIdx, fromRelIdx, fromEndIdx, fromNameIdx, fromPosIdx, fromNegIdx,
-  toAbsIdx, toRelIdx, toEndIdx, toNameIdx, toPosIdx, toNegIdx
+
+  fromRelIdx, fromAbsIdx, fromEndIdx, fromNameIdx, fromPosIdx,
+  toRelIdx, toAbsIdx, toEndIdx, toNameIdx, toPosIdx,
 ) {
 
   const cmdName = copySymbol
@@ -33,7 +37,6 @@ export function processCommand(
 
   const toSetPosition = processPositionIndex(
     toPosIdx,
-    toNegIdx,
     toSetNameWasDefined,
     toSetName[0] ? toSetName[0] : setIndex,
     numberedSets,
@@ -62,7 +65,6 @@ export function processCommand(
 
   const fromSetPosition = processPositionIndex(
     fromPosIdx,
-    fromNegIdx,
     true,
     setIndex,
     numberedSets,
@@ -141,7 +143,6 @@ function processSetIndex(
 
 const processPositionIndex = function(
   absIndex,
-  negIndex,
   setNameWasDefined,
   setName,
   numberedSets,
@@ -150,9 +151,6 @@ const processPositionIndex = function(
 
   if (absIndex !== undefined) {
     return absIndex
-  }
-  else if (negIndex !== undefined) {
-    return negIndex
   }
   else if (setNameWasDefined) {
     return 0

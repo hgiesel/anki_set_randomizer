@@ -67,6 +67,8 @@ function main2(
       elementsOriginal,
     )
 
+    console.log('after matching // before processing 0')
+
     //////////////////////////////////////////////////////////////////////////////
     // FIRST RANDOMIZATION
     const [
@@ -152,7 +154,6 @@ function main2(
       reorderForRendering(structureMatches, elementsSecond, iterName),
       styleDefinitions,
       styleApplications,
-      styleRules,
       randomIndicesInherited,
       valueSets,
       numberedSets,

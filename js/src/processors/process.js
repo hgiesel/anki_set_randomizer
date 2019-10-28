@@ -6,7 +6,7 @@ import {
 
 import {
   valueSetPattern,
-  evaluatorPattern,
+  evalPattern,
   pickPattern,
   yankPattern,
 
@@ -53,15 +53,18 @@ export default function process(elements, generatedValues, uniqConstraints, iter
 
     ////// PROCESSING
     else if (match = content.match(valueSetPattern)) {
+      console.log('vs', match)
       const vsToken = processValueSet(valueSets, iterName, setIndex, elemIndex, ...match.slice(1))
       return [[iterName, setIndex, elemIndex, vsToken, mode]]
     }
 
-    else if (match = content.match(evaluatorPattern)) {
+    else if (match = content.match(evalPattern)) {
+      console.log('eval', match)
       evaluators.push(processEvaluator(...match.slice(1)))
     }
 
     else if (match = content.match(pickPattern)) {
+      console.log('pick', match)
       const pickToken = processPick(...match.slice(1))
       return [[iterName, setIndex, elemIndex, pickToken, mode]]
     }
@@ -117,19 +120,28 @@ export default function process(elements, generatedValues, uniqConstraints, iter
 
   const numberedSets = elements
     .map(set => set.flatMap(elem => processElem(...elem)))
-    .map(v => (console.log(v),v))
     .map((set, i) => ({
       "iter": iterName,
       "name": i,
+      "sets": [i],
       "elements": set
-        .flatMap(elem => expandGenerators(...elem))
+        .flatMap(elem => expandGenerators(...elem)),
     }))
+
+  const forLateEvaluation = [
+    namedSetStatements,
+    commandStatements,
+    styleStatements,
+    applyStatements,
+  ]
+
+  console.log('ns, cmd, style, apply', forLateEvaluation)
 
   return [
     numberedSets,
     pm.exportGeneratedValues(),
     pm.exportUniqConstraints(),
     valueSets,
-    [namedSetStatements, commandStatements, styleStatements, applyStatements],
+    forLateEvaluation,
   ]
 }

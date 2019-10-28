@@ -2,82 +2,135 @@ const left = Symbol('left')
 const right = Symbol('right')
 const center = Symbol('center')
 
-const wrapName(vals) => `^\\$(?:${vals.join('|')})`
-const wrapArg(val, alignment=center, optional=false) => {
+// wraps in non-capturing group
+const wrapName = (names, args) => (
+  `^\\$(?:${names.join('|')})` +
+  `\\(${args.join('')}\\)$`
+)
+
+// wraps in non-capturing group
+const wrapArg = (val, alignment=center, optional=false) => {
   switch (alignment) {
     case left:
       return `(?:\\s*${val}\\s*,)` + (optional ? '?' : '')
     case right:
       return `(?:,\\s*${val}\\s*)` + (optional ? '?' : '')
-    case center:
+    default:
       return `(?:\\s*${val}\\s*)` + (optional ? '?' : '')
   }
 }
 
-const wrapArgs(vals) => `\\(${vals.join('')}\\)$`
+export const namePattern = '([a-zA-Z_][a-zA-Z0-9_\\-]*|\\*)'
+const namePatternNonCapturing = '(?:[a-zA-Z_][a-zA-Z0-9_\\-]*|\\*)'
 
-const valueSetPattern = new RegExp(
-  `^\\$(${namePattern})(?!\\()(\\W)((?:.|\\n|\\r)*)`
+const absoluteIdxPattern = `(\\d+)`
+const absoluteNegIdxPattern = `n(-\\d+)`
+const relativeIdxPattern = `((?:\\+|-)?\\d+)`
+const starPattern = `(\\*)`
+
+export const valSetPos = (
+  `(?:${relativeIdxPattern}|${starPattern})`
 )
+
+export const valueSetName = `\\$${namePattern}(?:(?::${valSetPos})?:${valSetPos})?`
+
+export const valueSetPattern = new RegExp(
+  `^\\$${namePattern}` +
+  `(?!\\()` /* no opening parenthesis allowed */ +
+  `(\\W)` /* separator character */ +
+  `((?:.|\\n|\\r)*)`
+)
+
+const amountPattern = '(\\d+|\\*)'
 
 const intPattern      = '\\d+'
 const realPattern     = `\\d+(?:\\.\\d*)?`
 const numberGenerator = `(${realPattern}):(${realPattern})(?::(${intPattern}))?`
 
-const amountPattern = '(\\d+\\)|(\\*)
+export const keywordPattern = (
+  `${namePattern}=` /* the keyword */ +
+  `(?:` +
+  `\\[(.*?)\\]|` /* list notation */ +
+  `"(.*?)"|` /* double quote notation */ +
+  `'(.*?)'|` /* single quote notation */ +
+  `([^,]+)` /* no-comma notation */ +
+  `)?`
+)
+export const keywordRegex = new RegExp(keywordPattern, 'gm')
 
-const pickPattern = new RegExp(
-  wrapName(['pick', 'p']) +
-  wrapArgs([
+export const keywordArgPattern = (
+  `(` +
+
+  `(?:${namePatternNonCapturing})=` /* the keyword */ +
+  `(?:` +
+  `\\[(?:.*?)\\]|` /* list notation */ +
+  `"(?:.*?)"|` /* double quote notation */ +
+  `'(?:.*?)'|` /* single quote notation */ +
+  `(?:[^,]+)` /* no-comma notation */ +
+  `)?` +
+
+  `(?:\\s*,\\s*` +
+  `(?:${namePatternNonCapturing})=` /* the keyword */ +
+  `(?:` +
+  `\\[(?:.*?)\\]|` /* list notation */ +
+  `"(?:.*?)"|` /* double quote notation */ +
+  `'(?:.*?)'|` /* single quote notation */ +
+  `(?:[^,]+)` /* no-comma notation */ +
+  `)?` +
+  `)*` +
+
+  `)?`
+)
+
+export const pickPattern = new RegExp(
+  wrapName(['pick', 'p'], [
     wrapArg(amountPattern, left, true),
-    wrapArg(`(?:${numberGenerator}|${valueSetPattern})`),
-    wrapArg(namePattern, right, true),
+    wrapArg(`(?:${numberGenerator}|${valueSetName})`),
+    wrapArg(keywordArgPattern /* uniqConstraint */, right, true),
   ])
 )
 
-const evaluatorPattern = new RegExp(
-  wrapName(['evaluate', 'eval', 'e']) +
-  wrapArgs([
+export const evalPattern = new RegExp(
+  wrapName(['evaluate', 'eval', 'e'], [
     wrapArg(amountPattern, left, true),
-    wrapArg(valueSetPattern),
-    wrapArg(namePattern, right, true),
+    wrapArg(valueSetName),
+    wrapArg(keywordArgPattern /* uniqConstraint */, right, true),
   ])
 )
 
-const yankPattern = new RegExp(
-  wrapName(['yank', 'y']) +
-  wrapArgs([
+export const yankPattern = new RegExp(
+  wrapName(['yank', 'y'], [
     wrapArg(amountPattern /* imageid */, left, true),
     wrapArg(namePattern /* yankgroup */),
-    wrapArg(/* TODO attribute list */, right),
-    wrapArg(/* TODO text */, right, true),
+    wrapArg('' /* TODO attribute list */, right),
+    wrapArg(keywordArgPattern /* text */, right, true),
   ])
 )
 
-/////
-
-const namePositionPattern = (
-  `(\\d+)|(n-\\d+)|((?:\\+|-)\\d+)|` + // numbered set
-  `(${namePattern})(?::(n-\\d+|-\\d|\\d+))?` + // named set arg
+///// LATE EVALUATION REGEXES
+const idxPattern = (
+  `(?:` +
+  `${absoluteIdxPattern}|` +
+  `${absoluteNegIdxPattern}|` +
+  `${relativeIdxPattern}|` +
+  `${namePattern}` +
+  `)`
 )
 
-const namedSetPattern = new RegExp(
-  wrapName(['name', 'n']) +
-  wrapArgs([
-    wrapArg(valueSetPattern, left, true),
-    wrapArg(namePattern, center, true),
-    wrapArg(namePositionPattern, right, true),
+const posPattern = `${idxPattern}(?::${relativeIdxPattern})?`
+
+export const namedSetPattern = new RegExp(
+  wrapName(['name', 'n'], [
+    wrapArg(valueSetName, left, true),
+    wrapArg(namePattern, center),
+    wrapArg(posPattern, right, true),
+    wrapArg(keywordArgPattern /* order and force */, right, true),
   ])
 )
 
-const idxPattern      = `(?:(\\d+)|((?:\\+|-)\\d+)|n(-\\d+)|(${namePattern}))`
-const positionPattern = ':(?:\\+?(\\d+)|n?(-\\d+))'
-const posPattern = `${idxPattern}(?:${positionPattern})?`
-
-const commandPattern = new RegExp(
-  wrapName(['(c|copy)', '(m|move)', '(d|del|delete)', '(x|xch|xchange)', '(r|repl|replace)']) +
-  wrapArgs([
-    wrapArg(valueSetPattern, left, true),
+export const commandPattern = new RegExp(
+  wrapName(['(c|copy)', '(m|move)', '(d|del|delete)', '(x|xch|xchange)', '(r|repl|replace)'], [
+    wrapArg(valueSetName, left, true),
     wrapArg(amountPattern, center, true),
     wrapArg(posPattern /* fromPosition */, right, true),
     wrapArg(posPattern /* toPosition */, right, true),
@@ -85,24 +138,19 @@ const commandPattern = new RegExp(
 )
 
 //////// STYLING REGEXES
-const stylePattern = new RegExp(
-  wrapName(['s', 'style']) +
-  wrapArgs([
-    wrapArg(valueSetPattern, left, true),
+export const stylePattern = new RegExp(
+  wrapName(['s', 'style'], [
     wrapArg(namePattern, center),
-    wrapArg('(.*)' /* stylingDirectives */, right, true),
+    wrapArg(keywordArgPattern /* stylingDirectives */, right, true),
   ])
 )
 
-const applyPattern = new RegExp(
-  wrapName(['a', 'apply']) +
-  wrapArgs([
-    wrapArg(valueSetPattern, left, true),
+export const applyPattern = new RegExp(
+  wrapName(['a', 'apply'], [
+    wrapArg(valueSetName, left, true),
     wrapArg(namePattern, center),
-    wrapArg(namePositionPattern, right, true),
+    wrapArg(posPattern, right, true),
   ])
 )
-export const namePattern     = '(?:[a-zA-Z_][a-zA-Z0-9_\\-]*|\\*)'
-export const positionPattern = `:(?:(n(?:-\\d+)?|-\\d|\\d+)|(\\*))`
 
-export const valueSetPattern = `(\\$${namePattern})(?:(?:${positionPattern})?${positionPattern})?`
+console.log(evalPattern)

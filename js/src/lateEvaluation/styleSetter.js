@@ -1,5 +1,6 @@
 import {
   partitionList,
+  getBool,
 } from './util.js'
 
 import {
@@ -9,16 +10,6 @@ import {
 import {
   star,
 } from '../util.js'
-
-function getBool(attributeValue) {
-  const bool = attributeValue === 'true' || attributeValue === 'yes'
-    ? true
-    : attributeValue === 'false' || attributeValue === 'no'
-    ? false
-    : null
-
-  return bool
-}
 
 const defaultStyleDefinitions  = [
   {
@@ -60,7 +51,6 @@ export default function styleSetter(defaultStyle) {
   const setStyleAttribute = function(name, attributeName, attributeValue) {
 
     let theStyle
-
     const sd = (theStyle = styleDefinitions.find(v => v.name === name))
       ? theStyle
       : styleDefinitions[styleDefinitions.push({

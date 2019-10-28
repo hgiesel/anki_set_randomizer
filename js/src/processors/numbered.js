@@ -1,9 +1,4 @@
 import {
-  namePattern,
-  positionPattern,
-} from './util.js'
-
-import {
   toSRToken,
 } from '../util.js'
 
@@ -20,7 +15,8 @@ function generateRandomValue(min, max, extra, isReal) {
 }
 
 export function processEvaluator(
-  count, valueSetName,
+  amount,
+  valueSetName,
   maybeNumberSetIndex, _star1,
   maybeNumberValueIndex, _star2,
   uniquenessConstraint,
@@ -42,8 +38,8 @@ export function processEvaluator(
       ? nvi
       : star,
 
-    count >= 0
-      ? Number(count)
+    amount >= 0
+      ? Number(amount)
       : 1,
 
     uniquenessConstraint,
@@ -56,8 +52,12 @@ const newLinePattern = new RegExp(`\\\\n`, 'g')
 const catchPattern = new RegExp(`\\\\.`, 'g')
 
 export function processValueSet(
-  valueSets, iterName, setIndex, elemIndex,
-  valueSetName, valueSeparator, valueString
+  valueSets,
+  iterName, setIndex, elemIndex,
+
+  valueSetName,
+  valueSeparator,
+  valueString
 ) {
 
   const values = valueString
@@ -80,7 +80,7 @@ export function processValueSet(
 }
 
 export function processPick(
-  countString,
+  amountString,
   minValue, maxValue, extraValue,
   valueSetName,
   maybeValueSetIndexString, _setIndexStar,
@@ -88,9 +88,9 @@ export function processPick(
   maybeUniqConstraintName,
 ) {
 
-  const count = countString !== null
-    ? Number(countString)
-    : 1
+  const amount = amountString !== null
+    ? amountString // star or number
+    : '1'
 
   const uniqConstraintName = maybeUniqConstraintName || ''
 
@@ -100,7 +100,7 @@ export function processPick(
 
     return toSRToken([
       'pick:number',
-      count.toString(),
+      amount,
       minValue,
       maxValue,
       extraValueString,
@@ -122,7 +122,7 @@ export function processPick(
 
     return toSRToken([
       'pick:vs',
-      count.toString(),
+      amount,
       valueSetName,
       valueSetSetIndex,
       valueSetPosIndex,
@@ -133,7 +133,7 @@ export function processPick(
 
 export function evalPickNumber(
   uniqConstraints,
-  count,
+  amount,
   minValue,
   maxValue,
   extraValue,
@@ -145,7 +145,7 @@ export function evalPickNumber(
   // generate a random integer or real number
   const isReal = minValue.includes('.') || maxValue.includes('.')
 
-  for (let failedOnce = false, i = 0; i < count; i++) {
+  for (let failedOnce = false, i = 0; i < amount; i++) {
     let resultValue
 
     if (failedOnce) {
@@ -200,7 +200,7 @@ export function evalPickNumber(
 export function evalPickValueSet(
   uniqConstraints,
   valueSets,
-  count,
+  amount,
   valueSetName,
   valueSetSetIndex,
   valueSetPosIndex,
@@ -210,7 +210,7 @@ export function evalPickValueSet(
   const resultValues = []
   const theUc = findUniqConstraints(uniqConstraints, uniqConstraintName)
 
-  for (let failedOnce = false, i = 0; i < count; i++) {
+  for (let failedOnce = false, i = 0; i < amount; i++) {
     if (failedOnce) {
       break;
     }

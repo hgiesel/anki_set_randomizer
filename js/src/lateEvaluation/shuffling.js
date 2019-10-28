@@ -1,95 +1,95 @@
 import {
   getCorrespondingSets,
+  getBool,
+  evalKeywordArguments,
+  toOptArg,
 } from './util.js'
 
-export function processNamedSet(
-  namedSets, elementsOriginal,
+function keywordProcess(kwArgs) {
+  return toOptArg(evalKeywordArguments(kwArgs))
+}
 
+export function processNamedSet(
   iterName, setIndex, posIndex,
 
-  isLastMinute,
   name,
   absolutePos,
   absolutePosFromEnd,
   relativePos,
-  otherNamedSet,
-  otherNamedSetPos,
+  namedSetPos,
+  nsPos,
+  kwArgs,
+
+  numberedSets,
+  namedSets,
+  orderConstraints,
 ) {
 
+  console.log(iterName, setIndex, posIndex)
+
+  const keywords = keywordProcess(kwArgs)
+
   const correspondingSets = getCorrespondingSets(
-    elementsOriginal,
+    numberedSets,
     namedSets,
     absolutePos,
     absolutePosFromEnd,
     setIndex,
     relativePos,
-    otherNamedSet,
-    otherNamedSetPos,
+    namedSetPos,
+    nsPos,
   )
 
-  let theNs = namedSets.find(w => w.name === name)
+  const actualName = name === '_'
+    ? `_unnamed${Math.random().slice(2)}`
+    : name
 
-  if (!theNs) {
-    const idx = namedSets.push({
-      iter: iterName,
-      name: name,
-      lastMinute: false,
-      sets: []
-    })
+  let helpNs
+  const ns = (helpNs = namedSets.find(w => w.name === actualName))
+    ? theNs
+    : namedSets[namedSets.push({
+        iter: iterName,
+        name: actualName,
+        sets: [],
+        force: false,
+      }) - 1]
 
-    theNs = namedSets[idx - 1]
+  ns.sets.push(...correspondingSets)
+  ns.sets.sort()
+
+  if (getBool(keywords.force) || getBool(keywords.forceOrder)) {
+    ns.force = true
   }
 
-  theNs.sets.push(...correspondingSets)
-  theNs.sets.sort()
-
-  if (isLastMinute) {
-    theNs.lastMinute = true
+  else if (keywords.order) {
+    processOrderConstraint(
+      actualName,
+      keywords.forceOrder,
+      orderConstraints
+    )
   }
 }
 
 export function processOrderConstraint(
-  currentPos,
-  elementsOriginal,
-  orderConstraints,
-
-  isLastMinute,
   name,
-  absolutePos,
-  absolutePosFromEnd,
-  relativePos,
-  otherNamedSet,
-  otherNamedSetPos,
+  forceOrder,
+  orderConstraints,
 ) {
 
-  const correspondingSets = (otherNamedSet && !otherNamedSetPos)
-    ? [otherNamedSet]
-    : getCorrespondingSets(
-      elementsOriginal,
-      namedSets,
-      absolutePos,
-      absolutePosFromEnd,
-      currentPos,
-      relativePos,
-      otherNamedSet,
-      otherNamedSetPos,
-    )
-
   let theOc
-
-  let oc = (theOc = orderConstraints.find(v => v.name === name))
+  const oc = (theOc = orderConstraints.find(v => v.name === name))
     ? theOc
     : orderConstraints[orderConstraints.push({
+      iter: iterName,
       name: name,
-      lastMinute: false,
       sets: [],
-      dictator: false, // will be determined at a later stage
+      force: false,
+      dictator: false /* determined at later stage */,
     }) - 1]
 
   oc.sets.push(...correspondingSets)
-  oc.sets.sort()
 
-  if (isLastMinute) {
-    oc.lastMinute = true
+  if (getBool(forceOrder)) {
+    oc.force = true
   }
 }

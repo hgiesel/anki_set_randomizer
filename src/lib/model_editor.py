@@ -9,8 +9,6 @@ from anki import media
 from aqt import mw
 from string import Template
 
-from aqt.utils import showInfo
-
 from .config import serialize_settings
 from .utils import version_string
 
@@ -58,15 +56,27 @@ def update_model_template(model, settings):
     minimal_sep = (',', ':')
 
     with io.open(f'{js_path}/front.js', mode='r', encoding='utf-8') as template_front:
-        js_front = BetterTemplate(template_front.read()).substitute(
-            iterations=json.dumps([iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('-')], separators=minimal_sep),
-            injections=json.dumps([inj for inj in settings['injections'] if inj['enabled']], separators=minimal_sep),
+        js_front = BetterTemplate(template_front.read()).safe_substitute(
+            iterations=json.dumps(
+                [iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('-')],
+                separators=minimal_sep,
+            ),
+            injections=json.dumps(
+                [inj for inj in settings['injections'] if inj['enabled']],
+                separators=minimal_sep,
+            ),
         )
 
     with io.open(f'{js_path}/back.js', mode='r', encoding='utf-8') as template_back:
-        js_back =  BetterTemplate(template_back.read()).substitute(
-            iterations=json.dumps([iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('+')], separators=minimal_sep),
-            injections=json.dumps([inj for inj in settings['injections'] if inj['enabled']], separators=minimal_sep),
+        js_back =  BetterTemplate(template_back.read()).safe_substitute(
+            iterations=json.dumps(
+                [iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('+')],
+                separators=minimal_sep,
+            ),
+            injections=json.dumps(
+                [inj for inj in settings['injections'] if inj['enabled']],
+                separators=minimal_sep,
+            ),
         )
 
     with io.open(f'{js_path}/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:
@@ -106,12 +116,15 @@ def update_model_template(model, settings):
 </script>
         """
 
-        mw.col.media.writeData(front_name, ((anki_persistence
-                                             if settings['insertAnkiPersistence']
-                                             else '') + js_front).encode('ascii'))
-        mw.col.media.writeData(back_name, ((anki_persistence
-                                            if settings['insertAnkiPersistence']
-                                            else '') + js_back).encode('ascii'))
+        mw.col.media.writeData(front_name, ((
+            anki_persistence
+            if settings['insertAnkiPersistence']
+            else '') + js_front).encode('ascii'))
+
+        mw.col.media.writeData(back_name, ((
+            anki_persistence
+            if settings['insertAnkiPersistence']
+            else '') + js_back).encode('ascii'))
 
         for template in model['tmpls']:
             template['qfmt'] = template["qfmt"] + front_template

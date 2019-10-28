@@ -1,8 +1,4 @@
-
-import styleSetter from './styleSetter'
-import {
-  processStyle,
-} from './stylings.js'
+import ruleEngine from './ruleEngine'
 
 export default function lateEvaluate(
   numberedSets,
@@ -13,8 +9,12 @@ export default function lateEvaluate(
   styleStatements,
   applyStatements,
 ) {
+  console.log('-1')
 
-  const namedSets = []
+  const re = ruleEngine(numberedSets, defaultStyle)
+
+  console.log('0', re.exportResults())
+
   namedSetStatements
     .reduce((accu, elem) => {
       elem[5] || elem[6] || elem[7] || elem[8] || elem[9]
@@ -22,37 +22,21 @@ export default function lateEvaluate(
         : accu.unshift(elem)
       return accu
     }, [])
-    .forEach(elem =>
-      processNamedSet(
-        namedSets,
-        numberedSets.map(unit => unit.sets),
-        ...elem,
-      ))
+    .forEach(stmt => re.processNamedSet(...stmt))
 
-  // processOrderConstraint(
-  //   match[1],
-  //   elementsOriginal,
-  //   orderConstraints,
-  //   isLastMinute,
-  //   name,
-  //   absolutePos,
-  //   absolutePosFromEnd,
-  //   relativePos,
-  //   otherNamedSet,
-  //   otherNamedSetPos,
-  // )
-  // const styleDefinitions  = processStyles(elements, defaultStyle)
-  // const styleApplications = processApplications(elements, styleDefinitions, namedSets)
-  // const styleRules        = processStyleRules(elements, styleDefinitions)
+  console.log('1', re.exportResults())
 
-  const ss = styleSetter(defaultStyle)
+  commandStatements.forEach(stmt => re.processCommand(...stmt))
 
-  styleStatements
-    .forEach(elem => processStyle(ss, ...elem.slice(3)))
+  console.log('2', re.exportResults())
 
-  ss.exportStyleDefinitions()
+  styleStatements.forEach(stmt => re.processStyle(...stmt))
 
-  return [
-    namedSets
-  ]
+  console.log('3', re.exportResults())
+
+  applyStatements.forEach(stmt => re.processApplication(...stmt))
+
+  console.log('4', re.exportResults())
+
+  return re.exportResults()
 }
