@@ -80,7 +80,7 @@ export function processValueSet(
     pos: elemIndex,
   }) - 1
 
-  return [valueSetName, valueSetIndex]
+  return toSRToken(['vs', valueSetName, valueSetIndex])
 }
 
 export function processPick(

@@ -1,44 +1,19 @@
 import formatter from './formatter/formatter.js'
-
-import {
-  process,
-} from './processors/process.js'
-
-import {
-  processNamedSets,
-  processOrderConstraints,
-} from './processors/shuffling.js'
-
-import {
-  processRenderDirectives,
-} from './processors/stylings.js'
-
-import {
-  processCommands,
-} from './processors/commands.js'
-
-import {
-  applySetReorder,
-  applyCommands,
-} from './lib/sort.js'
-
-import {
-  shareOrder,
-  generateRandomization,
-  adjustForSecondRandomization,
-} from './lib/randomize.js'
+import process from './processors/process.js'
+import lateEvaluate from './lateEvaluation/lateEvaluation.js'
+import randomize from './randomize/randomize.js'
 
 import {
   matchStructures,
   matchGeneratedValues,
   matchSetReorder,
   reorderForRendering,
-} from './lib/matching.js'
+} from './randomize/matching.js'
 
 export function main(iterations, injectionsParsed, saveDataOld, frontside) {
 
   // frontside will be run with indices (-1, -2, -3, etc...)
-  // backside will be run with indices (1, 2, 3, etc...)
+  // backside will be run with indices (+1, +2, +3, etc...)
   // but technically they are run in a row
   const saveDataAndSetsUsed = iterations
     .reduce((accu, v, i) => {
@@ -64,12 +39,10 @@ export function main(iterations, injectionsParsed, saveDataOld, frontside) {
 
 //////////////////////////////////////////////////////////////////////////////
 // elementsInherited + elementsOriginal -> elementsFirst -> elementsSecond
-// [[0,0,'Hello','n'],[0,1,'World'],[]],[[],[]], etc.]
-
+// [['iter',0,0,'Hello','n'],['iter',0,1,'World'],[]],[[],[]], etc.]
 // numberedSets -> numberedSetsSecond
+// reorders -> reordersSecond [{name:1/name, length, sets, setLengths, order, lastMinute}]
 
-// reorders -> reordersSecond
-// [{name:1/name, length, sets, setLengths, order, lastMinute}]
 function main2(
   iterName,
   inputSyntax,
@@ -101,6 +74,7 @@ function main2(
       generatedValues,
       uniquenessConstraints,
       valueSets,
+      lateEvaluation,
     ] = process(
       elementsOriginal,
       matchGeneratedValues(structureMatches, generatedValuesInherited),
@@ -108,27 +82,40 @@ function main2(
       iterName,
     )
 
-    const namedSets        = processNamedSets(elementsOriginal)
-    const orderConstraints = processOrderConstraints(elementsOriginal, namedSets)
-
-    // modifies numberedSets and namedSets
-    adjustForSecondRandomization(orderConstraints, numberedSets, namedSets)
-
-    const commands = processCommands(elementsOriginal, numberedSets, namedSets)
+    console.log('after processing // before lateEvaluate 1')
 
     const [
+      namedSets,
+      orderConstraints,
+      commands,
       styleDefinitions,
       styleApplications,
-      styleRules,
-    ] = processRenderDirectives(elementsOriginal, defaultStyle, namedSets)
+    ] = lateEvaluate(
+      numberedSets,
+      defaultStyle,
+      ...lateEvaluation,
+    )
 
-    console.log('saa!', elementsOriginal)
-    console.log('saa!', styleApplications)
+    console.log('after lateEvaluate // before randomize 2')
+
+    // const namedSets        = processNamedSets(elementsOriginal)
+    // const orderConstraints = processOrderConstraints(elementsOriginal, namedSets)
+
+    // // modifies numberedSets and namedSets
+    // adjustForSecondRandomization(orderConstraints, numberedSets, namedSets)
+
+    // const commands = processCommands(elementsOriginal, numberedSets, namedSets)
+
+    // const [
+    //   styleDefinitions,
+    //   styleApplications,
+    //   styleRules,
+    // ] = processRenderDirectives(elementsOriginal, defaultStyle, namedSets)
 
     const [
       reordersFirst,
       elementsFirst,
-    ] = applyModifications(
+    ] = randomize(
       numberedSets,
       namedSets,
       orderConstraints,
@@ -144,13 +131,12 @@ function main2(
       [],
       [],
       iterName,
-      numberedSets.map,
     )
 
     const [
       reordersSecond,
       elementsSecond,
-    ] = applyModifications(
+    ] = randomize(
       numberedSetsSecond,
       namedSets.filter(v => v.lastMinute),
       orderConstraints.filter(v => v.lastMinute),
@@ -193,32 +179,4 @@ function main2(
       randomIndicesInherited,
     ], false]
   }
-}
-
-// numbered are sorted 0 -> n, then named are in order of appearance
-function applyModifications(numberedSets, namedSets, orderConstraints, commands, reordersInherited, structureMatches, lastMinute=false) {
-
-  const [elements, reordersAlpha] = generateRandomization(numberedSets, namedSets)
-
-  const reordersBeta = !lastMinute
-    ? reordersAlpha
-    : reordersAlpha.filter(v => v.lastMinute)
-
-  const reorders = matchSetReorder(
-    structureMatches,
-    reordersInherited,
-    reordersBeta,
-  )
-
-  // modifies reorders
-  shareOrder(orderConstraints, reorders)
-
-  // both modify elements
-  applySetReorder(reorders, elements)
-  applyCommands(commands, elements)
-
-  return [
-    reorders,
-    elements,
-  ]
 }

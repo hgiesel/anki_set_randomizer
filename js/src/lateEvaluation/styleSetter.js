@@ -1,8 +1,10 @@
 import {
-  namePattern,
-  positionPattern,
   partitionList,
 } from './util.js'
+
+import {
+  valueSetPattern,
+} from '../processors/util.js'
 
 import {
   star,
@@ -17,8 +19,6 @@ function getBool(attributeValue) {
 
   return bool
 }
-
-const valueSetPattern = `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)`
 
 const defaultStyleDefinitions  = [
   {
@@ -50,7 +50,7 @@ const defaultStyleDefinitions  = [
   }
 ]
 
-export function styleSetter(defaultStyle) {
+export default function styleSetter(defaultStyle) {
 
   const styleDefinitions = [{
     name: 'default',
@@ -229,10 +229,10 @@ export function styleSetter(defaultStyle) {
     }
   }
 
-  const getStyleDefinitions = () => styleDefinitions
+  const exportStyleDefinitions = () => styleDefinitions
 
   return {
     setStyleAttribute: setStyleAttribute,
-    getStyleDefinitions: getStyleDefinitions,
+    exportStyleDefinitions: exportStyleDefinitions,
   }
 }

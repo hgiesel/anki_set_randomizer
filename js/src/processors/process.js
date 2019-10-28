@@ -9,6 +9,8 @@ import {
   isSRToken,
 } from '../util.js'
 
+////
+
 import {
   processEvaluator,
   processValueSet,
@@ -16,15 +18,12 @@ import {
 } from './numbered.js'
 
 import {
+  processYank,
+} from './yanks.js'
+
+import {
   pregenManager,
 } from './pregen.js'
-
-const evaluatorPattern = new RegExp(
-  `^\\$(?:evaluate|eval|e)\\(` +
-  `(?:\\s*(\\d+)\\s*,\\s*)?` + // count
-  `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)` +
-  `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
-)
 
 const valueSetPattern = new RegExp(
   `^\\$(${namePattern})(?!\\()(\\W)((?:.|\\n|\\r)*)`
@@ -43,10 +42,96 @@ const pickPattern = new RegExp(
   `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
 )
 
-export function process(elements, generatedValues, uniqConstraints, iterName) {
+const evaluatorPattern = new RegExp(
+  `^\\$(?:evaluate|eval|e)\\(` +
+  `(?:\\s*(\\d+)\\s*,\\s*)?` + // count
+  `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)` +
+  `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
+)
+
+const yankPattern = new RegExp(
+  `^\\$(?:yank|y)\\(` +
+  // `(?:\\s*(\\d+)\\s*,\\s*)?` + // count
+  // `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)` +
+  `\\)`
+)
+
+/////
+
+const namedSetPattern = new RegExp(
+  `\\$(?:name|n)(!)?` +
+  `\\(` +
+  `(${namePattern})` +
+  `(?:` +
+  `\\s*,\\s*` +
+  `(?:` + // second arg
+  `(\\d+)|(n-\\d+)|((?:\\+|-)\\d+)|` + // numbered set
+  `(${namePattern})(?::(n-\\d+|-\\d|\\d+))?` + // named set arg
+  `)` +
+  `)?` +
+  `\\)$`
+)
+
+const idxRegex      = `(?:(\\d+)|((?:\\+|-)\\d+)|n(-\\d+)|(${namePattern}))`
+const positionRegex = ':(?:\\+?(\\d+)|n?(-\\d+))'
+
+const commandPattern = new RegExp(
+  `^\\$(?:(c|copy)|(m|move)|(d|del|delete))\\(` +
+  `(?:` +
+  `(\\d+)` + // amount
+  `(?:` +
+  `\\s*,\\s*` +
+  `${idxRegex}(?:${positionRegex})?` + // fromPosition
+  `(?:` +
+  `\\s*,\\s*` +
+  `${idxRegex}(?:${positionRegex})?` + // toPosition
+  `)?` +
+  `)?` +
+  `)?\\)$`
+)
+
+//////// STYLING REGEXES
+const stylePattern = new RegExp(
+  `^\\$(?:style|s)\\(` +
+  `(${namePattern})` +
+  `\\s*,\\s` +
+  `(.*)` + // styling directives
+  `\\)$`
+)
+
+const applyPattern = new RegExp(
+  `^\\$(?:apply|app|a)\\(` +
+  `(${namePattern})` +
+  `(?:\\s*,\\s` +
+  `(?:` + // second arg
+  `(\\d+)|(n-\\d+)|((?:\\+|-)\\d+)|` + // numbered set
+  `(${namePattern})(?::(\\d+|n?-\\d+))?` + // named set arg
+  `)` +
+  `)?` +
+  `\\)$`
+)
+
+const rulePattern = new RegExp(
+  `^\\$(?:rule|r)\\(` +
+  `(${namePattern})` +
+  `(?:\\s*,\\s` +
+  `(?:` + // second arg
+  valueSetPattern +
+  `)` +
+  `)?` +
+  `\\)$`
+)
+
+export default function process(elements, generatedValues, uniqConstraints, iterName) {
 
   const evaluators = []
-  const valueSets = {}
+  const valueSets  = {}
+  const yanks      = []
+
+  const namedSetStatements = []
+  const commandStatements  = []
+  const styleStatements    = []
+  const applyStatements    = []
 
   const processElem = function(iterName, setIndex, elemIndex, content, mode) {
 
@@ -61,12 +146,7 @@ export function process(elements, generatedValues, uniqConstraints, iterName) {
     }
 
     else if (match = content.match(valueSetPattern)) {
-      const [
-        valueSetName,
-        valueSetIndex,
-      ] = processValueSet(valueSets, iterName, setIndex, elemIndex, ...match.slice(1))
-
-      const vsToken = toSRToken(['vs', valueSetName, valueSetIndex])
+      const vsToken = processValueSet(valueSets, iterName, setIndex, elemIndex, ...match.slice(1))
       return [[iterName, setIndex, elemIndex, vsToken, mode]]
     }
 
@@ -74,6 +154,30 @@ export function process(elements, generatedValues, uniqConstraints, iterName) {
       const pickToken = processPick(...match.slice(1))
       return [[iterName, setIndex, elemIndex, pickToken, mode]]
     }
+
+    else if (match = content.match(yankPattern)) {
+      yanks.push(processYank(...match.slice(1)))
+    }
+
+    ////// LATE EVALUATION
+    else if (match = content.match(namedSetPattern)) {
+      namedSetStatements.push([iterName, setIndex, elemIndex, ...match.slice(1)])
+    }
+
+    else if (match = content.match(commandPattern)) {
+      commandStatements.push([iterName, setIndex, elemIndex, ...match.slice(1)])
+    }
+
+    else if (match = content.match(stylePattern)) {
+      styleStatements.push([iterName, setIndex, elemIndex, ...match.slice(1)])
+    }
+
+    else if (match = content.match(stylePattern)) {
+      applyStatements.push([iterName, setIndex, elemIndex, ...match.slice(1)])
+    }
+    // else if (match = content.match(styleRulePattern)) {
+    //   styleRuleStatements.push([iterName, setIndex, elemIndex, match])
+    // }
 
     return []
   }
@@ -103,7 +207,7 @@ export function process(elements, generatedValues, uniqConstraints, iterName) {
     return [[iterName, setIndex, elemIndex, content, mode]]
   }
 
-  const result = elements
+  const numberedSets = elements
     .map(set => set.flatMap(elem => processElem(...elem)))
     .map(v => (console.log(v),v))
     .map((set, i) => ({
@@ -114,9 +218,10 @@ export function process(elements, generatedValues, uniqConstraints, iterName) {
     }))
 
   return [
-    result,
+    numberedSets,
     pm.exportGeneratedValues(),
     pm.exportUniqConstraints(),
-    valueSets
+    valueSets,
+    [namedSetStatements, commandStatements, styleStatements, applyStatements],
   ]
 }

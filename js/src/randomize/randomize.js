@@ -4,6 +4,17 @@ import {
   applyOrderConstraint
 } from './reorder.js'
 
+import {
+  applySetReorder,
+  applyCommands,
+} from './sort.js'
+
+import {
+  matchStructures,
+  matchGeneratedValues,
+  matchSetReorder,
+  reorderForRendering,
+} from './matching.js'
 
 export function generateRandomization(
   numberedSets,
@@ -37,4 +48,32 @@ export function adjustForSecondRandomization(orderConstraints, numberedSets, nam
       joinedSets.find(v => v.name === set).lastMinute = true
     }
   }
+}
+
+// numbered are sorted 0 -> n, then named are in order of appearance
+export default function randomize(numberedSets, namedSets, orderConstraints, commands, reordersInherited, structureMatches, lastMinute=false) {
+
+  const [elements, reordersAlpha] = generateRandomization(numberedSets, namedSets)
+
+  const reordersBeta = !lastMinute
+    ? reordersAlpha
+    : reordersAlpha.filter(v => v.lastMinute)
+
+  const reorders = matchSetReorder(
+    structureMatches,
+    reordersInherited,
+    reordersBeta,
+  )
+
+  // modifies reorders
+  shareOrder(orderConstraints, reorders)
+
+  // both modify elements
+  applySetReorder(reorders, elements)
+  applyCommands(commands, elements)
+
+  return [
+    reorders,
+    elements,
+  ]
 }

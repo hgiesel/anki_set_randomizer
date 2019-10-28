@@ -1,50 +1,5 @@
-import {
-  namePattern,
-} from './util.js'
-
-export function processCommands(elements, numberedSets, namedSets) {
-  const result = []
-
-  const idxRegex      = `(?:(\\d+)|((?:\\+|-)\\d+)|n(-\\d+)|(${namePattern}))`
-  const positionRegex = ':(?:\\+?(\\d+)|n?(-\\d+))'
-
-  const mainRegex = new RegExp(
-    `^\\$(?:(c|copy)|(m|move)|(d|del|delete))\\(` +
-    `(?:` +
-    `(\\d+)` + // amount
-    `(?:` +
-    `\\s*,\\s*` +
-    `${idxRegex}(?:${positionRegex})?` + // fromPosition
-    `(?:` +
-    `\\s*,\\s*` +
-    `${idxRegex}(?:${positionRegex})?` + // toPosition
-    `)?` +
-    `)?` +
-    `)?\\)$`
-  )
-
-  return elements
-    .flat()
-    .flatMap(elem => {
-
-      const [
-        iterIndex,
-        setIndex,
-        elemIndex,
-        theElem,
-      ] = elem
-
-      let patternResult
-
-      if (patternResult = theElem.match(mainRegex)) {
-        return processCommand(patternResult.slice(1))
-      }
-
-      return []
-    })
-}
-
-function processCommand(
+export function processCommand(
+  namedSets, elementLength,
   copySymbol, moveSymbol, deleteSymbol, amount,
   fromAbsIdx, fromRelIdx, fromEndIdx, fromNameIdx, fromPosIdx, fromNegIdx,
   toAbsIdx, toRelIdx, toEndIdx, toNameIdx, toPosIdx, toNegIdx
@@ -72,7 +27,7 @@ function processCommand(
     toEndIdx,
     toNameIdx,
     setIndex,
-    elements.length,
+    elementLength,
     namedSets,
   )
 
@@ -101,7 +56,7 @@ function processCommand(
     fromEndIdx,
     fromNameIdx,
     setIndex,
-    elements.length,
+    elementLength,
     namedSets,
   )
 
