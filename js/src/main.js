@@ -11,7 +11,7 @@ import {
 import {
   processNamedSets,
   processOrderConstraints,
-} from './processors/randomization.js'
+} from './processors/shuffling.js'
 
 import {
   processRenderDirectives,
@@ -127,7 +127,8 @@ function main2(
       styleRules,
     ] = processRenderDirectives(elementsOriginal, defaultStyle, namedSets)
 
-    console.log('ns', numberedSets)
+    console.log('saa!', elementsOriginal)
+    console.log('saa!', styleApplications)
 
     const [
       reordersFirst,

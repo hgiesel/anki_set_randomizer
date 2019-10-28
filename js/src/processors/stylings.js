@@ -1,8 +1,11 @@
 import {
+  styleSetter,
+} from './styleSetter.js'
+
+import {
   namePattern,
   positionPattern,
   getCorrespondingSets,
-  partitionList,
 } from './util.js'
 
 import {
@@ -18,16 +21,6 @@ export function processRenderDirectives(elements, defaultStyle, namedSets) {
   const styleRules        = processStyleRules(elements, styleDefinitions)
 
   return [styleDefinitions, styleApplications, styleRules]
-}
-
-function getBool(attributeValue) {
-  const bool = attributeValue === 'true' || attributeValue === 'yes'
-    ? true
-    : attributeValue === 'false' || attributeValue === 'no'
-    ? false
-    : null
-
-  return bool
 }
 
 function splitStylingDirectives(sd) {
@@ -57,39 +50,7 @@ function splitStylingDirectives(sd) {
 
 function processStyleDefinitions(elements, defaultStyle) {
 
-  const styleDefinitions  = [
-    {
-      name: 'default',
-      stylings: defaultStyle,
-    },
-    {
-      name: 'none',
-      stylings: {
-        colors: {},
-        classes: {},
-        display: 'none',
-      },
-    },
-    {
-      name: 'meta',
-      stylings: {
-        colors: {},
-        classes: {},
-        display: 'meta',
-      },
-    },
-    {
-      name: 'block',
-      stylings: {
-        colors: {},
-        classes: {},
-        openDelim: '',
-        closeDelim: '',
-        fieldPadding: 0,
-        block: true,
-      },
-    },
-  ]
+  const ss = styleSetter(defaultStyle)
 
   const styleRegex = new RegExp(
     `^\\$(?:style|s)\\(` +
@@ -101,198 +62,66 @@ function processStyleDefinitions(elements, defaultStyle) {
 
   elements
     .flat()
-    .map(v => [v, v[3].match(styleRegex)])
-    .filter(v => v[1])
     .forEach(v => {
 
-      const [
-        _,
-        name,
-        stylingDirectives,
-      ] = v[1]
+      let match
+      if (match = v[3].match(styleRegex)) {
 
-      let sd = styleDefinitions.find(v => v.name === name)
+        const [
+          _,
+          name,
+          stylingDirectives,
+        ] = match
 
-      if (!sd) {
-        const idx = styleDefinitions.push({
-          name: name,
-          stylings: {
-            colors: {},
-            classes: {},
-          }
-        })
+        splitStylingDirectives(stylingDirectives)
+          .forEach(v => {
 
-        sd = styleDefinitions[idx - 1]
+            const [
+              attributeName,
+              attributeValue,
+            ] = v
+
+            ss.setStyleAttribute(name, attributeName, attributeValue)
+          })
       }
-
-      splitStylingDirectives(stylingDirectives)
-        .forEach(v => {
-
-          const [
-            attributeName,
-            attributeValue,
-          ] = v
-
-          let value
-
-          switch (attributeName) {
-            case 'od': case 'openDelim':
-              sd.stylings['openDelim'] = attributeValue
-              break
-
-            case 'cd': case 'closeDelim':
-              sd.stylings['closeDelim'] = attributeValue
-              break
-
-            case 'fs': case 'fieldSeparator':
-              sd.stylings['fieldSeparator'] = attributeValue
-              break
-
-            case 'fp': case 'fieldPadding':
-
-              if ((value = Number(attributeValue)) >= 0) {
-                sd.stylings['fieldPadding'] = value
-              }
-              break
-
-            case 'es': case 'emptySet':
-              sd.stylings['emptySet'] = attributeValue
-              break
-
-            case 'clrs': case 'colors':
-              sd.stylings['colors']['values'] = attributeValue
-                .split(',')
-                .map(v => v.trim())
-                .filter(v => v.length > 0)
-              break
-
-            case 'clss': case 'classes':
-              sd.stylings['classes']['values'] = attributeValue
-                .split(',')
-                .map(v => v.trim())
-                .filter(v => v.length > 0)
-              break
-
-            case 'clrr': case 'colorRules':
-              sd.stylings['colors']['rules'] = partitionList(attributeValue
-                .split(',')
-                .map(w => w.trim()), 2
-              )
-                .map(w => {
-
-                  if (w.length !== 2) {
-                    return w
-                  }
-
-                  const regexResult = w[1].match(`^${valueSetPattern}$`)
-
-                  if (!regexResult) {
-                    return null
-                  }
-
-                  const [
-                    _,
-                    valueSetName,
-                    valueSetSetIndex,
-                    valueSetSetStar,
-                    valueSetValueIndex,
-                    valueSetValueStar,
-                  ] = regexResult
-
-                  return [
-                    w[0],
-                    valueSetName === '*' ? star : valueSetName,
-                    valueSetSetIndex ? Number(valueSetSetIndex) : star,
-                    valueSetValueIndex ? Number(valueSetValueIndex) : star,
-                  ]
-                })
-                .filter(w => w && w.length === 4)
-
-            case 'clsr': case 'classRules':
-              sd.stylings['classes']['rules'] = partitionList(attributeValue
-                .split(',')
-                .map(w => w.trim()), 2
-              )
-                .map(w => {
-
-                  if (w.length !== 2) {
-                    return w
-                  }
-
-                  const regexResult = w[1].match(`^${valueSetPattern}$`)
-
-                  if (!regexResult) {
-                    return null
-                  }
-
-                  const [
-                    _,
-                    valueSetName,
-                    valueSetSetIndex,
-                    valueSetSetStar,
-                    valueSetValueIndex,
-                    valueSetValueStar,
-                  ] = regexResult
-
-                  return [
-                    w[0],
-                    valueSetName === '*' ? star : valueSetName,
-                    valueSetSetIndex ? Number(valueSetSetIndex) : star,
-                    valueSetValueIndex ? Number(valueSetValueIndex) : star,
-                  ]
-                })
-                .filter(w => w && w.length === 4)
-
-            case 'clrci': case 'colorsCollectiveIndexing':
-
-              if (typeof (value = getBool(attributeValue)) === 'boolean') {
-                sd.stylings['colors']['collectiveIndexing'] = value
-              }
-              break;
-
-            case 'clrrsi': case 'colorsRandomStartIndex':
-
-              if (typeof (value = getBool(attributeValue)) === 'boolean') {
-                sd.stylings['colors']['randomStartIndex'] = value
-              }
-              break;
-
-            case 'clsci': case 'classesCollectiveIndexing':
-
-              if (typeof (value = getBool(attributeValue)) === 'boolean') {
-                sd.stylings['classes']['collectiveIndexing'] = value
-              }
-              break;
-
-            case 'clsrsi': case 'classesRandomStartIndex':
-
-              if (typeof (value = getBool(attributeValue)) === 'boolean') {
-                sd.stylings['classes']['randomStartIndex'] = value
-              }
-              break;
-
-            case 'blk': case 'block':
-
-              if (typeof (value = getBool(attributeValue)) === 'boolean') {
-                sd.stylings['block'] = value
-              }
-              break;
-
-            case 'fltr': case 'filter':
-
-              if (typeof (value = getBool(attributeValue)) === 'boolean') {
-                sd.stylings['filter'] = value
-              }
-              break;
-
-            case 'dp': case 'display':
-              sd.stylings['display'] = attributeValue
-              break;
-          }
-        })
     })
 
-  return styleDefinitions
+  console.log('ssss', ss.getStyleDefinitions())
+  return ss.getStyleDefinitions()
+}
+
+
+function processStyleApplication(
+  currentPos,
+  elements,
+  namedSets,
+  styleApplications /* modified */,
+  styleDefinitions,
+  stylingName,
+  absolutePos,
+  absolutePosFromEnd,
+  relativePos,
+  otherNamedSet,
+  otherNamedSetPos,
+) {
+
+  if (styleDefinitions.find(v => v.name === stylingName)) {
+    const correspondingSets = getCorrespondingSets(
+      elements,
+      namedSets,
+      absolutePos,
+      absolutePosFromEnd,
+      currentPos,
+      relativePos,
+      otherNamedSet,
+      otherNamedSetPos,
+    )
+
+    correspondingSets
+      .forEach(set => {
+        styleApplications[set] = stylingName
+      })
+  }
 }
 
 function processStyleApplications(elements, styleDefinitions, namedSets) {
@@ -312,36 +141,12 @@ function processStyleApplications(elements, styleDefinitions, namedSets) {
 
   elements
     .flat()
-    .map(v => [v, v[3].match(applyRegex)])
-    .filter(v => v[1])
-    .forEach(v => {
+    .forEach(elem => {
 
-      const [
-        _,
-        stylingName,
-        absolutePos,
-        absolutePosFromEnd,
-        relativePos,
-        otherNamedSet,
-        otherNamedSetPos,
-      ] = v[1]
+      let match
 
-      if (styleDefinitions.find(v => v.name === stylingName)) {
-        const correspondingSets = getCorrespondingSets(
-          elements,
-          namedSets,
-          absolutePos,
-          absolutePosFromEnd,
-          v[0][1],
-          relativePos,
-          otherNamedSet,
-          otherNamedSetPos,
-        )
-
-        correspondingSets
-          .forEach(set => {
-            styleApplications[set] = stylingName
-          })
+      if (match = elem[3].match(applyRegex)) {
+        processStyleApplication(elem[1], elements, namedSets, styleApplications, styleDefinitions, ...match.slice(1))
       }
     })
 

@@ -142,14 +142,11 @@ export default function formatter(inputSyntax, injections, iterIndex) {
       let injectFound = false
 
       const theElementsOriginal = theFoundStructure
-        .concat([injectionKeyword])
         .map(group => group.split(inputSyntax.isRegex
           ? new RegExp(inputSyntax.fieldSeparator)
           : inputSyntax.fieldSeparator))
-        .flatMap(v => v.length === 1 && v[0] === '$inject'
-          ? !injectFound
-            ? (injectFound = true, [v].concat(injections.map(v => v.concat(makeInjectionsMeta))))
-            : [v]
+        .flatMap(v => v[0] === '$inject'
+          ? (injectFound = true, [v].concat(injections.map(v => v.concat(makeInjectionsMeta))))
           : [v])
         .map((set, i) => set.map((elem, j) => [iterIndex, i, j, elem, 'n']))
 

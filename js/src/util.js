@@ -1,4 +1,4 @@
-export const star = {"star": true}
+export const star = Symbol('star')
 
 export function createWarnings(wereSetsUsed) {
   if (!document.querySelector('#set-randomizer--warning')) {
