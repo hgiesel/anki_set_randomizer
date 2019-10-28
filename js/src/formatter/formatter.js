@@ -153,8 +153,6 @@ export default function formatter(inputSyntax, injections, iterIndex) {
           : [v])
         .map((set, i) => set.map((elem, j) => [iterIndex, i, j, elem, 'n']))
 
-      console.log(theElementsOriginal)
-
       return _elementsOriginal[theSelector] = theElementsOriginal
     }
   }
@@ -395,9 +393,6 @@ export default function formatter(inputSyntax, injections, iterIndex) {
     theSelector=inputSyntax.cssSelector
   ) {
 
-    console.log(numberedSets)
-    console.log('reo', reordering)
-
     const sa = stylingsAccessor(styleDefinitions, randomIndices)
     const vp = valuePicker(valueSets, styleRules)
 
@@ -458,8 +453,6 @@ export default function formatter(inputSyntax, injections, iterIndex) {
               : displayBlock
                 ? `<record ${className} ${style}><div>${treatNewlines(pickedValue)}</div></record>`
                 : `<record ${className} ${style}>${pickedValue}</record>`
-
-            console.log('options', filterHtml, displayBlock, theValue)
 
             actualValues.push(theValue)
           }

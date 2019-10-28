@@ -348,6 +348,31 @@ function processStyleApplications(elements, styleDefinitions, namedSets) {
   return styleApplications
 }
 
+function processStyleRule(
+  styleDefinitions,
+  stylingName, valueSetName,
+  valueSetSetIndex, valueSetSetStar,
+  valueSetValueIndex, valueSetValueStar,
+) {
+
+  if (styleDefinitions.find(v => v.name === stylingName)) {
+
+    const vssi = Number(valueSetSetIndex)
+    const vsvi = Number(valueSetValueIndex)
+
+    const result = [
+      stylingName,
+      valueSetName === '*' ? star : valueSetName,
+      valueSetSetIndex ? vssi : star,
+      valueSetValueIndex ? vsvi : star,
+    ]
+
+    return [result]
+  }
+
+  return []
+}
+
 function processStyleRules(elements, styleDefinitions) {
   const ruleRegex = new RegExp(
     `^\\$(?:rule|r)\\(` +
@@ -360,35 +385,16 @@ function processStyleRules(elements, styleDefinitions) {
     `\\)$`
   )
 
-  const styleRules = []
-  elements
+  const styleRules = elements
     .flat()
-    .map(v => [v, v[3].match(ruleRegex)])
-    .filter(v => v[1])
-    .forEach(v => {
+    .flatMap(elem =>  {
+      let match
 
-      const [
-        _,
-        stylingName,
-        valueSetName,
-        valueSetSetIndex,
-        valueSetSetStar,
-        valueSetValueIndex,
-        valueSetValueStar,
-      ] = v[1]
-
-      if (styleDefinitions.find(v => v.name === stylingName)) {
-
-        const vssi = Number(valueSetSetIndex)
-        const vsvi = Number(valueSetValueIndex)
-
-        styleRules.push([
-          stylingName,
-          valueSetName === '*' ? star : valueSetName,
-          valueSetSetIndex ? vssi : star,
-          valueSetValueIndex ? vsvi : star,
-        ])
+      if (match = elem[3].match(ruleRegex)) {
+        return processStyleRule(styleDefinitions, ...match.splice(1))
       }
+
+      return []
     })
 
   return styleRules

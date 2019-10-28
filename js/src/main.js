@@ -1,6 +1,10 @@
 import formatter from './formatter/formatter.js'
 
 import {
+  process,
+} from './processors/process.js'
+
+import {
   processNumberedSets,
 } from './processors/numbered.js'
 
@@ -122,6 +126,8 @@ function main2(
       styleApplications,
       styleRules,
     ] = processRenderDirectives(elementsOriginal, defaultStyle, namedSets)
+
+    console.log('ns', numberedSets)
 
     const [
       reordersFirst,
