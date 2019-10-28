@@ -1,13 +1,20 @@
 import {
-  namePattern,
-  positionPattern,
-} from './util.js'
-
-import {
   toSRToken,
   fromSRToken,
   isSRToken,
 } from '../util.js'
+
+import {
+  valueSetPattern,
+  evaluatorPattern,
+  pickPattern,
+  yankPattern,
+
+  namedSetPattern,
+  commandPattern,
+  stylePattern,
+  applyPattern,
+} from './util.js'
 
 ////
 
@@ -24,103 +31,6 @@ import {
 import {
   pregenManager,
 } from './pregen.js'
-
-const valueSetPattern = new RegExp(
-  `^\\$(${namePattern})(?!\\()(\\W)((?:.|\\n|\\r)*)`
-)
-
-const intPattern       = '\\d+'
-const realOrIntPattern = `${intPattern}(?:\\.\\d*)?`
-const realIntGenerator =
-  `(${realOrIntPattern}):(${realOrIntPattern})(?::(${intPattern}))?`
-
-const pickPattern = new RegExp(
-  `^\\$(?:pick|p)\\(` +
-  `(?:\\s*(\\d+)\\s*,\\s*)?` + // count
-  `(?:${realIntGenerator}|` +
-  `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)?)` + // picking from value sets
-  `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
-)
-
-const evaluatorPattern = new RegExp(
-  `^\\$(?:evaluate|eval|e)\\(` +
-  `(?:\\s*(\\d+)\\s*,\\s*)?` + // count
-  `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)` +
-  `(?:\\s*,\\s*(${namePattern})\\s*)?` // uniqueness constraint
-)
-
-const yankPattern = new RegExp(
-  `^\\$(?:yank|y)\\(` +
-  // `(?:\\s*(\\d+)\\s*,\\s*)?` + // count
-  // `(?:(${namePattern})(?:(?:${positionPattern})?${positionPattern})?)` +
-  `\\)`
-)
-
-/////
-
-const namedSetPattern = new RegExp(
-  `\\$(?:name|n)(!)?` +
-  `\\(` +
-  `(${namePattern})` +
-  `(?:` +
-  `\\s*,\\s*` +
-  `(?:` + // second arg
-  `(\\d+)|(n-\\d+)|((?:\\+|-)\\d+)|` + // numbered set
-  `(${namePattern})(?::(n-\\d+|-\\d|\\d+))?` + // named set arg
-  `)` +
-  `)?` +
-  `\\)$`
-)
-
-const idxRegex      = `(?:(\\d+)|((?:\\+|-)\\d+)|n(-\\d+)|(${namePattern}))`
-const positionRegex = ':(?:\\+?(\\d+)|n?(-\\d+))'
-
-const commandPattern = new RegExp(
-  `^\\$(?:(c|copy)|(m|move)|(d|del|delete))\\(` +
-  `(?:` +
-  `(\\d+)` + // amount
-  `(?:` +
-  `\\s*,\\s*` +
-  `${idxRegex}(?:${positionRegex})?` + // fromPosition
-  `(?:` +
-  `\\s*,\\s*` +
-  `${idxRegex}(?:${positionRegex})?` + // toPosition
-  `)?` +
-  `)?` +
-  `)?\\)$`
-)
-
-//////// STYLING REGEXES
-const stylePattern = new RegExp(
-  `^\\$(?:style|s)\\(` +
-  `(${namePattern})` +
-  `\\s*,\\s` +
-  `(.*)` + // styling directives
-  `\\)$`
-)
-
-const applyPattern = new RegExp(
-  `^\\$(?:apply|app|a)\\(` +
-  `(${namePattern})` +
-  `(?:\\s*,\\s` +
-  `(?:` + // second arg
-  `(\\d+)|(n-\\d+)|((?:\\+|-)\\d+)|` + // numbered set
-  `(${namePattern})(?::(\\d+|n?-\\d+))?` + // named set arg
-  `)` +
-  `)?` +
-  `\\)$`
-)
-
-const rulePattern = new RegExp(
-  `^\\$(?:rule|r)\\(` +
-  `(${namePattern})` +
-  `(?:\\s*,\\s` +
-  `(?:` + // second arg
-  valueSetPattern +
-  `)` +
-  `)?` +
-  `\\)$`
-)
 
 export default function process(elements, generatedValues, uniqConstraints, iterName) {
 
@@ -141,13 +51,14 @@ export default function process(elements, generatedValues, uniqConstraints, iter
       return [[iterName, setIndex, elemIndex, content, mode]]
     }
 
-    else if (match = content.match(evaluatorPattern)) {
-      evaluators.push(processEvaluator(...match.slice(1)))
-    }
-
+    ////// PROCESSING
     else if (match = content.match(valueSetPattern)) {
       const vsToken = processValueSet(valueSets, iterName, setIndex, elemIndex, ...match.slice(1))
       return [[iterName, setIndex, elemIndex, vsToken, mode]]
+    }
+
+    else if (match = content.match(evaluatorPattern)) {
+      evaluators.push(processEvaluator(...match.slice(1)))
     }
 
     else if (match = content.match(pickPattern)) {
@@ -172,12 +83,9 @@ export default function process(elements, generatedValues, uniqConstraints, iter
       styleStatements.push([iterName, setIndex, elemIndex, ...match.slice(1)])
     }
 
-    else if (match = content.match(stylePattern)) {
+    else if (match = content.match(applyPattern)) {
       applyStatements.push([iterName, setIndex, elemIndex, ...match.slice(1)])
     }
-    // else if (match = content.match(styleRulePattern)) {
-    //   styleRuleStatements.push([iterName, setIndex, elemIndex, match])
-    // }
 
     return []
   }

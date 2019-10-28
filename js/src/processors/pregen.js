@@ -44,13 +44,8 @@ export function pregenManager(generatedValues, uniqConstraints) {
     }
   }
 
-  function exportGeneratedValues() {
-      return generatedValues
-  }
-
-  function exportUniqConstraints() {
-      return uniqConstraints
-  }
+  const exportGeneratedValues = () => generatedValues
+  const exportUniqConstraints = () => uniqConstraints
 
   return {
     pregenChecker: pregenChecker,

@@ -52,10 +52,6 @@ export function processEvaluator(
   return result
 }
 
-const valueSetPattern = new RegExp(
-  `^\\$(${namePattern})(?!\\()(\\W)((?:.|\\n|\\r)*)`
-)
-
 const newLinePattern = new RegExp(`\\\\n`, 'g')
 const catchPattern = new RegExp(`\\\\.`, 'g')
 
