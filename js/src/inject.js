@@ -1,24 +1,28 @@
-export function parseInjections(injections, iterIds, tags, cardType) {
-
-  const result = iterIds.map(iter => {
-
-    function parseConditions(condition) {
+export const parseInjections = function(
+  injections,
+  iterIds,
+  tags,
+  cardType,
+) {
+  const result = iterIds.map((iter) => {
+    const parseConditions = function(condition) {
       switch (condition[0]) {
         case 'card':
           return condition[1] === '='
             ? cardType === condition[2]
             : condition[1] === '!='
-            ? cardType !== condition[2]
-            : cardType[condition[1]](condition[2])
+              ? cardType !== condition[2]
+              : cardType[condition[1]](condition[2])
 
         case 'tag':
-          return tags.map(v =>
-            condition[1] === '='
-            ? v === condition[2]
-            : condition[1] === '!='
-            ? v !== condition[2]
-            : v[condition[1]](condition[2]))
-              .reduce((accu, v) => accu || v, false)
+          return tags
+            .map(v => (condition[1] === '='
+              ? v === condition[2]
+              : condition[1] === '!='
+              ? v !== condition[2]
+              : v[condition[1]](condition[2])
+            ))
+            .reduce((accu, v) => accu || v, false)
 
         case 'iter':
           return condition[1] === '='
@@ -35,16 +39,20 @@ export function parseInjections(injections, iterIds, tags, cardType) {
 
         case '|':
           return condition.slice(1).map(v => parseConditions(v)).reduce((accu, v) => accu || v)
+
+        default:
+          // should never happen
+          return false
       }
     }
 
-    function parseInjection(found, injection) {
+    const parseInjection = function(injection) {
       return parseConditions(injection.conditions)
-        ? (found.push(injection.statements), found)
-        : found
+        ? [injection.statements]
+        : []
     }
 
-    return injections.reduce(parseInjection, [])
+    return injections.flatMap(parseInjection)
   })
 
   return result

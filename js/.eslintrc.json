@@ -1,0 +1,208 @@
+// vim: set filetype=jsonc:
+{
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "ecmaFeatures": {
+      "impliedStrict": true
+    },
+    "sourceType": "module"
+  },
+
+  "env": {
+    "es6": true,
+    "node": true
+  },
+
+  "globals": {
+    "document": "readonly",
+    "window": "readonly",
+    "Persistence": "readonly",
+    "$$iterations": "readonly",
+    "$$injections": "readonly"
+  },
+
+  "rules": {
+    ///////////////////////////////////////////////////////////////////////////
+    //// VARIABLES
+    "indent": ["error", 2,  {
+      "SwitchCase": 1,
+      "flatTernaryExpressions": true, // TODO does not work, thats why vvv
+      "ignoredNodes": ["ConditionalExpression"]
+    }],
+
+    ///////////////////////////////////////////////////////////////////////////
+    //// VARIABLES
+    // no uninitialized declaration
+    "init-declarations": ["error", "always"],
+
+    "no-var": "error",
+    "prefer-const": "error",
+
+    // no labels allowed
+    "no-labels": "error",
+    // disallow deleting
+    "no-delete-var": "error",
+
+    // do not allow shadowing variables
+    "no-shadow": "error",
+
+    // do not allow global vars except those defined above
+    "no-undef": "error",
+
+    // do not allow initializing to undefined
+    "no-undef-init": "error",
+
+    // do not allow using undefined keyword, use void keyword instead
+    "no-undefined": "error",
+    "consistent-return": "error",
+
+    // no unsed variables
+    "no-unused-vars": "error",
+
+    // disallow using variable before defining (no hoisting)
+    "no-use-before-define": "error",
+
+    // no redeclaration
+    "no-redeclare": "error",
+    "no-const-assign": "error",
+
+    ///////////////////////////////////////////////////////////////////////////
+    //// STYLING
+
+    // disllows unnecessary return in arrow functions
+    "arrow-body-style": ["error", "as-needed"],
+    // forces `() => (\n bla` rather than `() =>\n bla`
+    "implicit-arrow-linebreak": ["error", "beside"],
+    // no parens needed only if returns expression
+    "arrow-parens": ["error", "as-needed", { "requireForBlockBody": true }],
+    // for one-space spacing
+    "arrow-spacing": "error",
+    // disallow arrow and comparisons too close to each other
+    "no-confusing-arrow": ["error", { "allowParens": true }],
+
+    "brace-style": ["error", "stroustrup"],
+    "camelcase": "error",
+    "comma-spacing": ["error", { "before": false, "after": true }],
+    "comma-style": ["error", "last"],
+
+    "computed-property-spacing": ["error", "never"],
+
+    "eol-last": ["error", "always"],
+    "func-call-spacing": ["error", "never"],
+    "no-func-assign": "error",
+
+    // do not allow naming function expressions (e.g. `const a = function b() {}`)
+    "func-names": ["error", "never"],
+    // force them to match names, when assigned as object properties
+    "func-name-matching": ["error", "always", { "considerPropertyDescriptor": true }],
+    // disallow function declarations
+    "func-style": ["error", "expression"],
+    "function-paren-newline": ["error", { "minItems": 4 }],
+
+    "multiline-comment-style": ["error", "separate-lines"],
+
+    // disallows lonely if in else clause
+    "no-lonely-if": "error",
+    // disallows negated condition for if-else clause and ternary
+    "no-negated-condition": "error",
+
+    // disallows a === 'a' ? true : false
+    "no-unneeded-ternary": "error",
+
+    // allows maximum of 2 consecutive empty lines
+    "no-multiple-empty-lines": "error",
+
+    ///////////////////////////////////////////////////////////////////////////
+    //// BEST PRACTICES
+    "no-trailing-spaces": "error",
+    "no-multi-spaces": "error",
+
+    //// SWITCH STATEMENTS
+    // no declarations within case statements
+    "no-case-declarations": "error",
+    "no-fallthrough": "error",
+    "default-case": "error",
+
+    // force curly brackets for statements
+    "curly": "error",
+
+    // enforce dot-notation .prop whenever possible in favor of ["prop"]
+    "dot-notation": "error",
+
+    "dot-location": ["error", "property"],
+
+    "eqeqeq": "error",
+
+    "comma-dangle": ["error", {
+      "arrays": "only-multiline",
+      "objects": "only-multiline",
+      "functions": "only-multiline",
+      "imports": "only-multiline",
+      "exports": "only-multiline"
+    }],
+
+    //// COERCION
+    "yoda": "error",
+    "no-implicit-coercion": "error",
+
+    "valid-typeof": ["error", { "requireStringLiterals": true }],
+    "use-isnan": ["error", { "enforceForSwitchCase": true, "enforceForIndexOf": true }],
+
+    ///////////////////////////////////////////////////////////////////////////
+    //// STYLING
+    "semi": ["error", "never", { "beforeStatementContinuationChars": "always" }],
+    "semi-style": ["error", "first"],
+    "semi-spacing": ["error", {"before": false, "after": true}],
+    "no-extra-semi": "error",
+
+    "no-extra-parens": ["error", "functions"],
+
+    "quotes": ["error", "single", { "allowTemplateLiterals": true }],
+    "prefer-template": "error",
+
+    "padded-blocks": ["error", "never"],
+    "block-spacing": "error",
+
+    "space-unary-ops": "error",
+    "space-infix-ops": "error",
+    "space-before-function-paren": ["error", "never"],
+    "space-in-parens": ["error", "never"],
+
+    "space-before-blocks": ["error", "always"],
+    "keyword-spacing": "error",
+
+    "operator-linebreak": ["error", "before"],
+
+    "no-unsafe-negation": ["error", { "enforceForOrderingRelations": true }],
+    "no-sparse-arrays": "error",
+    "no-unreachable": "error",
+
+    ///////////////////////////////////////////////////////////////////////////
+    //// POSSIBLE ERRORS
+    "no-console": ["warn", { "allow": ["warn"] }],
+    "wrap-iife": "error",
+    "radix": "error",
+
+    "no-dupe-args": "error",
+    "no-dupe-keys": "error",
+    "no-duplicate-case": "error",
+
+    // no `a, b`, but `(a, b)` is allowed
+    "no-sequences": "error",
+    "no-self-assign": "error",
+    "no-self-compare": "error",
+    "no-useless-catch": "error",
+    "no-useless-return": "error",
+
+    "no-unused-expressions": ["error", { "allowShortCircuit": true, "allowTernary": true }],
+
+    //// REGEXPS
+    "no-regex-spaces": "error",
+    "require-unicode-regexp": "error",
+    "no-useless-escape": "error",
+    "no-invalid-regexp": "error",
+    "prefer-regex-literals": "error",
+    "wrap-regex": "error",
+    "no-empty-character-class": "error"
+  }
+}

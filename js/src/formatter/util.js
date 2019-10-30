@@ -1,18 +1,18 @@
-export function escapeString(str) {
-  return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+export const escapeString = function(str) {
+  return str.replace(/[-/\\^$*+?.()|[\]{}]/gu, '\\$&')
 }
 
-export function escapeHtml(unsafe) {
+export const escapeHtml = function(unsafe) {
   return unsafe
-    .replace(RegExp('\u0026', 'g'), "&amp;")
-    .replace(RegExp('\u003c', 'g'), "&lt;")
-    .replace(RegExp('\u003e', 'g'), "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/\u0026/gu, '&amp;')
+    .replace(/\u003c/gu, '&lt;')
+    .replace(/\u003e/gu, '&gt;')
+    .replace(/"/gu, '&quot;')
+    .replace(/'/gu, '&#039;')
 }
 
-export function treatNewlines(text) {
+export const treatNewlines = function(text) {
   return text
-    .replace(RegExp('</div><div>', 'g'), '<br>')
-    .replace(RegExp('<div>', 'g'), '<br>')
+    .replace(/<\/div><div>/gu, '<br>')
+    .replace(/<div>/gu, '<br>')
 }

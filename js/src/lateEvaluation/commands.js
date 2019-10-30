@@ -1,4 +1,82 @@
-export function processCommand(
+const processSetIndex = function(
+  absIndex,
+  relIndex,
+  endIndex,
+  nameIndex,
+  currentIndex,
+  elemCount,
+  namedSets,
+) {
+  if (absIndex) {
+    const result = Number(absIndex)
+    return elemCount <= result
+      ? [[], true]
+      : [[result], true]
+  }
+
+  else if (relIndex) {
+    const result = currentIndex + Number(relIndex)
+    return result < 0
+      ? [[], true]
+      : elemCount < result
+      ? [[], true]
+      : [[result], true]
+  }
+
+  else if (endIndex) /* from end index */ {
+    const result = elemCount + (Number(endIndex) - 1)
+    return result < 0
+      ? [[], true]
+      : [[result], true]
+  }
+
+  else if (nameIndex) /* named set */ {
+    // named set, I don't need to check name constraints
+    // because, you only refer to named sets, not create them
+    const foundNs = namedSets
+      .find(ns => ns.name === nameIndex)
+
+    return foundNs
+      ? [foundNs.sets, true]
+      : [[], true]
+  }
+
+  else {
+    return [[currentIndex], false]
+  }
+}
+
+const processPositionIndex = function(
+  absIndex,
+  setNameWasDefined,
+  setName,
+  numberedSets,
+  inSetIdx,
+) {
+  if (absIndex !== undefined) {
+    return absIndex
+  }
+  else if (setNameWasDefined) {
+    return 0
+  }
+
+  else {
+    // otherwise, calculate its position in context of its idx
+    // using the numbered sets
+    return numberedSets
+      .find(v => v.name === setName)
+      .elements
+      .reduce((accu, v) => {
+        const elemIndex = v[2]
+
+        return elemIndex < inSetIdx
+          ? accu + 1
+          : accu
+      }, 0)
+  }
+}
+
+export const processCommand = function(
   namedSets, elementLength,
 
   iterName, setIndex, posIndex,
@@ -8,7 +86,6 @@ export function processCommand(
   fromRelIdx, fromAbsIdx, fromEndIdx, fromNameIdx, fromPosIdx,
   toRelIdx, toAbsIdx, toEndIdx, toNameIdx, toPosIdx,
 ) {
-
   const cmdName = copySymbol
     ? 'c'
     : moveSymbol
@@ -53,7 +130,7 @@ export function processCommand(
 
   // will stay a list -> is further computed
   // in applyCommand
-  const [fromSetName, _1] = processSetIndex(
+  const [fromSetName /* throw away second argument */] = processSetIndex(
     fromAbsIdx,
     fromRelIdx,
     fromEndIdx,
@@ -76,7 +153,6 @@ export function processCommand(
     toSetNameNew !== null &&
     amount > 0
   ) {
-
     const result = [
       cmdName,
       amount,
@@ -90,84 +166,4 @@ export function processCommand(
   }
 
   return []
-}
-
-function processSetIndex(
-  absIndex,
-  relIndex,
-  endIndex,
-  nameIndex,
-  currentIndex,
-  elemCount,
-  namedSets,
-) {
-
-  if (absIndex) /* absolute index */ {
-    const result = Number(absIndex)
-    return elemCount <= result
-      ? [[], true]
-      : [[result], true]
-  }
-
-  else if (relIndex) /* relative index */ {
-    const result = currentIndex + Number(relIndex)
-    return result < 0
-      ? [[], true]
-      : elemCount < result
-      ? [[], true]
-      : [[result], true]
-  }
-
-  else if (endIndex) /* from end index */ {
-    const result = elemCount + (Number(endIndex) - 1)
-    return result < 0
-      ? [[], true]
-      : [[result], true]
-  }
-
-  else if (nameIndex) /* named set */ {
-    // named set, I don't need to check name constraints
-    // because, you only refer to named sets, not create them
-    const foundNs = namedSets
-      .find(ns => ns.name === nameIndex)
-
-    return foundNs
-      ? [foundNs.sets, true]
-      : [[], true]
-  }
-
-  else {
-    return [[currentIndex], false]
-  }
-}
-
-const processPositionIndex = function(
-  absIndex,
-  setNameWasDefined,
-  setName,
-  numberedSets,
-  inSetIdx,
-) {
-
-  if (absIndex !== undefined) {
-    return absIndex
-  }
-  else if (setNameWasDefined) {
-    return 0
-  }
-
-  else {
-    // otherwise, calculate its position in context of its idx
-    // using the numbered sets
-    return numberedSets
-      .find(v => v.name === setName)
-      .elements
-      .reduce((accu, v) => {
-        const elemIndex = v[2]
-
-        return elemIndex < inSetIdx
-          ? accu + 1
-          : accu
-      }, 0)
-  }
 }

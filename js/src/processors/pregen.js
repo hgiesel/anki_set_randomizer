@@ -5,7 +5,7 @@ import {
 } from './numbered.js'
 
 // Adapter for numbered.js evals
-export function pregenManager(generatedValues, uniqConstraints) {
+export function pregenManager(generatedValues, uniqConstraints,) {
 
   const pregenChecker = function(iterName, setIndex, elemIndex) {
 

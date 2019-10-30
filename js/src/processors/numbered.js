@@ -82,9 +82,9 @@ export function processValueSet(
 export function processPick(
   amountString,
   minValue, maxValue, extraValue,
-  valueSetName,
-  maybeValueSetIndexString, _setIndexStar,
-  maybeValueSetPosIndexString, _posIndexStar,
+  vsName,
+  maybeVsSetIndex, _vssIndexStar,
+  maybeVsValueIndex, _vsvIndexStar,
   maybeUniqConstraintName,
 ) {
 
@@ -92,7 +92,11 @@ export function processPick(
     ? amountString // star or number
     : '1'
 
-  const uniqConstraintName = maybeUniqConstraintName || ''
+  const uniqConstraintName = maybeUniqConstraintName === undefined
+    ? ''
+    : maybeUniqConstraintName === ''
+      ? `_unnamed${Math.random().toString().slice(2)}`
+      : maybeUniqConstraintName
 
   if (minValue && maxValue) {
 
@@ -109,23 +113,20 @@ export function processPick(
   }
 
   else {
-    const maybeValueSetSetIndex = Number(maybeValueSetSetIndexString)
-    const maybeValueSetPosIndex = Number(maybeValueSetPosIndexString)
-
-    const valueSetSetIndex = !Number.isNaN(maybeValueSetSetIndex)
-      ? maybeValueSetSetIndex
+    const vsSetIndex = !Number.isNaN(Number(maybeVsSetIndex))
+      ? maybeVsSetIndex
       : '*'
 
-    const valueSetPosIndex = !Number.isNaN(maybeValueSetPosIndex)
-      ? maybeValueSetPosIndex
+    const vsValueIndex = !Number.isNaN(Number(maybeVsValueIndex))
+      ? maybeVsValueIndex
       : '*'
 
     return toSRToken([
       'pick:vs',
       amount,
-      valueSetName,
-      valueSetSetIndex,
-      valueSetPosIndex,
+      vsName,
+      vsSetIndex,
+      vsValueIndex,
       uniqConstraintName,
     ])
   }
@@ -201,7 +202,7 @@ export function evalPickValueSet(
   uniqConstraints,
   valueSets,
   amount,
-  valueSetName,
+  vsName,
   valueSetSetIndex,
   valueSetPosIndex,
   uniqConstraintName,
@@ -216,9 +217,9 @@ export function evalPickValueSet(
     }
 
     const foundValueSet = valueSets[
-      valueSetNameName === star
+      vsName === star
       ? Object.keys(valueSets)[Math.floor(Math.random() * Object.keys(valueSets).length)]
-      : valueSetNameName
+      : vsName
     ]
 
     const vidx = valueSetSetIndex === star
@@ -275,16 +276,16 @@ export function evalValueSet(
   uniqConstraints,
   valueSets,
   evaluators,
-  valueSetName,
-  valueSetIndex,
+  vsName,
+  vsSetIndex,
 ) {
-  const values = valueSets[valueSetName][valueSetIndex].values
+  const values = valueSets[vsName][vsSetIndex].values
   console.log('v', values)
 
   const foundEvaluator = evaluators.find(v => (
-    (v[0] === valueSetName && v[1] === valueSetIndex) ||
-    (v[0] === valueSetName && v[1] === star) ||
-    (v[0] === star && v[1] === valueSetIndex) ||
+    (v[0] === vsName && v[1] === vsSetIndex) ||
+    (v[0] === vsName && v[1] === star) ||
+    (v[0] === star && v[1] === vsSetIndex) ||
     (v[0] === star && v[1] === star) && (v[2] === star || v[2] < values.length)
   ))
 
@@ -307,8 +308,8 @@ export function evalValueSet(
 
       let theValue = toSRToken([
         'value',
-        valueSetName,
-        valueSetIndex,
+        vsName,
+        vsSetIndex,
         valueId !== star ? valueId : Math.floor(Math.random() * values.length),
       ])
 
@@ -321,8 +322,8 @@ export function evalValueSet(
 
           theValue = toSRToken([
             'value',
-            valueSetName,
-            valueSetIndex.toString(),
+            vsName,
+            vsSetIndex.toString(),
             Math.floor(Math.random() * values.length).toString(),
           ])
 

@@ -14,9 +14,7 @@ import {
   main,
 } from './main.js'
 
-back()
-
-function back() {
+const back = function() {
   const iterations = $$iterations
   const injections = $$injections
 
@@ -30,10 +28,8 @@ function back() {
     cardType,
   )
 
-  const [
-    _,
-    wereSetsUsed,
-  ] = main(iterations, injectionsParsed, getData(), false)
-
+  const [, wereSetsUsed] = main(iterations, injectionsParsed, getData())
   createWarnings(wereSetsUsed)
 }
+
+back()

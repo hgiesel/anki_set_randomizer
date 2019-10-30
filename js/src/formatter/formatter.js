@@ -8,7 +8,6 @@ import {
 
 import {
   escapeString,
-  escapeHtml,
   treatNewlines,
 } from './util.js'
 
@@ -18,13 +17,12 @@ import {
   isSRToken,
 } from '../util.js'
 
-const htmlTagsRegex = new RegExp('<.*?>', 'g')
-const htmlTagsNoBrRegex = new RegExp('<(?!br>).*?>', 'g')
+const htmlTagsRegex = (/<.*?>/gu)
+const htmlTagsNoBrRegex = (/<(?!br>).*?>/gu)
 
-export default function formatter(inputSyntax, injections, iterIndex) {
-
-  let _isInvalid
-  let _isContained
+export const formatter = function(inputSyntax, injections, iterIndex) {
+  let _isInvalid = false
+  let _isContained = false
 
   const isInvalid = function() {
     return _isInvalid
@@ -35,24 +33,20 @@ export default function formatter(inputSyntax, injections, iterIndex) {
   }
 
   // the original NodeList
-  const _htmlContent  = {}
-  const getHtml = function(theSelector=inputSyntax.cssSelector) {
-    _isInvalid   = false
-    _isContained = false
-
+  const _htmlContent = {}
+  const getHtml = function(theSelector = inputSyntax.cssSelector) {
     if (_htmlContent[theSelector]) {
       return _htmlContent[theSelector]
     }
     else {
-
       try {
         return _htmlContent[theSelector] = document.querySelectorAll(theSelector)
       }
-      catch {
+
+      catch (e) {
         _isInvalid = true
         return _htmlContent[theSelector] = document.createDocumentFragment().childNodes
       }
-
     }
   }
 
@@ -60,80 +54,70 @@ export default function formatter(inputSyntax, injections, iterIndex) {
 
   // a single big string with inserted elemDelims
   const _rawStructure = {}
-  const getRawStructure = function(theSelector=inputSyntax.cssSelector) {
-
+  const getRawStructure = function(theSelector = inputSyntax.cssSelector) {
     if (_rawStructure[theSelector]) {
       return _rawStructure[theSelector]
     }
 
-    else {
-      const theHtml = getHtml(theSelector)
+    const theHtml = getHtml(theSelector)
 
-      if (!theHtml || theHtml.length === 0) {
-        _isInvalid = true
-        return _rawStructure[theSelector] = ''
-      }
-
-      const theRawStructure = [...theHtml]
-        .map(v => v.innerHTML)
-        .join(elemDelim)
-
-      if (
-        theRawStructure.includes('SET RANDOMIZER FRONT TEMPLATE') ||
-        theRawStructure.includes('SET RANDOMIZER BACK TEMPLATE')
-      ) {
-        _isContained = true
-      }
-
-      return _rawStructure[theSelector] = theRawStructure
+    if (!theHtml || theHtml.length === 0) {
+      _isInvalid = true
+      return _rawStructure[theSelector] = ''
     }
+
+    const theRawStructure = [...theHtml]
+      .map(v => v.innerHTML)
+      .join(elemDelim)
+
+    if (theRawStructure.includes('SET RANDOMIZER FRONT TEMPLATE')
+      || theRawStructure.includes('SET RANDOMIZER BACK TEMPLATE')
+    ) {
+      _isContained = true
+    }
+
+    return _rawStructure[theSelector] = theRawStructure
   }
 
-  const exprString =
-    (inputSyntax.isRegex
+  const exprString = (inputSyntax.isRegex
       ? inputSyntax.openDelim
-      : escapeString(inputSyntax.openDelim)) +
-    `((?:.|\\n|\\r)*?)` +
-    (inputSyntax.isRegex
-      ? inputSyntax.closeDelim
-      : escapeString(inputSyntax.closeDelim))
+      : `${escapeString(inputSyntax.openDelim)}((?:.|\\n|\\r)*?)${inputSyntax.isRegex
+        ? inputSyntax.closeDelim
+        : escapeString(inputSyntax.closeDelim)
+      }`)
 
   // the found sets in the text
   const _foundStructure = {}
-  const getFoundStructure = function(theSelector=inputSyntax.cssSelector) {
+  const getFoundStructure = function(theSelector = inputSyntax.cssSelector) {
     if (_foundStructure[theSelector]) {
       return _foundStructure[theSelector]
     }
 
-    else {
-      const theFoundStructure = []
+    const theFoundStructure = []
+    const theRawStructure = getRawStructure(theSelector)
 
-      const theRawStructure = getRawStructure(theSelector)
-
-      let exprRegex
-
-      try {
-        exprRegex = RegExp(exprString, 'gm')
-      }
-      catch {
-        _isInvalid = true
-        return _foundStructure[theSelector] = []
-      }
-
-      let m = exprRegex.exec(theRawStructure)
-
-      while (m) {
-        theFoundStructure.push(m[1])
-        m = exprRegex.exec(theRawStructure)
-      }
-
-      return _foundStructure[theSelector] = theFoundStructure
+    let exprRegex = null
+    try {
+      exprRegex = RegExp(exprString, 'gmu')
     }
+    catch (e) {
+      _isInvalid = true
+      return _foundStructure[theSelector] = []
+    }
+
+    let m = exprRegex.exec(theRawStructure)
+
+    while (m) {
+      theFoundStructure.push(m[1])
+      m = exprRegex.exec(theRawStructure)
+    }
+
+    return _foundStructure[theSelector] = theFoundStructure
   }
 
   // 2d list of elements in the form of [[i, j, element]]
   const _elementsOriginal = {}
-  const getElementsOriginal = function(theSelector=inputSyntax.cssSelector) {
+  const getElementsOriginal = function(theSelector = inputSyntax.cssSelector) {
     if (_elementsOriginal[theSelector]) {
       return _elementsOriginal[theSelector]
     }
@@ -141,18 +125,19 @@ export default function formatter(inputSyntax, injections, iterIndex) {
     else {
       const theFoundStructure = getFoundStructure(theSelector)
 
-      const makeInjectionsMeta = "$apply(meta)"
-      const injectionKeyword = "$inject"
-
-      let injectFound = false
+      const makeInjectionsMeta = '$apply(meta)'
+      const injectionKeyword = '$inject'
 
       const theElementsOriginal = theFoundStructure
         .map(group => group.split(inputSyntax.isRegex
-          ? new RegExp(inputSyntax.fieldSeparator)
+          ? new RegExp(inputSyntax.fieldSeparator, 'u')
           : inputSyntax.fieldSeparator))
-        .flatMap(v => v[0] === '$inject'
-          ? (injectFound = true, [v].concat(injections.map(v => v.concat(makeInjectionsMeta))))
-          : [v])
+        .flatMap(set => (set.includes(injectionKeyword)
+          ? [set].concat(injections.map(injectionSet => (
+            injectionSet.concat(makeInjectionsMeta)
+          )))
+          : [set]
+        ))
         .map((set, i) => set.map((elem, j) => [iterIndex, i, j, elem, 'n']))
 
       return _elementsOriginal[theSelector] = theElementsOriginal
@@ -160,9 +145,7 @@ export default function formatter(inputSyntax, injections, iterIndex) {
   }
 
   const valuePicker = function(valueSets) {
-
     const pickValue = function(name, colorRules, classRules) {
-
       if (!isSRToken(name)) {
         return name
       }
@@ -170,8 +153,8 @@ export default function formatter(inputSyntax, injections, iterIndex) {
       const components = fromSRToken(name)
 
       const valueSetName = components[1]
-      const valueSubSet  = Number(components[2])
-      const valueIndex   = Number(components[3])
+      const valueSubSet = Number(components[2])
+      const valueIndex = Number(components[3])
 
       let theValue
 
@@ -181,26 +164,35 @@ export default function formatter(inputSyntax, injections, iterIndex) {
           throw 'error'
         }
       }
-      catch {
+      catch (e) {
         return null
       }
 
-      const theColor = colorRules ? colorRules.find(v =>
-        (v[1] == star || v[1] === valueSetName) &&
-        (v[2] == star || v[2] === valueSubSet) &&
-        (v[3] == star || v[3] === valueIndex)) : null
+      const theColor = colorRules
+        ? colorRules.find(v => (
+          (v[1] === star || v[1] === valueSetName)
+          && (v[2] === star || v[2] === valueSubSet)
+          && (v[3] === star || v[3] === valueIndex)
+        ))
+        : null
 
-      const theClass = classRules ? classRules.find(v =>
-        (v[1] == star || v[1] === valueSetName) &&
-        (v[2] == star || v[2] === valueSubSet) &&
-        (v[3] == star || v[3] === valueIndex)) : null
+      const theClass = classRules
+        ? classRules.find(v => (
+          (v[1] === star || v[1] === valueSetName)
+          && (v[2] === star || v[2] === valueSubSet)
+          && (v[3] === star || v[3] === valueIndex)
+        ))
+        : null
 
-      const theColorCss = theColor ? ` style="color: ${theColor[0]}"` : ''
-      const theClassCss = theClass ? ` class="${theClass[0]}"` : ''
+      const theColorCss = theColor
+        ? ` style="color: ${theColor[0]}"`
+        : ''
 
-      const result = `<span${theColorCss}${theClassCss}>${theValue}</span>`
+      const theClassCss = theClass
+        ? ` class="${theClass[0]}"`
+        : ''
 
-      return result
+      return `<span${theColorCss}${theClassCss}>${theValue}</span>`
     }
 
     return {
@@ -209,11 +201,9 @@ export default function formatter(inputSyntax, injections, iterIndex) {
   }
 
   const stylingsAccessor = function(styleDefinitions, randomIndices) {
-
     const propAccessor = function(appliedStyleNames) {
-
       const styles = appliedStyleNames
-        .flatMap(name => {
+        .flatMap((name) => {
           const maybeStyle = styleDefinitions
             .find(s => s.name === name)
 
@@ -225,54 +215,47 @@ export default function formatter(inputSyntax, injections, iterIndex) {
         })
 
       /* safenav */
-      const getProp = function(props, preds=[], defaultValue=null) {
-
+      const getProp = function(props, preds = [], defaultValue = null) {
         const nothing = {}
         const access = (record, prop) => {
-
           if (Object.is(record, nothing)) {
             return nothing
           }
 
           try {
-            if (typeof prop === 'number') {
-              return prop < record.length
-                ? record[prop]
-                : nothing
-            }
+            switch (typeof prop) {
+              case 'number':
+                return prop < record.length
+                  ? record[prop]
+                  : nothing
 
-            else if (typeof prop === 'string') {
-              return prop in record
-                ? record[prop]
-                : nothing
-            }
+              case 'string':
+                return prop in record
+                  ? record[prop]
+                  : nothing
 
-            else {
-              return record[prop]
+              default:
+                return record[prop]
             }
-
           }
-          catch {
+
+          catch (e) {
             return nothing
           }
         }
 
-        const result = styles.reduce((found_record, record) => {
-
-          if (!Object.is(found_record, nothing)) {
-            return found_record
-          }
-
-          else {
+        const result = styles.reduce((foundRecord, record) => {
+          if (Object.is(foundRecord, nothing)) {
             const preresult = props.reduce(access, record)
 
-            return preds.reduce((shortcutValue, pred) => {
-              return shortcutValue && pred(preresult)
-            }, true)
+            return preds.reduce((shortcutValue, pred) => (
+              shortcutValue && pred(preresult)
+            ), true)
               ? preresult
               : nothing
           }
 
+          return foundRecord
         }, nothing)
 
         return Object.is(result, nothing)
@@ -307,7 +290,6 @@ export default function formatter(inputSyntax, injections, iterIndex) {
           }
 
           else if (theProp.randomStartIndex) {
-
             if (!theProp.setIndex) {
               theProp.setIndex = 0
             }
@@ -341,14 +323,12 @@ export default function formatter(inputSyntax, injections, iterIndex) {
         getProp: getProp,
         getNextIndex: getNextIndex,
       }
-
     }
 
     const importIndices = function() {
-
       styleDefinitions
-        .forEach(def => {
-          ;['colors', 'classes'].forEach(type => {
+        .forEach((def) => {
+          ['colors', 'classes'].forEach((type) => {
             def.stylings[type].randomIndices = randomIndices[def.name]
               ? randomIndices[def.name][type]
               : []
@@ -361,10 +341,10 @@ export default function formatter(inputSyntax, injections, iterIndex) {
       const result = {}
 
       styleDefinitions
-        .forEach(def => {
+        .forEach((def) => {
           result[def.name] = {}
 
-          ;['colors', 'classes'].forEach(type => {
+          ;['colors', 'classes'].forEach((type) => {
             result[def.name][type] = def.stylings[type].randomIndices
           })
         })
@@ -387,21 +367,17 @@ export default function formatter(inputSyntax, injections, iterIndex) {
     randomIndices,
     valueSets,
     numberedSets,
-    theSelector=inputSyntax.cssSelector
+    theSelector = inputSyntax.cssSelector
   ) {
-
     const sa = stylingsAccessor(styleDefinitions, randomIndices)
     const vp = valuePicker(valueSets)
 
     const stylizedResults = Array(reordering.length)
 
     for (const set of reordering) {
-
       const actualValues = []
 
-      const pa = sa.propAccessor(
-        styleApplications[set.order],
-      )
+      const pa = sa.propAccessor(styleApplications[set.order])
 
       if (pa.getProp(['display']) === 'sort') {
         set.rendering.sort()
@@ -411,9 +387,8 @@ export default function formatter(inputSyntax, injections, iterIndex) {
       }
 
       for (const elem of set.rendering) {
-
         const [
-          _,
+          /* iterName */,
           setIndex,
           elemIndex,
           elemContent,
@@ -424,9 +399,9 @@ export default function formatter(inputSyntax, injections, iterIndex) {
         if (elemType !== 'd') {
           const theIndex = pa.getNextIndex('colors')
 
-          const colorChoice = !Number.isNaN(theIndex)
-            ? ` color: ${pa.getProp(['colors', 'values'])[theIndex]};`
-            : ''
+          const colorChoice = Number.isNaN(theIndex)
+            ? ''
+            : ` color: ${pa.getProp(['colors', 'values'])[theIndex]};`
 
           const className = `class="set-randomizer--element set-randomizer--element-index-${setIndex}-${elemIndex}"`
           const blockDisplay = pa.getProp(['block'])
@@ -438,7 +413,6 @@ export default function formatter(inputSyntax, injections, iterIndex) {
           const pickedValue = vp.pickValue(elemContent, pa.getProp(['colors', 'rules']), pa.getProp(['classes', 'rules']))
 
           if (pickedValue) {
-
             const filterHtml = pa.getProp(['filter'])
             const displayBlock = pa.getProp(['block'])
 
@@ -459,19 +433,21 @@ export default function formatter(inputSyntax, injections, iterIndex) {
         stylizedResults[set.order] = ''
       }
       else if (actualValues.length === 0 || pa.getProp(['display']) === 'empty') {
-        stylizedResults[set.order] =
-          `${pa.getProp(['openDelim'])}` +
-          `${pa.getProp(['emptySet'])}` +
-          `${pa.getProp(['closeDelim'])}`
+        stylizedResults[set.order] = (
+          `${pa.getProp(['openDelim'])}`
+          + `${pa.getProp(['emptySet'])}`
+          + `${pa.getProp(['closeDelim'])}`
+        )
       }
       else if (pa.getProp(['display']) === 'meta') {
         stylizedResults[set.order] = null
       }
       else {
-        stylizedResults[set.order] =
-          `${pa.getProp(['openDelim'])}` +
-          `${actualValues.join(pa.getProp(['fieldSeparator']))}` +
-          `${pa.getProp(['closeDelim'])}`
+        stylizedResults[set.order] = (
+          `${pa.getProp(['openDelim'])}`
+          + `${actualValues.join(pa.getProp(['fieldSeparator']))}`
+          + `${pa.getProp(['closeDelim'])}`
+        )
       }
     }
 
@@ -480,12 +456,10 @@ export default function formatter(inputSyntax, injections, iterIndex) {
     for (const [i, value] of getFoundStructure(theSelector).entries()) {
       if (stylizedResults[i] !== null /* when display:meta */) {
         theRawStructure = theRawStructure
-          .replace(
-            (inputSyntax.isRegex
-              ? new RegExp(`${inputSyntax.openDelim}${escapeString(value)}${inputSyntax.closeDelim}`)
-              : `${inputSyntax.openDelim}${value}${inputSyntax.closeDelim}`),
-            `${stylizedResults[i]}`
-          )
+          .replace((inputSyntax.isRegex
+            ? new RegExp(`${inputSyntax.openDelim}${escapeString(value)}${inputSyntax.closeDelim}`, 'u')
+            : `${inputSyntax.openDelim}${value}${inputSyntax.closeDelim}`),
+          `${stylizedResults[i]}`)
       }
     }
 
@@ -500,13 +474,17 @@ export default function formatter(inputSyntax, injections, iterIndex) {
 
       if (olParse.length > 0) {
         const newReordering = reordering
-          .map(v => ({ rendering: v.rendering
-            .map(w => [
-              w[0],
-              w[1],
-              olParse.find(u => u[0] === w[0] && u[1] === w[1])[2],
-              w[3]],
-            ), order: v.order
+          .map(v => ({
+            rendering: v.rendering
+              .map(w => ([
+                w[0],
+                w[1],
+                olParse.find(u => (
+                  (u[0] === w[0] && u[1] === w[1])[2]
+                )),
+                w[3],
+              ])),
+            order: v.order
           }))
 
         renderSets(newReordering, renderDirectives, randomIndices, 'div#original')
@@ -523,3 +501,5 @@ export default function formatter(inputSyntax, injections, iterIndex) {
     isContained: isContained,
   }
 }
+
+export default formatter

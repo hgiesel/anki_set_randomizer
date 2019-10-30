@@ -98,59 +98,49 @@ export const evalPattern = new RegExp(
   ])
 )
 
-export const yankPattern = new RegExp(
-  wrapName(['yank', 'y'], [
-    wrapArg(amountPattern /* imageid */, left, true),
-    wrapArg(namePattern /* yankgroup */),
-    wrapArg('' /* TODO attribute list */, right),
-    wrapArg(keywordArgPattern /* text */, right, true),
-  ])
-)
+export const attributeList = `(\\w):(\\d+(?::\\d+)*)`
+
+export const yankPattern = new RegExp(wrapName(['yank', 'y'], [
+  wrapArg(amountPattern /* imageid */, left, true),
+  wrapArg(namePattern /* yankgroup */, center),
+  wrapArg(attributeList, right),
+  wrapArg(keywordArgPattern /* text */, right, true),
+]), 'u')
 
 ///// LATE EVALUATION REGEXES
-const idxPattern = (
-  `(?:` +
-  `${absoluteIdxPattern}|` +
-  `${absoluteNegIdxPattern}|` +
-  `${relativeIdxPattern}|` +
-  `${namePattern}` +
-  `)`
-)
+const idxPattern = `(?:`
+  + `${absoluteIdxPattern}|`
+  + `${absoluteNegIdxPattern}|`
+  + `${relativeIdxPattern}|`
+  + `${namePattern}`
+  + `)`
 
 const posPattern = `${idxPattern}(?::${relativeIdxPattern})?`
 
-export const namedSetPattern = new RegExp(
-  wrapName(['name', 'n'], [
-    wrapArg(valueSetName, left, true),
-    wrapArg(namePattern, center),
-    wrapArg(posPattern, right, true),
-    wrapArg(keywordArgPattern /* order and force */, right, true),
-  ])
-)
+export const namedSetPattern = new RegExp(wrapName(['name', 'n'], [
+  wrapArg(valueSetName, left, true),
+  wrapArg(namePattern, center),
+  wrapArg(posPattern, right, true),
+  wrapArg(keywordArgPattern /* order and force */, right, true),
+]), 'u')
 
-export const commandPattern = new RegExp(
-  wrapName(['(c|copy)', '(m|move)', '(d|del|delete)', '(x|xch|xchange)', '(r|repl|replace)'], [
-    wrapArg(valueSetName, left, true),
-    wrapArg(amountPattern, center, true),
-    wrapArg(posPattern /* fromPosition */, right, true),
-    wrapArg(posPattern /* toPosition */, right, true),
-  ])
-)
+export const commandPattern = new RegExp(wrapName([
+  '(c|copy)', '(m|move)', '(d|del|delete)', '(x|xch|xchange)', '(r|repl|replace)'
+], [
+  wrapArg(valueSetName, left, true),
+  wrapArg(amountPattern, center, true),
+  wrapArg(posPattern /* fromPosition */, right, true),
+  wrapArg(posPattern /* toPosition */, right, true),
+]), 'u')
 
 //////// STYLING REGEXES
-export const stylePattern = new RegExp(
-  wrapName(['s', 'style'], [
-    wrapArg(namePattern, center),
-    wrapArg(keywordArgPattern /* stylingDirectives */, right, true),
-  ])
-)
+export const stylePattern = new RegExp(wrapName(['s', 'style'], [
+  wrapArg(namePattern, center),
+  wrapArg(keywordArgPattern /* stylingDirectives */, right, true),
+]), 'u')
 
-export const applyPattern = new RegExp(
-  wrapName(['a', 'apply'], [
-    wrapArg(valueSetName, left, true),
-    wrapArg(namePattern, center),
-    wrapArg(posPattern, right, true),
-  ])
-)
-
-console.log(evalPattern)
+export const applyPattern = new RegExp(wrapName(['a', 'apply'], [
+  wrapArg(valueSetName, left, true),
+  wrapArg(namePattern, center),
+  wrapArg(posPattern, right, true),
+]), 'u')

@@ -41,12 +41,12 @@ export function processNamedSet(
   )
 
   const actualName = name === '_'
-    ? `_unnamed${Math.random().slice(2)}`
+    ? `_unnamed${Math.random().toString().slice(2)}`
     : name
 
   let helpNs
   const ns = (helpNs = namedSets.find(w => w.name === actualName))
-    ? theNs
+    ? helpNs
     : namedSets[namedSets.push({
         iter: iterName,
         name: actualName,

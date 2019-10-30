@@ -15,9 +15,7 @@ import {
   main,
 } from './main.js'
 
-front()
-
-function front() {
+const front = function() {
   const iterations = $$iterations
   const injections = $$injections
 
@@ -34,8 +32,10 @@ function front() {
   const [
     theSaveData,
     wereSetsUsed,
-  ] = main(iterations, injectionsParsed, getData(), true)
+  ] = main(iterations, injectionsParsed, getData())
 
   saveData(theSaveData)
   createWarnings(wereSetsUsed)
 }
+
+front()
