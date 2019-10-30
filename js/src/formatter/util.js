@@ -1,5 +1,5 @@
 export const escapeString = function(str) {
-  return str.replace(/[-/\\^$*+?.()|[\]{}]/gu, '\\$&')
+  return str.replace(/[/\\^$*+?.()|[\]{}]/gu, '\\$&')
 }
 
 export const escapeHtml = function(unsafe) {

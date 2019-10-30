@@ -14,7 +14,6 @@ import {
 // [['iter',0,0,'Hello','n'],['iter',0,1,'World'],[]],[[],[]], etc.]
 // numberedSets -> numberedSetsSecond
 // reorders -> reordersSecond [{name:1/name, length, sets, setLengths, order, lastMinute}]
-
 const main2 = function(
   iterName,
   inputSyntax,
@@ -29,6 +28,8 @@ const main2 = function(
 
   injections,
 ) {
+  console.log('before formatting -1')
+
   const form = formatter(inputSyntax, injections, iterName)
   const elementsOriginal = form.getElementsOriginal()
 
@@ -52,7 +53,7 @@ const main2 = function(
       iterName,
     )
 
-    console.log('after processing // before lateEvaluate 1')
+    console.log('after processing // before lateEvaluate 1', numberedSets, valueSets, generatedValues)
 
     const [
       namedSets,
@@ -62,21 +63,7 @@ const main2 = function(
       styleApplications,
     ] = lateEvaluate(numberedSets, defaultStyle, ...lateEvaluation)
 
-    console.log('after lateEvaluate // before randomize 2')
-
-    // const namedSets        = processNamedSets(elementsOriginal)
-    // const orderConstraints = processOrderConstraints(elementsOriginal, namedSets)
-
-    // // modifies numberedSets and namedSets
-    // adjustForSecondRandomization(orderConstraints, numberedSets, namedSets)
-
-    // const commands = processCommands(elementsOriginal, numberedSets, namedSets)
-
-    // const [
-    //   styleDefinitions,
-    //   styleApplications,
-    //   styleRules,
-    // ] = processRenderDirectives(elementsOriginal, defaultStyle, namedSets)
+    console.log('after lateEvaluate // before randomize 2', namedSets)
 
     const [
       reordersFirst,
@@ -104,13 +91,15 @@ const main2 = function(
       elementsSecond,
     ] = randomize(
       numberedSetsSecond,
-      namedSets.filter(v => v.lastMinute),
-      orderConstraints.filter(v => v.lastMinute),
+      namedSets.filter(v => v.force),
+      orderConstraints.filter(v => v.force),
       [],
       reordersSecondInherited,
       structureMatches,
       true,
     )
+
+    console.log('before renderSets', numberedSetsSecond, elementsFirst)
 
     //////////////////////////////////////////////////////////////////////////////
     // RENDERING
@@ -150,6 +139,7 @@ export const main = function(iterations, injectionsParsed, saveDataOld) {
   // frontside will be run with indices (-1, -2, -3, etc...)
   // backside will be run with indices (+1, +2, +3, etc...)
   // but technically they are run in a row
+  console.log('before main -2')
 
   const saveDataAndSetsUsed = iterations
     .reduce((accu, v, i) => {

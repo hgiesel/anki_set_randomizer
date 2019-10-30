@@ -129,7 +129,6 @@ export const process = function(
 
         default:
           // should never occur
-          return ''
       }
     }
 

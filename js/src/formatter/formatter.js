@@ -79,12 +79,10 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
     return _rawStructure[theSelector] = theRawStructure
   }
 
-  const exprString = (inputSyntax.isRegex
-      ? inputSyntax.openDelim
-      : `${escapeString(inputSyntax.openDelim)}((?:.|\\n|\\r)*?)${inputSyntax.isRegex
-        ? inputSyntax.closeDelim
-        : escapeString(inputSyntax.closeDelim)
-      }`)
+  const exprContent = '((?:.|\\n|\\r)*?)'
+  const exprString = inputSyntax.isRegex
+      ? `${inputSyntax.openDelim}${exprContent}${inputSyntax.closeDelim}`
+      : `${escapeString(inputSyntax.openDelim)}${exprContent}${escapeString(inputSyntax.closeDelim)}`
 
   // the found sets in the text
   const _foundStructure = {}
@@ -101,6 +99,7 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
       exprRegex = RegExp(exprString, 'gmu')
     }
     catch (e) {
+      console.error('Invalid exprString', e)
       _isInvalid = true
       return _foundStructure[theSelector] = []
     }
@@ -122,31 +121,29 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
       return _elementsOriginal[theSelector]
     }
 
-    else {
-      const theFoundStructure = getFoundStructure(theSelector)
+    const theFoundStructure = getFoundStructure(theSelector)
 
-      const makeInjectionsMeta = '$apply(meta)'
-      const injectionKeyword = '$inject'
+    const makeInjectionsMeta = '$apply(meta)'
+    const injectionKeyword = '$inject'
 
-      const theElementsOriginal = theFoundStructure
-        .map(group => group.split(inputSyntax.isRegex
-          ? new RegExp(inputSyntax.fieldSeparator, 'u')
-          : inputSyntax.fieldSeparator))
-        .flatMap(set => (set.includes(injectionKeyword)
-          ? [set].concat(injections.map(injectionSet => (
-            injectionSet.concat(makeInjectionsMeta)
-          )))
-          : [set]
-        ))
-        .map((set, i) => set.map((elem, j) => [iterIndex, i, j, elem, 'n']))
+    const theElementsOriginal = theFoundStructure
+      .map(group => group.split(inputSyntax.isRegex
+        ? new RegExp(inputSyntax.fieldSeparator, 'u')
+        : inputSyntax.fieldSeparator))
+      .flatMap(set => (set.includes(injectionKeyword)
+        ? [set].concat(injections.map(injectionSet => (
+          injectionSet.concat(makeInjectionsMeta)
+        )))
+        : [set]
+      ))
+      .map((set, i) => set.map((elem, j) => [iterIndex, i, j, elem, 'n']))
 
-      return _elementsOriginal[theSelector] = theElementsOriginal
-    }
+    return _elementsOriginal[theSelector] = theElementsOriginal
   }
 
   const valuePicker = function(valueSets) {
     const pickValue = function(name, colorRules, classRules) {
-      if (!isSRToken(name)) {
+      if (!isSRToken(name, 'value')) {
         return name
       }
 
@@ -156,16 +153,21 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
       const valueSubSet = Number(components[2])
       const valueIndex = Number(components[3])
 
-      let theValue
+      let theValue = null
 
       try {
         theValue = valueSets[valueSetName][valueSubSet].values[valueIndex]
-        if (theValue === undefined) {
+        if (typeof theValue !== 'string') {
           throw 'error'
         }
       }
       catch (e) {
-        return null
+        console.warn(
+          'Invalid Value Set Eval or Pick', e,
+          `${valueSetName}:${valueSubSet}:${valueIndex}`,
+          valueSets,
+        )
+        return theValue
       }
 
       const theColor = colorRules
@@ -369,6 +371,7 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
     numberedSets,
     theSelector = inputSyntax.cssSelector
   ) {
+    console.log('ns', numberedSets, reordering)
     const sa = stylingsAccessor(styleDefinitions, randomIndices)
     const vp = valuePicker(valueSets)
 
@@ -395,7 +398,6 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
           elemType,
         ] = elem
 
-
         if (elemType !== 'd') {
           const theIndex = pa.getNextIndex('colors')
 
@@ -411,6 +413,7 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
           const style = `style="padding: 0px ${pa.getProp(['fieldPadding'])}px;${colorChoice}${blockDisplay}"`
 
           const pickedValue = vp.pickValue(elemContent, pa.getProp(['colors', 'rules']), pa.getProp(['classes', 'rules']))
+          console.log('pickedValue', pickedValue)
 
           if (pickedValue) {
             const filterHtml = pa.getProp(['filter'])
@@ -455,6 +458,7 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
 
     for (const [i, value] of getFoundStructure(theSelector).entries()) {
       if (stylizedResults[i] !== null /* when display:meta */) {
+        console.log('meh', stylizedResults)
         theRawStructure = theRawStructure
           .replace((inputSyntax.isRegex
             ? new RegExp(`${inputSyntax.openDelim}${escapeString(value)}${inputSyntax.closeDelim}`, 'u')

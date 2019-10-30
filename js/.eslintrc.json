@@ -179,7 +179,7 @@
 
     ///////////////////////////////////////////////////////////////////////////
     //// POSSIBLE ERRORS
-    "no-console": ["warn", { "allow": ["warn"] }],
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
     "wrap-iife": "error",
     "radix": "error",
 

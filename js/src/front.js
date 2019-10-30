@@ -38,4 +38,10 @@ const front = function() {
   createWarnings(wereSetsUsed)
 }
 
-front()
+try {
+  front()
+}
+
+catch (e) {
+  console.error('Front Exception Caught', e)
+}

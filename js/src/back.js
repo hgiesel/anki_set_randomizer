@@ -32,4 +32,12 @@ const back = function() {
   createWarnings(wereSetsUsed)
 }
 
-back()
+
+try {
+  back()
+}
+
+catch (e) {
+  console.error('Back Exception Caught', e)
+}
+

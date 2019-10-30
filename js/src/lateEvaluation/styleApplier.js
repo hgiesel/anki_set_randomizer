@@ -2,11 +2,11 @@ import {
   getCorrespondingSets,
 } from './util.js'
 
-export function getNullStyleApplications(numberedSets) {
-  return numberedSets.map(_ => ['default'])
+export const getNullStyleApplications = function(numberedSets) {
+  return numberedSets.map(() => ['default'])
 }
 
-export function processApplication(
+export const processApplication = function(
   iterName, setIndex, posIndex,
 
   styleName,
@@ -32,10 +32,8 @@ export function processApplication(
     nsPos,
   )
 
-  console.log('procApp', iterName, setIndex, posIndex, styleName, correspondingSets)
-
   correspondingSets
-    .forEach(set => {
+    .forEach((set) => {
       styleApplications[set].unshift(styleName)
     })
 }

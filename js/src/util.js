@@ -1,20 +1,53 @@
 export const star = Symbol('star')
 
-export function isSRToken(token, name='') {
+export const isSRToken = function(token, name = '') {
   return token.startsWith(`%%sr%%${name}`)
 }
 
-export function fromSRToken(token) {
+export const fromSRToken = function(token) {
   return token
     .split('%%')
     .slice(2, -1)
 }
 
-export function toSRToken(components) {
+export const toSRToken = function(components) {
   return `%%sr%%${components.join('%%')}%%`
 }
 
-export function createWarnings(wereSetsUsed) {
+const getWarningDiv = function(warningMessage) {
+  const warningDiv = document.createElement('div')
+  warningDiv.id = 'set-randomizer--warning'
+  warningDiv.innerHTML = warningMessage
+  warningDiv.style.cssText = (
+    'color: firebrick;'
+    + 'font-size: 40%; '
+    + 'background-color: white; '
+    + 'border: 2px solid red; '
+    + 'margin: 40px 10px 0px; '
+    + 'padding: 15px; '
+    + 'text-shadow: 0px 0px; ' /* avoid text-shadow from somewhere else */
+  )
+
+  return warningDiv
+}
+
+const createWarningNotDefined = function() {
+  document.body
+    .querySelector('#qa')
+    .appendChild(getWarningDiv('Set-Randomizer:'
+      + 'Anki-Persistence is not defined!\n'
+      + 'Check "Tools > Set Randomizer Options" and make sure you enable "Inject anki-persistence".'))
+}
+
+const createWarningNotAvailable = function() {
+  document.body
+    .querySelector('#qa')
+    .appendChild(getWarningDiv('Set-Randomizer:'
+      + 'Anki-Persistence <a href="https://github.com/SimonLammer/anki-persistence">does not work here</a>.'
+      + 'Randomization will be inconsistent.'))
+}
+
+export const createWarnings = function(wereSetsUsed) {
   if (!document.querySelector('#set-randomizer--warning')) {
     if (!window.Persistence) {
       createWarningNotDefined()
@@ -23,34 +56,4 @@ export function createWarnings(wereSetsUsed) {
       createWarningNotAvailable()
     }
   }
-}
-
-function createWarningNotDefined() {
-  document.body.querySelector('#qa').appendChild(getWarningDiv(
-    'Set-Randomizer: Anki-Persistence is not defined!\n' +
-    'Check "Tools > Set Randomizer Options" and make sure you enable "Inject anki-persistence".'
-  ));
-}
-
-function createWarningNotAvailable() {
-  document.body.querySelector('#qa').appendChild(getWarningDiv(
-    'Set-Randomizer: Anki-Persistence <a href="https://github.com/SimonLammer/anki-persistence">does not work here</a>. Randomization will be inconsistent.'
-  ));
-}
-
-function getWarningDiv(warningMessage) {
-  const warningDiv = document.createElement('div');
-  warningDiv.id = 'set-randomizer--warning'
-  warningDiv.innerHTML = warningMessage
-  warningDiv.style.cssText = (
-    'color: firebrick;' +
-    'font-size: 40%; ' +
-    'background-color: white; ' +
-    'border: 2px solid red; ' +
-    'margin: 40px 10px 0px; ' +
-    'padding: 15px; ' +
-    'text-shadow: 0px 0px; ' /* avoid text-shadow from somewhere else */
-  )
-
-  return warningDiv
 }
