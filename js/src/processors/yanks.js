@@ -1,2 +1,2 @@
-
-export function processYank() {}
+export const processYank = function() {
+}

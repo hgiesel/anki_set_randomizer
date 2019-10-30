@@ -1,5 +1,4 @@
 import {
-  toSRToken,
   fromSRToken,
   isSRToken,
 } from '../util.js'
@@ -32,41 +31,53 @@ import {
   pregenManager,
 } from './pregen.js'
 
-export default function process(elements, generatedValues, uniqConstraints, iterName) {
-
+export const process = function(
+  elements,
+  generatedValues,
+  uniqConstraints,
+  iterName,
+) {
   const evaluators = []
-  const valueSets  = {}
-  const yanks      = []
+  const valueSets = {}
+  const yanks = []
 
   const namedSetStatements = []
-  const commandStatements  = []
-  const styleStatements    = []
-  const applyStatements    = []
+  const commandStatements = []
+  const styleStatements = []
+  const applyStatements = []
 
-  const processElem = function(iterName, setIndex, elemIndex, content, mode) {
-
-    let match
+  const processElem = function(
+    iterNameSub,
+    setIndex,
+    elemIndex,
+    content,
+    mode,
+  ) {
+    let match = null
 
     if (!content.startsWith('$') && mode === 'n') {
-      return [[iterName, setIndex, elemIndex, content, mode]]
+      return [[iterNameSub, setIndex, elemIndex, content, mode]]
     }
 
     ////// PROCESSING
     else if (match = content.match(valueSetPattern)) {
-      console.log('vs', match)
-      const vsToken = processValueSet(valueSets, iterName, setIndex, elemIndex, ...match.slice(1))
-      return [[iterName, setIndex, elemIndex, vsToken, mode]]
+      const vsToken = processValueSet(
+        valueSets,
+        iterNameSub,
+        setIndex,
+        elemIndex,
+        ...match.slice(1),
+      )
+      return [[iterNameSub, setIndex, elemIndex, vsToken, mode]]
     }
 
     else if (match = content.match(evalPattern)) {
-      console.log('eval', match)
       evaluators.push(processEvaluator(...match.slice(1)))
     }
 
     else if (match = content.match(pickPattern)) {
-      console.log('pick', match)
       const pickToken = processPick(...match.slice(1))
-      return [[iterName, setIndex, elemIndex, pickToken, mode]]
+      return [[iterNameSub, setIndex, elemIndex, pickToken, mode]]
     }
 
     else if (match = content.match(yankPattern)) {
@@ -75,19 +86,19 @@ export default function process(elements, generatedValues, uniqConstraints, iter
 
     ////// LATE EVALUATION
     else if (match = content.match(namedSetPattern)) {
-      namedSetStatements.push([iterName, setIndex, elemIndex, ...match.slice(1)])
+      namedSetStatements.push([iterNameSub, setIndex, elemIndex, ...match.slice(1)])
     }
 
     else if (match = content.match(commandPattern)) {
-      commandStatements.push([iterName, setIndex, elemIndex, ...match.slice(1)])
+      commandStatements.push([iterNameSub, setIndex, elemIndex, ...match.slice(1)])
     }
 
     else if (match = content.match(stylePattern)) {
-      styleStatements.push([iterName, setIndex, elemIndex, ...match.slice(1)])
+      styleStatements.push([iterNameSub, setIndex, elemIndex, ...match.slice(1)])
     }
 
     else if (match = content.match(applyPattern)) {
-      applyStatements.push([iterName, setIndex, elemIndex, ...match.slice(1)])
+      applyStatements.push([iterNameSub, setIndex, elemIndex, ...match.slice(1)])
     }
 
     return []
@@ -95,15 +106,18 @@ export default function process(elements, generatedValues, uniqConstraints, iter
 
   const pm = pregenManager(generatedValues, uniqConstraints)
 
-  const expandGenerators = function(iterName, setIndex, elemIndex, content, mode) {
-
+  const expandGenerators = function(
+    iterNameSub,
+    setIndex,
+    elemIndex,
+    content,
+    mode,
+  ) {
     if (isSRToken(content)) {
-
       const tokens = fromSRToken(content)
-      const pg = pm.pregenChecker(iterName, setIndex, elemIndex)
+      const pg = pm.pregenChecker(iterNameSub, setIndex, elemIndex)
 
       switch (tokens[0]) {
-
         case 'pick:number':
           return pg.evalPickNumber(...tokens.slice(1))
 
@@ -112,6 +126,10 @@ export default function process(elements, generatedValues, uniqConstraints, iter
 
         case 'vs':
           return pg.evalValueSet(valueSets, evaluators, ...tokens.slice(1))
+
+        default:
+          // should never occur
+          return ''
       }
     }
 
@@ -121,10 +139,10 @@ export default function process(elements, generatedValues, uniqConstraints, iter
   const numberedSets = elements
     .map(set => set.flatMap(elem => processElem(...elem)))
     .map((set, i) => ({
-      "iter": iterName,
-      "name": i,
-      "sets": [i],
-      "elements": set
+      'iter': iterName,
+      'name': i,
+      'sets': [i],
+      'elements': set
         .flatMap(elem => expandGenerators(...elem)),
     }))
 
@@ -135,8 +153,6 @@ export default function process(elements, generatedValues, uniqConstraints, iter
     applyStatements,
   ]
 
-  console.log('ns, cmd, style, apply', forLateEvaluation)
-
   return [
     numberedSets,
     pm.exportGeneratedValues(),
@@ -145,3 +161,5 @@ export default function process(elements, generatedValues, uniqConstraints, iter
     forLateEvaluation,
   ]
 }
+
+export default process

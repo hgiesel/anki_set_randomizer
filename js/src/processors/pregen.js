@@ -5,17 +5,18 @@ import {
 } from './numbered.js'
 
 // Adapter for numbered.js evals
-export function pregenManager(generatedValues, uniqConstraints,) {
-
+export const pregenManager = function(generatedValues, uniqConstraints) {
   const pregenChecker = function(iterName, setIndex, elemIndex) {
-
     const checkForPregen = function() {
-      let pregen
+      let pregen = null
+
       if (pregen = generatedValues
-        .find(v =>
-          v[0] === iterName &&
-          v[1] === setIndex &&
-          v[2] === elemIndex)) {
+        .find(v => (
+          v[0] === iterName
+          && v[1] === setIndex
+          && v[2] === elemIndex
+        ))
+      ) {
         return pregen[3]
       }
 

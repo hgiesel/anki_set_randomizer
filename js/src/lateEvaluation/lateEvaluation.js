@@ -9,11 +9,7 @@ export default function lateEvaluate(
   styleStatements,
   applyStatements,
 ) {
-  console.log('-1')
-
   const re = ruleEngine(numberedSets, defaultStyle)
-
-  console.log('0', re.exportResults())
 
   namedSetStatements
     .reduce((accu, elem) => {
@@ -24,19 +20,9 @@ export default function lateEvaluate(
     }, [])
     .forEach(stmt => re.processNamedSet(...stmt))
 
-  console.log('1', re.exportResults())
-
   commandStatements.forEach(stmt => re.processCommand(...stmt))
-
-  console.log('2', re.exportResults())
-
   styleStatements.forEach(stmt => re.processStyle(...stmt))
-
-  console.log('3', re.exportResults())
-
   applyStatements.forEach(stmt => re.processApplication(...stmt))
-
-  console.log('4', re.exportResults())
 
   return re.exportResults()
 }

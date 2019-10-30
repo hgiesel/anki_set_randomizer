@@ -4,20 +4,14 @@ const center = Symbol('center')
 
 // wraps in non-capturing group
 const wrapName = (names, args) => (
-  `^\\$(?:${names.join('|')})` +
-  `\\(${args.join('')}\\)$`
+  `^\\$(?:${names.join('|')})`
+  + `\\(${args.join('')}\\)$`
 )
 
 // wraps in non-capturing group
-const wrapArg = (val, alignment=center, optional=false) => {
-  switch (alignment) {
-    case left:
-      return `(?:\\s*${val}\\s*,)` + (optional ? '?' : '')
-    case right:
-      return `(?:,\\s*${val}\\s*)` + (optional ? '?' : '')
-    default:
-      return `(?:\\s*${val}\\s*)` + (optional ? '?' : '')
-  }
+const wrapArg = function(val, alignment = center, optional = false) {
+  return `(?:${alignment === right ? ',' : ''}\\s*${val}\\s*${alignment === left ? ',' : ''})`
+    + `${optional ? '?' : ''}`
 }
 
 export const namePattern = '([a-zA-Z_][a-zA-Z0-9_\\-]*|\\*)'
@@ -34,69 +28,64 @@ export const valSetPos = (
 
 export const valueSetName = `\\$${namePattern}(?:(?::${valSetPos})?:${valSetPos})?`
 
-export const valueSetPattern = new RegExp(
-  `^\\$${namePattern}` +
-  `(?!\\()` /* no opening parenthesis allowed */ +
-  `(\\W)` /* separator character */ +
-  `((?:.|\\n|\\r)*)`
-)
+export const valueSetPattern = new RegExp(`^\\$${namePattern}`
+  + `(?!\\()` /* no opening parenthesis allowed */
+  + `(\\W)` /* separator character */
+  + `((?:.|\\n|\\r)*)`, 'u')
 
 const amountPattern = '(\\d+|\\*)'
 
-const intPattern      = '\\d+'
-const realPattern     = `\\d+(?:\\.\\d*)?`
+const intPattern = '\\d+'
+const realPattern = `\\d+(?:\\.\\d*)?`
 const numberGenerator = `(${realPattern}):(${realPattern})(?::(${intPattern}))?`
 
 export const keywordPattern = (
-  `${namePattern}=` /* the keyword */ +
-  `(?:` +
-  `\\[(.*?)\\]|` /* list notation */ +
-  `"(.*?)"|` /* double quote notation */ +
-  `'(.*?)'|` /* single quote notation */ +
-  `([^,]+)` /* no-comma notation */ +
-  `)?`
+  `${namePattern}=` /* the keyword */
+  + `(?:`
+  + `\\[(.*?)\\]|` /* list notation */
+  + `"(.*?)"|` /* double quote notation */
+  + `'(.*?)'|` /* single quote notation */
+  + `([^,]+)` /* no-comma notation */
+  + `)?`
 )
-export const keywordRegex = new RegExp(keywordPattern, 'gm')
+
+export const keywordRegex = new RegExp(keywordPattern, 'gmu')
 
 export const keywordArgPattern = (
-  `(` +
+  `(`
 
-  `(?:${namePatternNonCapturing})=` /* the keyword */ +
-  `(?:` +
-  `\\[(?:.*?)\\]|` /* list notation */ +
-  `"(?:.*?)"|` /* double quote notation */ +
-  `'(?:.*?)'|` /* single quote notation */ +
-  `(?:[^,]+)` /* no-comma notation */ +
-  `)?` +
+  + `(?:${namePatternNonCapturing})=` /* the keyword */
+  + `(?:`
+  + `\\[(?:.*?)\\]|` /* list notation */
+  + `"(?:.*?)"|` /* double quote notation */
+  + `'(?:.*?)'|` /* single quote notation */
+  + `(?:[^,]+)` /* no-comma notation */
+  + `)?`
 
-  `(?:\\s*,\\s*` +
-  `(?:${namePatternNonCapturing})=` /* the keyword */ +
-  `(?:` +
-  `\\[(?:.*?)\\]|` /* list notation */ +
-  `"(?:.*?)"|` /* double quote notation */ +
-  `'(?:.*?)'|` /* single quote notation */ +
-  `(?:[^,]+)` /* no-comma notation */ +
-  `)?` +
-  `)*` +
+  + `(?:\\s*,\\s*`
+  + `(?:${namePatternNonCapturing})=` /* the keyword */
+  + `(?:`
+  + `\\[(?:.*?)\\]|` /* list notation */
+  + `"(?:.*?)"|` /* double quote notation */
+  + `'(?:.*?)'|` /* single quote notation */
+  + `(?:[^,]+)` /* no-comma notation */
+  + `)?`
+  + `)*`
 
-  `)?`
+  + `)?`
 )
 
-export const pickPattern = new RegExp(
-  wrapName(['pick', 'p'], [
-    wrapArg(amountPattern, left, true),
-    wrapArg(`(?:${numberGenerator}|${valueSetName})`),
-    wrapArg(keywordArgPattern /* uniqConstraint */, right, true),
-  ])
-)
+export const pickPattern = new RegExp(wrapName(['pick', 'p'], [
+  wrapArg(amountPattern, left, true),
+  wrapArg(`(?:${numberGenerator}|${valueSetName})`),
+  wrapArg(keywordArgPattern /* uniqConstraint */, right, true),
+]), 'u')
 
-export const evalPattern = new RegExp(
-  wrapName(['evaluate', 'eval', 'e'], [
-    wrapArg(amountPattern, left, true),
-    wrapArg(valueSetName),
-    wrapArg(keywordArgPattern /* uniqConstraint */, right, true),
-  ])
-)
+export const evalPattern = new RegExp(wrapName(['evaluate', 'eval', 'e'], [
+  wrapArg(amountPattern, left, true),
+  wrapArg(valueSetName),
+  wrapArg(keywordArgPattern /* uniqConstraint */, right, true),
+]), 'u')
 
 export const attributeList = `(\\w):(\\d+(?::\\d+)*)`
 

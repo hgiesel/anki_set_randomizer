@@ -6,7 +6,12 @@ import {
   star,
 } from '../util.js'
 
-function generateRandomValue(min, max, extra, isReal) {
+const generateRandomValue = function(
+  min,
+  max,
+  extra,
+  isReal,
+) {
   const preValue = Math.random() * (max - min) + min
 
   return isReal
@@ -14,14 +19,23 @@ function generateRandomValue(min, max, extra, isReal) {
     : (Math.round(preValue) * (extra || 1)).toString()
 }
 
-export function processEvaluator(
+const findUniqConstraints = function(uniqConstraints, uniqConstraintName) {
+  return uniqConstraintName
+    ? uniqConstraints.find(v => v.name === uniqConstraintName)
+      || uniqConstraints[uniqConstraints.push({
+        name: uniqConstraintName,
+        values: []
+      }) - 1]
+    : null
+}
+
+export const processEvaluator = function(
   amount,
   valueSetName,
   maybeNumberSetIndex, _star1,
   maybeNumberValueIndex, _star2,
   uniquenessConstraint,
 ) {
-
   const nsi = Number(maybeNumberSetIndex)
   const nvi = Number(maybeNumberValueIndex)
 
@@ -30,13 +44,13 @@ export function processEvaluator(
       ? star
       : valueSetName,
 
-    !Number.isNaN(nsi)
-      ? nsi
-      : star,
+    isNaN(nsi)
+      ? star
+      : nsi,
 
-    !Number.isNaN(nvi)
-      ? nvi
-      : star,
+    isNaN(nvi)
+      ? star
+      : nvi,
 
     amount >= 0
       ? Number(amount)
@@ -48,10 +62,10 @@ export function processEvaluator(
   return result
 }
 
-const newLinePattern = new RegExp(`\\\\n`, 'g')
-const catchPattern = new RegExp(`\\\\.`, 'g')
+const newLinePattern = /\\n/gu
+const catchPattern = /\\./gu
 
-export function processValueSet(
+export const processValueSet = function(
   valueSets,
   iterName, setIndex, elemIndex,
 
@@ -59,11 +73,10 @@ export function processValueSet(
   valueSeparator,
   valueString
 ) {
-
   const values = valueString
     .replace(`\\${valueSeparator}`, toSRToken(['escdelim']))
     .replace(newLinePattern, '<br/>')
-    .replace(catchPattern, (x) => x.slice(1))
+    .replace(catchPattern, x => x.slice(1))
     .split(valueSeparator)
     .map(v => v.replace(toSRToken(['escdelim']), valueSeparator))
 
@@ -79,7 +92,7 @@ export function processValueSet(
   return toSRToken(['vs', valueSetName, valueSetIndex])
 }
 
-export function processPick(
+export const processPick = function(
   amountString,
   minValue, maxValue, extraValue,
   vsName,
@@ -87,19 +100,15 @@ export function processPick(
   maybeVsValueIndex, _vsvIndexStar,
   maybeUniqConstraintName,
 ) {
+  const amount = amountString /* star or number */ || 1
 
-  const amount = amountString !== null
-    ? amountString // star or number
-    : '1'
-
-  const uniqConstraintName = maybeUniqConstraintName === undefined
-    ? ''
-    : maybeUniqConstraintName === ''
-      ? `_unnamed${Math.random().toString().slice(2)}`
-      : maybeUniqConstraintName
+  const uniqConstraintName = maybeUniqConstraintName === ''
+    ? `_unnamed${String(Math.random()).slice(2)}`
+    : typeof maybeUniqConstraintName === 'string'
+    ? maybeUniqConstraintName
+    : ''
 
   if (minValue && maxValue) {
-
     const extraValueString = extraValue || ''
 
     return toSRToken([
@@ -113,13 +122,13 @@ export function processPick(
   }
 
   else {
-    const vsSetIndex = !Number.isNaN(Number(maybeVsSetIndex))
-      ? maybeVsSetIndex
-      : '*'
+    const vsSetIndex = isNaN(Number(maybeVsSetIndex))
+      ? '*'
+      : maybeVsSetIndex
 
-    const vsValueIndex = !Number.isNaN(Number(maybeVsValueIndex))
-      ? maybeVsValueIndex
-      : '*'
+    const vsValueIndex = isNaN(Number(maybeVsValueIndex))
+      ? '*'
+      : maybeVsValueIndex
 
     return toSRToken([
       'pick:vs',
@@ -132,7 +141,7 @@ export function processPick(
   }
 }
 
-export function evalPickNumber(
+export const evalPickNumber = function(
   uniqConstraints,
   amount,
   minValue,
@@ -198,7 +207,7 @@ export function evalPickNumber(
   return resultValues
 }
 
-export function evalPickValueSet(
+export const evalPickValueSet = function(
   uniqConstraints,
   valueSets,
   amount,
@@ -207,13 +216,12 @@ export function evalPickValueSet(
   valueSetPosIndex,
   uniqConstraintName,
 ) {
-
   const resultValues = []
   const theUc = findUniqConstraints(uniqConstraints, uniqConstraintName)
 
   for (let failedOnce = false, i = 0; i < amount; i++) {
     if (failedOnce) {
-      break;
+      break
     }
 
     const foundValueSet = valueSets[
@@ -233,7 +241,7 @@ export function evalPickValueSet(
     let resultValue = foundValueSubSet
       ? valueSetSetIndex === star
         ? toSRToken(['value', foundValueSubSet.name, vidx, Math.floor(Math.random() * foundValueSubSet.values.length)])
-        : toSRToken(['value', foundValueSubSet.name, vidx, valueSetValueIndex])
+        : toSRToken(['value', foundValueSubSet.name, vidx, valueSetPosIndex])
       : null
 
     /* dealing with uc */
@@ -242,25 +250,23 @@ export function evalPickValueSet(
       const countIdxMax = 100
 
       while (theUc.values.includes(resultValue) && countIdx < countIdxMax) {
-
-        const resultValue = foundValueSubSet
+        resultValue = foundValueSubSet
           ? valueSetSetIndex === star
             ? toSRToken(['value', foundValueSubSet.name, vidx, Math.floor(Math.random() * foundValueSubSet.values.length)])
-            : toSRToken(['value', foundValueSubSet.name, vidx, valueSetValueIndex])
+            : toSRToken(['value', foundValueSubSet.name, vidx, valueSetPosIndex])
           : null
 
         countIdx++
       }
 
-      if (countIdx == countIdxMax) {
+      if (countIdx === countIdxMax) {
         resultValue = null
         failedOnce = true
       }
     }
 
     /* adding to resultValues */
-    if (resultValue !== undefined && resultValue !== null) {
-
+    if (typeof resultValue === 'string') {
       if (theUc) {
         theUc.values.push(resultValue)
       }
@@ -272,7 +278,7 @@ export function evalPickValueSet(
   return resultValues
 }
 
-export function evalValueSet(
+export const evalValueSet = function(
   uniqConstraints,
   valueSets,
   evaluators,
@@ -280,28 +286,22 @@ export function evalValueSet(
   vsSetIndex,
 ) {
   const values = valueSets[vsName][vsSetIndex].values
-  console.log('v', values)
 
   const foundEvaluator = evaluators.find(v => (
-    (v[0] === vsName && v[1] === vsSetIndex) ||
-    (v[0] === vsName && v[1] === star) ||
-    (v[0] === star && v[1] === vsSetIndex) ||
-    (v[0] === star && v[1] === star) && (v[2] === star || v[2] < values.length)
+    (v[0] === vsName && v[1] === vsSetIndex)
+    || (v[0] === vsName && v[1] === star)
+    || (v[0] === star && v[1] === vsSetIndex)
+    || (v[0] === star && v[1] === star) && (v[2] === star || v[2] < values.length)
   ))
 
   const resolvedValues = []
-  let wasStar
 
   if (foundEvaluator) {
-
-    wasStar = foundEvaluator[2] === star ? true : false
-
     const valueId = foundEvaluator[2]
     const valueCount = foundEvaluator[3]
     const theUc = findUniqConstraints(uniqConstraints, foundEvaluator[4])
 
     for (let failedOnce = false, i = 0; i < valueCount; i++) {
-
       if (failedOnce) {
         break
       }
@@ -310,16 +310,16 @@ export function evalValueSet(
         'value',
         vsName,
         vsSetIndex,
-        valueId !== star ? valueId : Math.floor(Math.random() * values.length),
+        valueId === star
+          ? Math.floor(Math.random() * values.length)
+          : valueId,
       ])
 
       if (theUc) {
-
         let countIdx = 0
         const countIdxMax = 100
 
         while (theUc.includes(theValue) && countIdx < countIdxMax) {
-
           theValue = toSRToken([
             'value',
             vsName,
@@ -327,11 +327,11 @@ export function evalValueSet(
             Math.floor(Math.random() * values.length).toString(),
           ])
 
-          if (valueId !== star) {
-            countIdx = countIdxMax
+          if (valueId === star) {
+            countIdx++
           }
           else {
-            countIdx++
+            countIdx = countIdxMax
           }
         }
 
@@ -345,21 +345,11 @@ export function evalValueSet(
         }
       }
 
-      if (theValue !== null && theValue !== undefined) {
+      if (typeof theValue === 'string') {
         resolvedValues.push(theValue)
       }
     }
   }
 
   return resolvedValues
-}
-
-function findUniqConstraints(uniqConstraints, uniqConstraintName) {
-  return uniqConstraintName
-      ? uniqConstraints.find(v => v.name === uniqConstraint) ||
-      uniqConstraints[uniqConstraints.push({
-        name: uniqConstraintName,
-        values: []
-      }) - 1]
-      : null
 }
