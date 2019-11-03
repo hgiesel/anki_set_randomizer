@@ -33,7 +33,7 @@ export function reorderNumberedSets(numberedSets) {
     sets: [[v.iter, v.name]],
     setLengths: [v.elements.length],
     order: shuffle([...new Array(v.elements.length).keys()]),
-    lastMinute: v.lastMinute,
+    force: v.force,
   }))
 }
 
@@ -56,7 +56,7 @@ export function reorderNamedSets(namedSets, numberedSets) {
       sets: v.sets.map(w => [v.iter, w]),
       setLengths: setLengths,
       order: shuffle([...new Array(elementCount).keys()]),
-      lastMinute: v.lastMinute,
+      force: v.force,
     }
   })
 }
@@ -77,8 +77,8 @@ export function applyOrderConstraint(orderConstraint, setReorders) {
     setReorders.forEach(v => {
       if (v.name === set) {
         v.order = newOrder
-        if (orderConstraint.lastMinute) {
-          v.lastMinute = true
+        if (orderConstraint.force) {
+          v.force = true
         }
       }
     })

@@ -24,10 +24,11 @@ import {
 
 import {
   preprocessYank,
-  preprocessName,
+  preprocessNamepos,
   preprocessVs,
   preprocessAmount,
   preprocessPick,
+  preprocessPickNumber,
   preprocessUniq,
 } from './preprocess.js'
 
@@ -72,23 +73,23 @@ export const process = function(
         elemIndex,
         ...patternResult.slice(1),
       )
+
       return [[iterNameSub, setIndex, elemIndex, vsToken, mode]]
     }
 
     else if (patternResult = content.match(evalPattern)) {
-      evaluators.push(
+      evaluators.push([
         preprocessAmount(patternResult.slice(1, 2), 1),
         preprocessVs(patternResult.slice(2, 5)),
-        preprocessUniq(patternResult.slice(5, 6)),
-      )
+        preprocessUniq(patternResult.slice(5, 7)),
+      ])
     }
 
     else if (patternResult = content.match(pickPattern)) {
-      console.log(patternResult)
       const pickToken = processPick(
         preprocessAmount(patternResult.slice(1, 2)),
         preprocessPick(patternResult.slice(2, 8)),
-        preprocessUniq(patternResult.slice(8, 9)),
+        preprocessUniq(patternResult.slice(8, 10)),
       )
 
       return [[iterNameSub, setIndex, elemIndex, pickToken, mode]]
@@ -100,22 +101,44 @@ export const process = function(
 
     ////// LATE EVALUATION
     else if (patternResult = content.match(namedSetPattern)) {
-      namedSetStatements.push([iterNameSub, setIndex, elemIndex, ...patternResult.slice(1)])
+      namedSetStatements.push([
+        iterNameSub,
+        setIndex,
+        elemIndex,
+        preprocessVs(patternResult.slice(1, 4)),
+        patternResult[4] /* name */,
+        preprocessNamepos(patternResult.slice(5, 9)),
+        patternResult.slice(9) /* keywords */,
+      ])
     }
 
     else if (patternResult = content.match(commandPattern)) {
-      commandStatements.push([iterNameSub, setIndex, elemIndex, ...patternResult.slice(1)])
+      commandStatements.push([
+        iterNameSub,
+        setIndex,
+        elemIndex,
+        ...patternResult.slice(1),
+      ])
     }
 
     else if (patternResult = content.match(stylePattern)) {
-      console.log('style', patternResult)
-      styleStatements.push([iterNameSub, setIndex, elemIndex, ...patternResult.slice(1)])
+      styleStatements.push([
+        iterNameSub,
+        setIndex,
+        elemIndex,
+        ...patternResult.slice(1),
+      ])
     }
 
     else if (patternResult = content.match(applyPattern)) {
-      console.log('apply', patternResult)
-      console.log(preprocessName(patternResult.slice(7, 11)))
-      applyStatements.push([iterNameSub, setIndex, elemIndex, ...patternResult.slice(1)])
+      applyStatements.push([
+        iterNameSub,
+        setIndex,
+        elemIndex,
+        preprocessVs(patternResult.slice(1, 4)),
+        patternResult[4] /* style name */,
+        preprocessNamepos(patternResult.slice(5)),
+      ])
     }
 
     return []
@@ -131,18 +154,32 @@ export const process = function(
     mode,
   ) {
     if (isSRToken(content)) {
-      const tokens = fromSRToken(content)
       const pg = pm.pregenChecker(iterNameSub, setIndex, elemIndex)
 
-      switch (tokens[0]) {
+      const [
+        tokenName,
+        ...tokens
+      ] = fromSRToken(content, false)
+
+      switch (tokenName) {
         case 'pick:number':
-          return pg.evalPickNumber(...tokens.slice(1))
+          const a = pg.expandPickNumber(
+            preprocessAmount(tokens.slice(0, 1)),
+            preprocessPickNumber(tokens.slice(1, 4)),
+            preprocessUniq([null, tokens[4]]),
+          )
+          return a
 
         case 'pick:vs':
-          return pg.evalPickValueSet(valueSets, ...tokens.slice(1))
+          return pg.expandPickValueSet(
+            valueSets,
+            preprocessAmount(tokens.slice(0, 1)),
+            preprocessVs(tokens.slice(1, 4)),
+            preprocessUniq([null, tokens[5]]),
+          )
 
         case 'vs':
-          return pg.evalValueSet(valueSets, evaluators, ...tokens.slice(1))
+          return pg.expandValueSet(valueSets, evaluators, ...tokens)
 
         default:
           // should never occur
@@ -168,6 +205,8 @@ export const process = function(
     styleStatements,
     applyStatements,
   ]
+
+  console.log('nss', namedSetStatements)
 
   return [
     numberedSets,

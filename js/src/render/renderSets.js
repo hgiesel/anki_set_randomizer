@@ -21,24 +21,8 @@ const valuePicker = function(valueSets) {
       return name
     }
 
-    const vs = preprocessVs(fromSRToken(name).slice(1))
-    let theValue = null
-
-    try {
-      theValue = valueSets[vs.name][vs.sub].values[vs.pos]
-
-      if (typeof theValue !== 'string') {
-        throw 'error'
-      }
-    }
-    catch (e) {
-      console.warn(
-        'Invalid Value Set Eval or Pick', e,
-        `${vs.name}:${vs.sub}:${vs.pos}`,
-        valueSets,
-      )
-      return theValue
-    }
+    const vs = preprocessVs(fromSRToken(name))
+    const theValue = valueSets[vs.name][vs.sub].values[vs.pos]
 
     const theColor = colorRules
       ? colorRules.find(([/* color */, rule]) => (
@@ -108,7 +92,7 @@ export const renderSets = function(
 
         const colorChoice = Number.isNaN(theIndex)
           ? ''
-          : ` color: ${pa.getProp(['colors', 'values'])[theIndex]};`
+          : ` color: ${pa.getProp(['colors', 'values', theIndex], [/* preds */], '')};`
 
         const className = `class="set-randomizer--element set-randomizer--element-index-${setIndex}-${elemIndex}"`
         const blockDisplay = pa.getProp(['block'])

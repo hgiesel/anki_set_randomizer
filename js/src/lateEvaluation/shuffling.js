@@ -5,54 +5,44 @@ import {
   toOptArg,
 } from './util.js'
 
-function keywordProcess(kwArgs) {
+const keywordProcess = function(kwArgs) {
   return toOptArg(evalKeywordArguments(kwArgs))
 }
 
-export function processNamedSet(
+export const processNamedSet = function(
   iterName, setIndex, posIndex,
 
   name,
-  absolutePos,
-  absolutePosFromEnd,
-  relativePos,
-  namedSetPos,
-  nsPos,
+  pos,
   kwArgs,
 
   numberedSets,
   namedSets,
   orderConstraints,
 ) {
-
-  console.log(iterName, setIndex, posIndex)
-
   const keywords = keywordProcess(kwArgs)
 
   const correspondingSets = getCorrespondingSets(
     numberedSets,
     namedSets,
-    absolutePos,
-    absolutePosFromEnd,
+
+    pos,
     setIndex,
-    relativePos,
-    namedSetPos,
-    nsPos,
   )
 
   const actualName = name === '_'
     ? `_unnamed${Math.random().toString().slice(2)}`
     : name
 
-  let helpNs
+  let helpNs = null
   const ns = (helpNs = namedSets.find(w => w.name === actualName))
     ? helpNs
     : namedSets[namedSets.push({
-        iter: iterName,
-        name: actualName,
-        sets: [],
-        force: false,
-      }) - 1]
+      iter: iterName,
+      name: actualName,
+      sets: [],
+      force: false,
+    }) - 1]
 
   ns.sets.push(...correspondingSets)
   ns.sets.sort()
@@ -63,25 +53,32 @@ export function processNamedSet(
 
   else if (keywords.order) {
     processOrderConstraint(
-      actualName,
+      iterName, setIndex, posIndex,
+
+      keywords.order,
+      correspondingSets,
+
       keywords.forceOrder,
       orderConstraints
     )
   }
 }
 
-export function processOrderConstraint(
-  name,
+export const processOrderConstraint = function(
+  iterName, setIndex, posIndex,
+
+  orderName,
+  correspondingSets,
+
   forceOrder,
   orderConstraints,
 ) {
-
-  let theOc
-  const oc = (theOc = orderConstraints.find(v => v.name === name))
+  let theOc = null
+  const oc = (theOc = orderConstraints.find(v => v.name === orderName))
     ? theOc
     : orderConstraints[orderConstraints.push({
       iter: iterName,
-      name: name,
+      name: orderName,
       sets: [],
       force: false,
       dictator: false /* determined at later stage */,

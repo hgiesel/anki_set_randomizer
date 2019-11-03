@@ -1,5 +1,5 @@
-export const vsNothing = Symbol('vsNothing')
-export const vsJust = Symbol('vsJust')
+export const vsSome = Symbol('vsSome')
+export const vsNone = Symbol('vsNone')
 export const vsStar = Symbol('vsStar')
 
 export const pickInt = Symbol('pickInt')
@@ -13,18 +13,18 @@ export const typeName = Symbol('typeName')
 export const amountCount = Symbol('amountCount')
 export const amountStar = Symbol('amountStar')
 
-export const uniqJust = Symbol('uniqJust')
+export const uniqSome = Symbol('uniqSome')
+export const uniqNone = Symbol('uniqNone')
 export const uniqAnon = Symbol('uniqAnon')
-export const uniqNothing = Symbol('uniqNothing')
 
 export const isSRToken = function(token, name = '') {
   return token.startsWith(`%%sr%%${name}`)
 }
 
-export const fromSRToken = function(token) {
+export const fromSRToken = function(token, dropFirst = true) {
   return token
     .split('%%')
-    .slice(2, -1)
+    .slice(dropFirst ? 3 : 2, -1)
 }
 
 export const toSRToken = function(components) {

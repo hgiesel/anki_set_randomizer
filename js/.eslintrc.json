@@ -97,7 +97,7 @@
     "func-name-matching": ["error", "always", { "considerPropertyDescriptor": true }],
     // disallow function declarations
     "func-style": ["error", "expression"],
-    "function-paren-newline": ["error", { "minItems": 4 }],
+    // "function-paren-newline": ["warn", { "minItems": 5 }],
 
     "multiline-comment-style": ["error", "separate-lines"],
 
@@ -119,7 +119,7 @@
 
     //// SWITCH STATEMENTS
     // no declarations within case statements
-    "no-case-declarations": "error",
+    // "no-case-declarations": "error",
     "no-fallthrough": "error",
     "default-case": "error",
 

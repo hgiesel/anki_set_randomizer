@@ -1,4 +1,6 @@
 import {
+  vsNone, vsSome, vsStar,
+
   isSRToken,
   fromSRToken,
 } from '../util.js'
@@ -23,7 +25,7 @@ import styleSetter from './styleSetter.js'
 
 // Adapter for numbered.js evals
 export const ruleEngine = function(numberedSets, defaultStyle) {
-  const values = numberedSets
+  const elementsValues = numberedSets
     .map(set => set.elements)
     .flat()
     .filter(elem => isSRToken(elem[3], 'value'))
@@ -51,36 +53,50 @@ export const ruleEngine = function(numberedSets, defaultStyle) {
   }
 
   const rulethrough = function(
-    f, iterName, setIndex, posIndex,
-    vs, vsSetIndex, vsSetStar, vsValueIndex, vsValueStar,
-    ...argumentz
+    f, iterName, setIndex, elemIndex,
+    vs, ...argumentz
   ) {
-    if (vs) {
-      values
-        .filter((value) => {
-          const [
-            vsname,
-            vssetindex,
-            vsvalueindex,
-          ] = fromSRToken(value[3]).slice(1)
+    const g = function([
+      iterNameInner,
+      setIndexInner,
+      elemIndexInner,
+      content
+    ]) {
+      const [
+        vsName,
+        vsSub,
+        vsPos,
+      ] = fromSRToken(content)
 
-          return (
-            (vs === '*'  || vs === vsname) &&
-            (vsSetIndex   === undefined || vsSetStar   || vsSetIndex   === vssetindex) &&
-            (vsValueIndex === undefined || vsValueStar || vsValueIndex === vsvalueindex)
-          )
-        })
-        .forEach(value => callthrough(f, value[0], value[1], value[2], argumentz))
+      if (
+        (vs.name === vsStar || vs.name === vsName)
+        && (vs.sub === vsStar || vs.sub === vsSub)
+        && (vs.pos === vsStar || vs.pos === vsPos)
+      ) {
+        callthrough(
+          f,
+          iterNameInner,
+          setIndexInner,
+          elemIndexInner,
+          argumentz,
+        )
+      }
     }
 
-    else {
-      callthrough(
-        f,
-        iterName,
-        setIndex,
-        posIndex,
-        argumentz
-      )
+    switch (vs.type) {
+      case vsSome:
+        elementsValues.forEach(g)
+        break
+
+      case vsNone: default:
+        callthrough(
+          f,
+          iterName,
+          setIndex,
+          elemIndex,
+          argumentz,
+        )
+        break
     }
   }
 
@@ -92,14 +108,14 @@ export const ruleEngine = function(numberedSets, defaultStyle) {
   ) {
     rulethrough(
       pns, iterName, setIndex, posIndex, ...argumentz,
-      numberedSets, namedSets,
+      numberedSets, namedSets, orderConstraints,
     )
   }
 
   const processCommand = function(
-    iterName, setIndex, posIndex,
-    copyCmd, moveCmd, delCmd, xchCmd, replCmd,
-    ...argumentz
+    // iterName, setIndex, posIndex,
+    // copyCmd, moveCmd, delCmd, xchCmd, replCmd,
+    // ...argumentz
   ) {
     // rulethrough(pc, iterName, setIndex, posIndex, 25, numberedSets, namedSets, ...argumentz)
     // toOptArg(evalKeywordArguments(argumentz[argumentz.length])), numberedSets, namedSets,

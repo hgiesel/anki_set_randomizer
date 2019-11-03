@@ -73,7 +73,7 @@ export function matchSetReorder(structureMatches, inheritedReorders, reorders) {
         sets: reorder.sets,
         setLengths: reorder.setLengths,
         order: complementArrays(match.order, reorder.order),
-        lastMinute: reorder.lastMinute,
+        force: reorder.force,
       })
     }
 
@@ -89,7 +89,7 @@ export function matchSetReorder(structureMatches, inheritedReorders, reorders) {
         sets: reorder.sets,
         setLengths: reorder.setLengths,
         order: reorderInherited.order,
-        lastMinute: reorder.lastMinute,
+        force: reorder.force,
       })
     }
 

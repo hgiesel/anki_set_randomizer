@@ -4,8 +4,8 @@ import {
 } from './util.js'
 
 import {
-  vsJust,
-} from './util.js'
+  vsSome,
+} from '../util.js'
 
 import {
   valueSetPattern,
@@ -94,26 +94,26 @@ export default function styleSetter(defaultStyle) {
         sd.stylings.colors.rules = partitionList(attributeValue
           .split(',')
           .map(w => w.trim()), 2, true)
-          .map((w) => {
-            const regexResult = w[1].match(`^${valueSetPattern}$`)
+          .map(([vsText, colorText]) => {
+            const regexResult = vsText.match(`^${valueSetPattern}$`)
             const vs = preprocessVs(regexResult ? regexResult.slice(1) : [/* invalid vs */])
 
-            return [w[0], vs]
+            return [vs, colorText]
           })
-          .filter(w => w[1].type === vsJust)
+          .filter(([vs/*, color */]) => vs.type === vsSome)
         break
 
       case 'classRules':
         sd.stylings.classes.rules = partitionList(attributeValue
           .split(',')
           .map(w => w.trim()), 2, true)
-          .map((w) => {
-            const regexResult = w[1].match(`^${valueSetPattern}$`)
+          .map(([vsText, classText]) => {
+            const regexResult = vsText.match(`^${valueSetPattern}$`)
             const vs = preprocessVs(regexResult ? regexResult.slice(1) : [/* invalid vs */])
 
-            return [w[0], vs]
+            return [vs, classText]
           })
-          .filter(w => w[1].type === vsJust)
+          .filter(([vs/*, class */]) => vs.type === vsSome)
         break
 
       case 'colorCi':

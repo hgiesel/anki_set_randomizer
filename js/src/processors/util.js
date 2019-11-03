@@ -14,13 +14,13 @@ const wrapArg = function(val, alignment = center, optional = false) {
     + `${optional ? '?' : ''}`
 }
 
-export const namePattern = '([a-zA-Z_][a-zA-Z0-9_\\-]*|\\*)'
-const namePatternNonCapturing = '(?:[a-zA-Z_][a-zA-Z0-9_\\-]*|\\*)'
+const namePatternRaw = '[a-zA-Z_][a-zA-Z0-9_\\-]*'
+const namePatternNonCapturing = `(?:${namePatternRaw}|\\*)`
+export const namePattern = `(${namePatternRaw}|\\*)`
 
 const absoluteIdxPattern = `(\\d+)`
 const absoluteNegIdxPattern = `n(-\\d+)`
 const relativeIdxPattern = `((?:\\+|-)?\\d+)`
-const starPattern = `(\\*)`
 
 export const valSetPos = `(\\d+|\\*)`
 
@@ -37,13 +37,14 @@ const realPattern = `\\d+(?:\\.\\d*)?`
 const numberGenerator = `(${realPattern}):(${realPattern})(?::(${intPattern}))?`
 
 export const keywordPattern = (
-  `${namePattern}=` /* the keyword */
+  `${namePattern}` /* the keyword */
+  + `(?:=`
   + `(?:`
   + `\\[(.*?)\\]|` /* list notation */
   + `"(.*?)"|` /* double quote notation */
   + `'(.*?)'|` /* single quote notation */
   + `([^,]+)` /* no-comma notation */
-  + `)?`
+  + `)?)?`
 )
 
 export const keywordRegex = new RegExp(keywordPattern, 'gmu')
@@ -72,16 +73,20 @@ export const keywordArgPattern = (
   + `)?`
 )
 
+const uniqConstraintPattern = (
+  `(?:(uniq)(?:=(${namePatternNonCapturing}?))?)`
+)
+
 export const pickPattern = new RegExp(wrapName(['pick'], [
   wrapArg(amountPattern, left, true),
   wrapArg(`(?:${numberGenerator}|${valueSetName})`),
-  wrapArg(keywordArgPattern /* uniqConstraint */, right, true),
+  wrapArg(uniqConstraintPattern, right, true),
 ]), 'u')
 
 export const evalPattern = new RegExp(wrapName(['evaluate', 'eval'], [
   wrapArg(amountPattern, left, true),
   wrapArg(valueSetName),
-  wrapArg(keywordArgPattern /* uniqConstraint */, right, true),
+  wrapArg(uniqConstraintPattern, right, true),
 ]), 'u')
 
 export const availableShapes = `(rect|ellipse|polygon|line|arrow|darrow)`
@@ -96,14 +101,12 @@ export const yankPattern = new RegExp(wrapName(['occlude', 'occ'], [
 ]), 'u')
 
 ///// LATE EVALUATION REGEXES
-const idxPattern = `(?:`
+const posPattern = `(?:`
   + `${absoluteIdxPattern}|`
   + `${absoluteNegIdxPattern}|`
   + `${relativeIdxPattern}|`
-  + `${namePattern}`
+  + `(${namePatternNonCapturing}(?::${namePatternNonCapturing})*)`
   + `)`
-
-const posPattern = `${idxPattern}(?::${relativeIdxPattern})?`
 
 export const namedSetPattern = new RegExp(wrapName(['name'], [
   wrapArg(valueSetName, left, true),

@@ -43,21 +43,21 @@ export function adjustForSecondRandomization(orderConstraints, numberedSets, nam
 
   const joinedSets = [numberedSets, namedSets].flat()
 
-  for (const oc of orderConstraints.filter(v => v.lastMinute)) {
+  for (const oc of orderConstraints.filter(v => v.force)) {
     for (const set of oc.sets) {
-      joinedSets.find(v => v.name === set).lastMinute = true
+      joinedSets.find(v => v.name === set).force = true
     }
   }
 }
 
 // numbered are sorted 0 -> n, then named are in order of appearance
-export default function randomize(numberedSets, namedSets, orderConstraints, commands, reordersInherited, structureMatches, lastMinute=false) {
+export default function randomize(numberedSets, namedSets, orderConstraints, commands, reordersInherited, structureMatches, force=false) {
 
   const [elements, reordersAlpha] = generateRandomization(numberedSets, namedSets)
 
-  const reordersBeta = !lastMinute
+  const reordersBeta = !force
     ? reordersAlpha
-    : reordersAlpha.filter(v => v.lastMinute)
+    : reordersAlpha.filter(v => v.force)
 
   const reorders = matchSetReorder(
     structureMatches,

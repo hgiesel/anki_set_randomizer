@@ -22,7 +22,9 @@ const styleAccessor = function(styleDefinitions, styleApplications, randomIndice
   importIndices()
 
   const propAccessor = function(lookupName) {
-    const appliedStyleNames = styleApplications[lookupName] || ['default']
+    const appliedStyleNames = styleApplications[lookupName]
+      ? styleApplications[lookupName].concat(['default'])
+      : ['default']
 
     const styles = appliedStyleNames
       .flatMap((name) => {
@@ -90,9 +92,13 @@ const styleAccessor = function(styleDefinitions, styleApplications, randomIndice
     const getNextIndex = function(type /* colors or classes */) {
       let theIndex = null
       const theProp = getProp([type])
-      const propValueLength = getProp([type, 'values']).length
+      const propValueLength = getProp([type, 'values'], [/* preds */], [/* default */]).length
 
-      if (typeof currentIndex === 'number') {
+      if (propValueLength === 0 || Number.isNaN(theProp.next)) {
+        theIndex = NaN
+      }
+
+      else if (typeof currentIndex === 'number') {
         theIndex = ++currentIndex % propValueLength
       }
 
@@ -169,7 +175,7 @@ export const render = function(
   numberedSets,
   reordering,
   valueSets,
-  yanks,
+  occlusions,
   styleDefinitions,
   styleApplications,
   randomIndicesInherited,
@@ -184,12 +190,7 @@ export const render = function(
   )
 
   form.outputSets(stylizedResults)
-
-  renderOcclusion(
-    form.getHtml(),
-    yanks,
-    sa,
-  )
+  renderOcclusion(form.getHtml(), occlusions, sa)
 
   return sa.exportIndices()
 }

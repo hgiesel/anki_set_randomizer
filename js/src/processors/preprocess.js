@@ -1,6 +1,6 @@
 import {
-  vsNothing,
-  vsJust,
+  vsNone,
+  vsSome,
   vsStar,
 
   pickInt,
@@ -14,8 +14,8 @@ import {
   amountStar,
   amountCount,
 
-  uniqJust,
-  uniqNothing,
+  uniqSome,
+  uniqNone,
   uniqAnon,
 } from '../util.js'
 
@@ -37,7 +37,7 @@ export const preprocessYank = function([
   ]
 }
 
-export const preprocessName = function([abs, absNeg, rel, name]) {
+export const preprocessNamepos = function([abs, absNeg, rel, name]) {
   if (abs) {
     return {
       'type': typeAbs,
@@ -66,22 +66,24 @@ export const preprocessName = function([abs, absNeg, rel, name]) {
 
 export const preprocessVs = function([vsName, vsSubIndex, vsPosIndex]) {
   if (vsName) {
+    const maybeVsSub = Number(vsSubIndex)
+    const maybeVsPos = Number(vsPosIndex)
+
     return {
-      'type': vsJust,
+      'type': vsSome,
       'name': vsName === '*' ? vsStar : vsName,
-      'sub': vsSubIndex === '*' ? vsStar : Number(vsSubIndex),
-      'pos': vsPosIndex === '*' ? vsStar : Number(vsPosIndex),
+      'sub': Number.isNaN(maybeVsSub) ? vsStar : maybeVsSub,
+      'pos': Number.isNaN(maybeVsPos) ? vsStar : maybeVsPos,
     }
   }
 
   return {
-    'type': vsNothing,
+    'type': vsNone,
     'name': null,
     'sub': null,
     'pos': null,
   }
 }
-
 
 export const preprocessAmount = function([amountText], defaultAmount = 1) {
   if (amountText === '*' || (!amountText && defaultAmount === amountStar)) {
@@ -97,44 +99,48 @@ export const preprocessAmount = function([amountText], defaultAmount = 1) {
   }
 }
 
-export const preprocessUniq = function([uniqName]) {
-  if (typeof uniqName === 'string') {
-    if (uniqName.length === 0) {
-      return {
-        'type': uniqAnon,
-        'name': null,
-      }
-    }
-
+export const preprocessUniq = function([uniqKeyword, uniqName]) {
+  if (uniqName) {
     return {
-      'type': uniqJust,
+      'type': uniqSome,
       'name': uniqName,
     }
   }
 
+  else if (uniqKeyword) {
+    return {
+      'type': uniqAnon,
+      'name': null,
+    }
+  }
+
   return {
-    'type': uniqNothing,
+    'type': uniqNone,
     'name': null,
   }
 }
 
-export const preprocessPick = function([minValue, maxValue, extraValue, ...vsArgs]) {
-  if (typeof minValue === 'string') {
-    if (minValue.includes('.') || maxValue.includes('.')) {
-      return {
-        'type': pickInt,
-        'min': Number(minValue),
-        'max': Number(maxValue),
-        'extra': Number(extraValue) || 1,
-      }
-    }
-
+export const preprocessPickNumber = function([minValue, maxValue, extraValue]) {
+  if (minValue.includes('.') || maxValue.includes('.')) {
     return {
       'type': pickReal,
       'min': Number(minValue),
       'max': Number(maxValue),
       'extra': Number(extraValue) || 2,
     }
+  }
+
+  return {
+    'type': pickInt,
+    'min': Number(minValue),
+    'max': Number(maxValue),
+    'extra': Number(extraValue) || 1,
+  }
+}
+
+export const preprocessPick = function([minValue, maxValue, extraValue, ...vsArgs]) {
+  if (typeof minValue === 'string') {
+    return preprocessPickNumber([minValue, maxValue, extraValue])
   }
 
   return preprocessVs(vsArgs)

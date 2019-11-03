@@ -5,13 +5,7 @@ import {
 export const processApplication = function(
   iterName, setIndex, posIndex,
 
-  styleName,
-  absolutePos,
-  absolutePosFromEnd,
-  relativePos,
-  namedSetOrYankGroup,
-  nsPos,
-  // kwArgs,
+  styleName, name,
 
   numberedSets,
   namedSets,
@@ -20,12 +14,8 @@ export const processApplication = function(
   const correspondingSets = getCorrespondingSets(
     numberedSets,
     namedSets,
-    absolutePos,
-    absolutePosFromEnd,
+    name,
     setIndex,
-    relativePos,
-    namedSetOrYankGroup,
-    nsPos,
   )
 
   correspondingSets

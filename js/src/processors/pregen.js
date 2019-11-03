@@ -1,20 +1,20 @@
 import {
-  evalPickNumber as epn,
-  evalPickValueSet as epvs,
-  evalValueSet as evs,
-} from './numbered.js'
+  expandPickNumber as epn,
+  expandPickValueSet as epvs,
+  expandValueSet as evs,
+} from './expandGenerators.js'
 
-// Adapter for numbered.js evals
+// Adapter for expanders
 export const pregenManager = function(generatedValues, uniqConstraints) {
   const pregenChecker = function(iterName, setIndex, elemIndex) {
     const checkForPregen = function() {
       let pregen = null
 
       if (pregen = generatedValues
-        .find(v => (
-          v[0] === iterName
-          && v[1] === setIndex
-          && v[2] === elemIndex
+        .find(([iter, setid, elemid]) => (
+          iter === iterName
+          && setid === setIndex
+          && elemid === elemIndex
         ))
       ) {
         return pregen[3]
@@ -30,18 +30,19 @@ export const pregenManager = function(generatedValues, uniqConstraints) {
         resultValues = f(uniqConstraints, ...argumentz)
       }
 
+      console.log('bbbbbb', resultValues.map(v => [0, v]))
       generatedValues.push([iterName, setIndex, elemIndex, resultValues])
       return resultValues.map(v => [iterName, setIndex, elemIndex, v, 'n'])
     }
 
-    const evalPickNumber = (...argumentz) => callthrough(epn, argumentz)
-    const evalPickValueSet = (...argumentz) => callthrough(epvs, argumentz)
-    const evalValueSet = (...argumentz) => callthrough(evs, argumentz)
+    const expandPickNumber = (...argumentz) => callthrough(epn, argumentz)
+    const expandPickValueSet = (...argumentz) => callthrough(epvs, argumentz)
+    const expandValueSet = (...argumentz) => callthrough(evs, argumentz)
 
     return {
-      evalPickNumber: evalPickNumber,
-      evalPickValueSet: evalPickValueSet,
-      evalValueSet: evalValueSet,
+      expandPickNumber: expandPickNumber,
+      expandPickValueSet: expandPickValueSet,
+      expandValueSet: expandValueSet,
     }
   }
 

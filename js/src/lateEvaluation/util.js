@@ -2,6 +2,13 @@ import {
   keywordRegex,
 } from '../processors/util.js'
 
+import {
+  typeRel,
+  typeAbs,
+  typeAbsNeg,
+  typeName,
+} from '../util.js'
+
 export const getBool = function(attributeValue) {
   const bool = attributeValue === 'true' || attributeValue === 'yes'
     ? true
@@ -26,64 +33,53 @@ export const partitionList = function(list, spacing = 1, drop = false) {
   return output
 }
 
+
+const analyzeName = function(numberedSets, namedSets, [name1, name2]) {
+  const foundSets = namedSets
+    .find(v => v.name === name1)
+
+  if (!foundSets) {
+    return [name1 /* assume yank group */]
+  }
+
+  else if (foundSets && name2) {
+    const namedPos = Number(name2)
+
+    const idx = namedPos >= 0
+      ? namedPos
+      : numberedSets.length + namedPos - 1
+
+    return foundSets.sets[idx] >= 0
+      ? [foundSets.sets[idx]]
+      : []
+  }
+
+  else {
+    return foundSets.sets
+  }
+}
+
 // evaluates named set args in $n(), $o(), or $a()
 export const getCorrespondingSets = function(
   numberedSets,
   namedSets,
-  absolutePos,
-  absolutePosFromEnd,
+
+  name,
   currentPos,
-  relativePos,
-  nsOrYg,
-  nsPos,
 ) {
-  let correspondingSets = []
+  switch (name.type) {
+    case typeRel:
+      return [currentPos + name.values]
 
-  if (absolutePos) {
-    correspondingSets = [Number(absolutePos)]
+    case typeAbs:
+      return [name.values]
+
+    case typeAbsNeg:
+      return [numberedSets.length + name.values - 1]
+
+    case typeName: default:
+      return analyzeName(numberedSets, namedSets, name.values)
   }
-
-  else if (absolutePosFromEnd) {
-    const offset = Number(absolutePosFromEnd)
-    correspondingSets = [numberedSets.elements.length + offset - 1]
-  }
-
-  else if (relativePos) {
-    const idx = currentPos + Number(relativePos)
-
-    correspondingSets = numberedSets.elements[idx]
-      ? [idx]
-      : []
-  }
-
-  else if (nsOrYg) {
-    const foundSets = namedSets
-      .find(v => v.name === nsOrYg)
-
-    if (!foundSets) {
-      return [nsOrYg /* assume yank group */]
-    }
-
-    else if (foundSets && nsPos) {
-      const idx = Number(nsPos) >= 0
-        ? Number(nsPos)
-        : numberedSets.length + Number(nsPos) - 1
-
-      correspondingSets = foundSets.sets[idx] >= 0
-        ? [foundSets.sets[idx]]
-        : []
-    }
-
-    else {
-      correspondingSets = foundSets.sets
-    }
-  }
-
-  else /* self-referential */ {
-    correspondingSets = [currentPos]
-  }
-
-  return correspondingSets
 }
 
 export const evalKeywordArguments = function(keywordArguments) {
@@ -91,15 +87,11 @@ export const evalKeywordArguments = function(keywordArguments) {
   let m = keywordRegex.exec(keywordArguments)
 
   while (m) {
-    const theValue = [
+    result.push([
       m[1],
-      m[2] !== undefined ? m[2] :
-      m[3] !== undefined ? m[3] :
-      m[4] !== undefined ? m[4] :
-      m[5] !== undefined ? m[5] : '',
-    ]
+      m[2] || m[3] || m[4] || m[5] || ''
+    ])
 
-    result.push(theValue)
     m = keywordRegex.exec(keywordArguments)
   }
 
@@ -108,8 +100,9 @@ export const evalKeywordArguments = function(keywordArguments) {
 
 export const toOptArg = function(keywords) {
   const result = {}
+  console.log('mekeke', keywords)
 
-  evalKeywordArguments(keywords)
+  keywords
     .forEach(kw => result[kw[0]] = kw[1])
 
   return result
