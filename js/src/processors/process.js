@@ -18,14 +18,18 @@ import {
 ////
 
 import {
-  processEvaluator,
   processValueSet,
   processPick,
 } from './numbered.js'
 
 import {
-  processYank,
-} from './yanks.js'
+  preprocessYank,
+  preprocessName,
+  preprocessVs,
+  preprocessAmount,
+  preprocessPick,
+  preprocessUniq,
+} from './preprocess.js'
 
 import {
   pregenManager,
@@ -39,7 +43,7 @@ export const process = function(
 ) {
   const evaluators = []
   const valueSets = {}
-  const yanks = []
+  const occlusions = []
 
   const namedSetStatements = []
   const commandStatements = []
@@ -53,52 +57,65 @@ export const process = function(
     content,
     mode,
   ) {
-    let match = null
+    let patternResult = null
 
     if (!content.startsWith('$') && mode === 'n') {
       return [[iterNameSub, setIndex, elemIndex, content, mode]]
     }
 
     ////// PROCESSING
-    else if (match = content.match(valueSetPattern)) {
+    else if (patternResult = content.match(valueSetPattern)) {
       const vsToken = processValueSet(
         valueSets,
         iterNameSub,
         setIndex,
         elemIndex,
-        ...match.slice(1),
+        ...patternResult.slice(1),
       )
       return [[iterNameSub, setIndex, elemIndex, vsToken, mode]]
     }
 
-    else if (match = content.match(evalPattern)) {
-      evaluators.push(processEvaluator(...match.slice(1)))
+    else if (patternResult = content.match(evalPattern)) {
+      evaluators.push(
+        preprocessAmount(patternResult.slice(1, 2), 1),
+        preprocessVs(patternResult.slice(2, 5)),
+        preprocessUniq(patternResult.slice(5, 6)),
+      )
     }
 
-    else if (match = content.match(pickPattern)) {
-      const pickToken = processPick(...match.slice(1))
+    else if (patternResult = content.match(pickPattern)) {
+      console.log(patternResult)
+      const pickToken = processPick(
+        preprocessAmount(patternResult.slice(1, 2)),
+        preprocessPick(patternResult.slice(2, 8)),
+        preprocessUniq(patternResult.slice(8, 9)),
+      )
+
       return [[iterNameSub, setIndex, elemIndex, pickToken, mode]]
     }
 
-    else if (match = content.match(yankPattern)) {
-      yanks.push(processYank(...match.slice(1)))
+    else if (patternResult = content.match(yankPattern)) {
+      occlusions.push(preprocessYank(patternResult.slice(1)))
     }
 
     ////// LATE EVALUATION
-    else if (match = content.match(namedSetPattern)) {
-      namedSetStatements.push([iterNameSub, setIndex, elemIndex, ...match.slice(1)])
+    else if (patternResult = content.match(namedSetPattern)) {
+      namedSetStatements.push([iterNameSub, setIndex, elemIndex, ...patternResult.slice(1)])
     }
 
-    else if (match = content.match(commandPattern)) {
-      commandStatements.push([iterNameSub, setIndex, elemIndex, ...match.slice(1)])
+    else if (patternResult = content.match(commandPattern)) {
+      commandStatements.push([iterNameSub, setIndex, elemIndex, ...patternResult.slice(1)])
     }
 
-    else if (match = content.match(stylePattern)) {
-      styleStatements.push([iterNameSub, setIndex, elemIndex, ...match.slice(1)])
+    else if (patternResult = content.match(stylePattern)) {
+      console.log('style', patternResult)
+      styleStatements.push([iterNameSub, setIndex, elemIndex, ...patternResult.slice(1)])
     }
 
-    else if (match = content.match(applyPattern)) {
-      applyStatements.push([iterNameSub, setIndex, elemIndex, ...match.slice(1)])
+    else if (patternResult = content.match(applyPattern)) {
+      console.log('apply', patternResult)
+      console.log(preprocessName(patternResult.slice(7, 11)))
+      applyStatements.push([iterNameSub, setIndex, elemIndex, ...patternResult.slice(1)])
     }
 
     return []
@@ -154,6 +171,7 @@ export const process = function(
 
   return [
     numberedSets,
+    occlusions,
     pm.exportGeneratedValues(),
     pm.exportUniqConstraints(),
     valueSets,

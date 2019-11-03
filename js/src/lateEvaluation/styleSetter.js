@@ -4,41 +4,41 @@ import {
 } from './util.js'
 
 import {
+  vsJust,
+} from './util.js'
+
+import {
   valueSetPattern,
 } from '../processors/util.js'
 
 import {
-  star,
-} from '../util.js'
+  preprocessVs,
+} from '../processors/preprocess.js'
+
+const initStyle = name => ({
+  name: name,
+  stylings: {
+    colors: {},
+    classes: {},
+  }
+})
+
+const noneStyle = initStyle('none')
+noneStyle.display = 'none'
+
+const metaStyle = initStyle('meta')
+noneStyle.display = 'meta'
+
+const blockStyle = initStyle('block')
+blockStyle.openDelim = ''
+blockStyle.closeDelim = ''
+blockStyle.fieldPadding = 0
+noneStyle.display = 'block'
 
 const defaultStyleDefinitions = [
-  {
-    name: 'none',
-    stylings: {
-      colors: {},
-      classes: {},
-      display: 'none',
-    },
-  },
-  {
-    name: 'meta',
-    stylings: {
-      colors: {},
-      classes: {},
-      display: 'meta',
-    },
-  },
-  {
-    name: 'block',
-    stylings: {
-      colors: {},
-      classes: {},
-      openDelim: '',
-      closeDelim: '',
-      fieldPadding: 0,
-      block: true,
-    },
-  }
+  noneStyle,
+  metaStyle,
+  blockStyle,
 ]
 
 export default function styleSetter(defaultStyle) {
@@ -48,172 +48,144 @@ export default function styleSetter(defaultStyle) {
   }].concat(defaultStyleDefinitions)
 
   const setStyleAttribute = function(name, attributeName, attributeValue) {
-    let theStyle = null
-    const sd = (theStyle = styleDefinitions.find(v => v.name === name))
-      ? theStyle
-      : styleDefinitions[styleDefinitions.push({
-        name: name,
-        stylings: {
-          colors: {},
-          classes: {},
-        }
-      }) - 1]
+    const sd = styleDefinitions.find(v => v.name === name)
+      || styleDefinitions[styleDefinitions.push(initStyle(name)) - 1]
 
     let value = null
 
     switch (attributeName) {
-      case 'od': case 'openDelim':
+      case 'openDelim':
         sd.stylings.openDelim = attributeValue
         break
 
-      case 'cd': case 'closeDelim':
+      case 'closeDelim':
         sd.stylings.closeDelim = attributeValue
         break
 
-      case 'fs': case 'fieldSeparator':
+      case 'fieldSeparator':
         sd.stylings.fieldSeparator = attributeValue
         break
 
-      case 'fp': case 'fieldPadding':
+      case 'fieldPadding':
         if ((value = Number(attributeValue)) >= 0) {
           sd.stylings.fieldPadding = value
         }
         break
 
-      case 'es': case 'emptySet':
+      case 'emptySet':
         sd.stylings.emptySet = attributeValue
         break
 
-      case 'clrs': case 'colors':
+      case 'colors':
         sd.stylings.colors.values = attributeValue
           .split(',')
           .map(v => v.trim())
           .filter(v => v.length > 0)
         break
 
-      case 'clss': case 'classes':
+      case 'classes':
         sd.stylings.classes.values = attributeValue
           .split(',')
           .map(v => v.trim())
           .filter(v => v.length > 0)
         break
 
-      case 'clrr': case 'colorRules':
+      case 'colorRules':
         sd.stylings.colors.rules = partitionList(attributeValue
           .split(',')
-          .map(w => w.trim()), 2)
+          .map(w => w.trim()), 2, true)
           .map((w) => {
-            if (w.length !== 2) {
-              return w
-            }
-
             const regexResult = w[1].match(`^${valueSetPattern}$`)
+            const vs = preprocessVs(regexResult ? regexResult.slice(1) : [/* invalid vs */])
 
-            if (!regexResult) {
-              return null
-            }
-
-            const [
-              /* */,
-              valueSetName,
-              valueSetSetIndex,
-              /* valueSetSetStar */,
-              valueSetValueIndex,
-              /* valueSetValueStar */,
-            ] = regexResult
-
-            return [
-              w[0],
-              valueSetName === '*' ? star : valueSetName,
-              valueSetSetIndex ? Number(valueSetSetIndex) : star,
-              valueSetValueIndex ? Number(valueSetValueIndex) : star,
-            ]
+            return [w[0], vs]
           })
-          .filter(w => w && w.length === 4)
+          .filter(w => w[1].type === vsJust)
         break
 
-      case 'clsr': case 'classRules':
+      case 'classRules':
         sd.stylings.classes.rules = partitionList(attributeValue
           .split(',')
-          .map(w => w.trim()), 2)
+          .map(w => w.trim()), 2, true)
           .map((w) => {
-            if (w.length !== 2) {
-              return w
-            }
+            const regexResult = w[1].match(`^${valueSetPattern}$`)
+            const vs = preprocessVs(regexResult ? regexResult.slice(1) : [/* invalid vs */])
 
-            const regexResult = w[1].match(`^${valueSetPattern}$`) /* TODO to helper function */
-
-            if (!regexResult) {
-              return null
-            }
-
-            const [
-              /* */,
-              valueSetName,
-              valueSetSetIndex,
-              /* valueSetSetStar */,
-              valueSetValueIndex,
-              /* valueSetValueStar */,
-            ] = regexResult
-
-            return [
-              w[0],
-              valueSetName === '*' ? star : valueSetName,
-              valueSetSetIndex ? Number(valueSetSetIndex) : star,
-              valueSetValueIndex ? Number(valueSetValueIndex) : star,
-            ]
+            return [w[0], vs]
           })
-          .filter(w => w && w.length === 4)
+          .filter(w => w[1].type === vsJust)
         break
 
-      case 'clrci': case 'colorsCollectiveIndexing':
-
+      case 'colorCi':
         if (typeof (value = getBool(attributeValue)) === 'boolean') {
           sd.stylings.colors.collectiveIndexing = value
         }
         break
 
-      case 'clrrsi': case 'colorsRandomStartIndex':
-
+      case 'colorRsi':
         if (typeof (value = getBool(attributeValue)) === 'boolean') {
           sd.stylings.colors.randomStartIndex = value
         }
         break
 
-      case 'clsci': case 'classesCollectiveIndexing':
-
+      case 'classCi':
         if (typeof (value = getBool(attributeValue)) === 'boolean') {
           sd.stylings.classes.collectiveIndexing = value
         }
         break
 
-      case 'clsrsi': case 'classesRandomStartIndex':
-
+      case 'classRsi':
         if (typeof (value = getBool(attributeValue)) === 'boolean') {
           sd.stylings.classes.randomStartIndex = value
         }
         break
 
-      case 'blk': case 'block':
-
+      case 'block':
         if (typeof (value = getBool(attributeValue)) === 'boolean') {
           sd.stylings.block = value
         }
         break
 
-      case 'fltr': case 'filter':
-
+      case 'filter':
         if (typeof (value = getBool(attributeValue)) === 'boolean') {
           sd.stylings.filter = value
         }
         break
 
-      case 'dp': case 'display':
+      case 'display':
         sd.stylings.display = attributeValue
         break
 
+        ////////// OCCLUSION SPECIFIC ATTRIBUTES
+
+      case 'stroke':
+        sd.stylings.stroke = attributeValue
+        break
+
+      case 'strokeWidth':
+        if ((value = Number(attributeValue)) >= 0) {
+          sd.stylings.strokeWidth = value
+        }
+        break
+
+      case 'strokeOpacity':
+        if ((value = Number(attributeValue)) >= 0) {
+          sd.stylings.strokeOpacity = value
+        }
+        break
+
+      case 'fill':
+        sd.stylings.fill = attributeValue
+        break
+
+      case 'fillOpacity':
+        if ((value = Number(attributeValue)) >= 0) {
+          sd.stylings.fillOpacity = value
+        }
+        break
+
       default:
-        // invalid key
+        // throw invalid key away
     }
   }
 

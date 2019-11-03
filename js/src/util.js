@@ -1,4 +1,21 @@
-export const star = Symbol('star')
+export const vsNothing = Symbol('vsNothing')
+export const vsJust = Symbol('vsJust')
+export const vsStar = Symbol('vsStar')
+
+export const pickInt = Symbol('pickInt')
+export const pickReal = Symbol('pickReal')
+
+export const typeRel = Symbol('typeRel')
+export const typeAbs = Symbol('typeAbs')
+export const typeAbsNeg = Symbol('typeAbsNeg')
+export const typeName = Symbol('typeName')
+
+export const amountCount = Symbol('amountCount')
+export const amountStar = Symbol('amountStar')
+
+export const uniqJust = Symbol('uniqJust')
+export const uniqAnon = Symbol('uniqAnon')
+export const uniqNothing = Symbol('uniqNothing')
 
 export const isSRToken = function(token, name = '') {
   return token.startsWith(`%%sr%%${name}`)

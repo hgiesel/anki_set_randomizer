@@ -1,4 +1,5 @@
-import formatter from './formatter/formatter.js'
+import render from './render/render.js'
+import formatter from './render/formatter.js'
 import process from './processors/process.js'
 import lateEvaluate from './lateEvaluation/lateEvaluation.js'
 import randomize from './randomize/randomize.js'
@@ -42,6 +43,7 @@ const main2 = function(
     // FIRST RANDOMIZATION
     const [
       numberedSets,
+      yanks,
       generatedValues,
       uniquenessConstraints,
       valueSets,
@@ -52,8 +54,6 @@ const main2 = function(
       uniquenessConstraintsInherited,
       iterName,
     )
-
-    console.log('after processing // before lateEvaluate 1', numberedSets, valueSets, generatedValues)
 
     const [
       namedSets,
@@ -103,13 +103,15 @@ const main2 = function(
 
     //////////////////////////////////////////////////////////////////////////////
     // RENDERING
-    const randomIndices = form.renderSets(
+    const randomIndices = render(
+      form,
+      numberedSets,
       reorderForRendering(structureMatches, elementsSecond, iterName),
+      valueSets,
+      yanks,
       styleDefinitions,
       styleApplications,
       randomIndicesInherited,
-      valueSets,
-      numberedSets,
     )
 
     //////////////////////////////////////////////////////////////////////////////

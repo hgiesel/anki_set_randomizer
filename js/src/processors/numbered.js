@@ -1,65 +1,37 @@
 import {
   toSRToken,
+
+  pickInt,
+  pickReal,
+
+  uniqAnon,
+  uniqName,
 } from '../util.js'
 
-import {
-  star,
-} from '../util.js'
-
-const generateRandomValue = function(
+const generateRandomInt = function(
   min,
   max,
   extra,
-  isReal,
 ) {
   const preValue = Math.random() * (max - min) + min
+  return String(Math.round(preValue) * extra)
+}
 
-  return isReal
-    ? preValue.toFixed(extra || 2)
-    : (Math.round(preValue) * (extra || 1)).toString()
+const generateRandomReal = function(
+  min,
+  max,
+  extra,
+) {
+  const preValue = Math.random() * (max - min) + min
+  return preValue.toFixed(extra)
 }
 
 const findUniqConstraints = function(uniqConstraints, uniqConstraintName) {
-  return uniqConstraintName
-    ? uniqConstraints.find(v => v.name === uniqConstraintName)
-      || uniqConstraints[uniqConstraints.push({
-        name: uniqConstraintName,
-        values: []
-      }) - 1]
-    : null
-}
-
-export const processEvaluator = function(
-  amount,
-  valueSetName,
-  maybeNumberSetIndex, _star1,
-  maybeNumberValueIndex, _star2,
-  uniquenessConstraint,
-) {
-  const nsi = Number(maybeNumberSetIndex)
-  const nvi = Number(maybeNumberValueIndex)
-
-  const result = [
-    valueSetName === '*'
-      ? star
-      : valueSetName,
-
-    isNaN(nsi)
-      ? star
-      : nsi,
-
-    isNaN(nvi)
-      ? star
-      : nvi,
-
-    amount >= 0
-      ? Number(amount)
-      : 1,
-
-    uniquenessConstraint,
-  ]
-
-  return result
+  return uniqConstraints.find(v => v.name === uniqConstraintName)
+    || uniqConstraints[uniqConstraints.push({
+      name: uniqConstraintName,
+      values: []
+    }) - 1]
 }
 
 const newLinePattern = /\\n/gu
@@ -92,116 +64,89 @@ export const processValueSet = function(
   return toSRToken(['vs', valueSetName, valueSetIndex])
 }
 
-export const processPick = function(
-  amountString,
-  minValue, maxValue, extraValue,
-  vsName,
-  maybeVsSetIndex, _vssIndexStar,
-  maybeVsValueIndex, _vsvIndexStar,
-  maybeUniqConstraintName,
-) {
-  const amount = amountString /* star or number */ || 1
-
-  const uniqConstraintName = maybeUniqConstraintName === ''
+export const processPick = function(amount, pick, uniq) {
+  const uniqConstraintName = uniq.type === uniqAnon
     ? `_unnamed${String(Math.random()).slice(2)}`
-    : typeof maybeUniqConstraintName === 'string'
-    ? maybeUniqConstraintName
+    : uniq.type === uniqName
+    ? uniq.name
     : ''
 
-  if (minValue && maxValue) {
-    const extraValueString = extraValue || ''
+  switch (pick.type) {
+    case pickInt:
+      return toSRToken([
+        'pick:int',
+        amount,
+        pick.min,
+        pick.max,
+        pick.extra || '',
+        uniqConstraintName,
+      ])
 
-    return toSRToken([
-      'pick:number',
-      amount,
-      minValue,
-      maxValue,
-      extraValueString,
-      uniqConstraintName,
-    ])
-  }
+    case pickReal:
+      return toSRToken([
+        'pick:int',
+        amount,
+        pick.min,
+        pick.max,
+        pick.extra || '',
+        uniqConstraintName,
+      ])
 
-  else {
-    const vsSetIndex = isNaN(Number(maybeVsSetIndex))
-      ? '*'
-      : maybeVsSetIndex
-
-    const vsValueIndex = isNaN(Number(maybeVsValueIndex))
-      ? '*'
-      : maybeVsValueIndex
-
-    return toSRToken([
-      'pick:vs',
-      amount,
-      vsName,
-      vsSetIndex,
-      vsValueIndex,
-      uniqConstraintName,
-    ])
+    default /* vs */:
+      return toSRToken([
+        'pick:vs',
+        amount,
+        pick.name,
+        pick.sub,
+        pick.pos,
+        uniqConstraintName,
+      ])
   }
 }
 
 export const evalPickNumber = function(
   uniqConstraints,
   amount,
-  minValue,
-  maxValue,
-  extraValue,
-  uniqConstraintName
+  pick,
+  uniq,
 ) {
-  const theUc = findUniqConstraints(uniqConstraints, uniqConstraintName)
+  const uc = uniq.type === uniqName
+    ? findUniqConstraints(uniqConstraints, uniq.name)
+    : null
+
+  const generate = pick.type === pickInt
+    ? generateRandomInt
+    : generateRandomReal /* pickReal */
+
   const resultValues = []
 
-  // generate a random integer or real number
-  const isReal = minValue.includes('.') || maxValue.includes('.')
+  for (let i = 0; i < amount; i++) {
+    let resultValue = generate(pick.min, pick.max, pick.extra)
 
-  for (let failedOnce = false, i = 0; i < amount; i++) {
-    let resultValue
+    if (uc) {
+      const triesMax = 100
 
-    if (failedOnce) {
-      break;
-    }
+      for (let tries = 0; tries < triesMax; tries++) {
+        resultValue = generate(pick.min, pick.max, pick.extra)
 
-    resultValue = generateRandomValue(
-      Number(minValue),
-      Number(maxValue),
-      Number(extraValue),
-      isReal,
-    )
+        if (!uc.values.includes(resultValue)) {
+          break
+        }
 
-    /* dealing with uc */
-    if (theUc) {
-      let countIdx = 0
-      const countIdxMax = 100
-
-      while (theUc.values.includes(resultValue) &&
-        countIdx < countIdxMax) {
-
-        resultValue = generateRandomValue(
-          Number(minValue),
-          Number(maxValue),
-          Number(extraValue),
-          isReal,
-        )
-
-        countIdx++
-      }
-
-      if (countIdx == countIdxMax) {
         resultValue = null
-        failedOnce = true
       }
     }
 
     /* adding to resultValues */
-    if (resultValue !== undefined && resultValue !== null) {
-
-      if (theUc) {
-        theUc.values.push(resultValue)
-      }
-
-      resultValues.push(resultValue)
+    if (typeof resultValue !== 'string') {
+      break
     }
+
+    if (uc) {
+      uc.values.push(resultValue)
+    }
+
+    resultValues.push(resultValue)
   }
 
   return resultValues
@@ -240,8 +185,8 @@ export const evalPickValueSet = function(
 
     let resultValue = foundValueSubSet
       ? valueSetSetIndex === star
-        ? toSRToken(['value', foundValueSubSet.name, vidx, Math.floor(Math.random() * foundValueSubSet.values.length)])
-        : toSRToken(['value', foundValueSubSet.name, vidx, valueSetPosIndex])
+      ? toSRToken(['value', foundValueSubSet.name, vidx, Math.floor(Math.random() * foundValueSubSet.values.length)])
+      : toSRToken(['value', foundValueSubSet.name, vidx, valueSetPosIndex])
       : null
 
     /* dealing with uc */
@@ -252,8 +197,8 @@ export const evalPickValueSet = function(
       while (theUc.values.includes(resultValue) && countIdx < countIdxMax) {
         resultValue = foundValueSubSet
           ? valueSetSetIndex === star
-            ? toSRToken(['value', foundValueSubSet.name, vidx, Math.floor(Math.random() * foundValueSubSet.values.length)])
-            : toSRToken(['value', foundValueSubSet.name, vidx, valueSetPosIndex])
+          ? toSRToken(['value', foundValueSubSet.name, vidx, Math.floor(Math.random() * foundValueSubSet.values.length)])
+          : toSRToken(['value', foundValueSubSet.name, vidx, valueSetPosIndex])
           : null
 
         countIdx++

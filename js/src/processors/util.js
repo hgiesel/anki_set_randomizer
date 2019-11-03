@@ -22,12 +22,9 @@ const absoluteNegIdxPattern = `n(-\\d+)`
 const relativeIdxPattern = `((?:\\+|-)?\\d+)`
 const starPattern = `(\\*)`
 
-export const valSetPos = (
-  `(?:${relativeIdxPattern}|${starPattern})`
-)
+export const valSetPos = `(\\d+|\\*)`
 
 export const valueSetName = `\\$${namePattern}(?:(?::${valSetPos})?:${valSetPos})?`
-
 export const valueSetPattern = new RegExp(`^\\$${namePattern}`
   + `(?!\\()` /* no opening parenthesis allowed */
   + `(\\W)` /* separator character */
@@ -75,23 +72,25 @@ export const keywordArgPattern = (
   + `)?`
 )
 
-export const pickPattern = new RegExp(wrapName(['pick', 'p'], [
+export const pickPattern = new RegExp(wrapName(['pick'], [
   wrapArg(amountPattern, left, true),
   wrapArg(`(?:${numberGenerator}|${valueSetName})`),
   wrapArg(keywordArgPattern /* uniqConstraint */, right, true),
 ]), 'u')
 
-export const evalPattern = new RegExp(wrapName(['evaluate', 'eval', 'e'], [
+export const evalPattern = new RegExp(wrapName(['evaluate', 'eval'], [
   wrapArg(amountPattern, left, true),
   wrapArg(valueSetName),
   wrapArg(keywordArgPattern /* uniqConstraint */, right, true),
 ]), 'u')
 
-export const attributeList = `(\\w):(\\d+(?::\\d+)*)`
+export const availableShapes = `(rect|ellipse|polygon|line|arrow|darrow)`
+export const attributeList = `(\\d+(?::\\d+){2,})`
 
-export const yankPattern = new RegExp(wrapName(['yank', 'y'], [
+export const yankPattern = new RegExp(wrapName(['occlude', 'occ'], [
   wrapArg(amountPattern /* imageid */, left, true),
   wrapArg(namePattern /* yankgroup */, center),
+  wrapArg(availableShapes, right),
   wrapArg(attributeList, right),
   wrapArg(keywordArgPattern /* text */, right, true),
 ]), 'u')
@@ -106,29 +105,30 @@ const idxPattern = `(?:`
 
 const posPattern = `${idxPattern}(?::${relativeIdxPattern})?`
 
-export const namedSetPattern = new RegExp(wrapName(['name', 'n'], [
+export const namedSetPattern = new RegExp(wrapName(['name'], [
   wrapArg(valueSetName, left, true),
   wrapArg(namePattern, center),
   wrapArg(posPattern, right, true),
   wrapArg(keywordArgPattern /* order and force */, right, true),
 ]), 'u')
 
-export const commandPattern = new RegExp(wrapName([
-  '(c|copy)', '(m|move)', '(d|del|delete)', '(x|xch|xchange)', '(r|repl|replace)'
-], [
+export const availableCommands = `(copy|del|move|swap|repl)`
+
+export const commandPattern = new RegExp(wrapName(['cmd'], [
   wrapArg(valueSetName, left, true),
+  wrapArg(availableShapes, right),
   wrapArg(amountPattern, center, true),
   wrapArg(posPattern /* fromPosition */, right, true),
   wrapArg(posPattern /* toPosition */, right, true),
 ]), 'u')
 
 //////// STYLING REGEXES
-export const stylePattern = new RegExp(wrapName(['s', 'style'], [
+export const stylePattern = new RegExp(wrapName(['style'], [
   wrapArg(namePattern, center),
   wrapArg(keywordArgPattern /* stylingDirectives */, right, true),
 ]), 'u')
 
-export const applyPattern = new RegExp(wrapName(['a', 'apply'], [
+export const applyPattern = new RegExp(wrapName(['apply'], [
   wrapArg(valueSetName, left, true),
   wrapArg(namePattern, center),
   wrapArg(posPattern, right, true),

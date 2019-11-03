@@ -2,10 +2,6 @@ import {
   getCorrespondingSets,
 } from './util.js'
 
-export const getNullStyleApplications = function(numberedSets) {
-  return numberedSets.map(() => ['default'])
-}
-
 export const processApplication = function(
   iterName, setIndex, posIndex,
 
@@ -13,7 +9,7 @@ export const processApplication = function(
   absolutePos,
   absolutePosFromEnd,
   relativePos,
-  namedSet,
+  namedSetOrYankGroup,
   nsPos,
   // kwArgs,
 
@@ -28,12 +24,16 @@ export const processApplication = function(
     absolutePosFromEnd,
     setIndex,
     relativePos,
-    namedSet,
+    namedSetOrYankGroup,
     nsPos,
   )
 
   correspondingSets
     .forEach((set) => {
+      if (!styleApplications.hasOwnProperty(set)) {
+        styleApplications[set] = []
+      }
+
       styleApplications[set].unshift(styleName)
     })
 }

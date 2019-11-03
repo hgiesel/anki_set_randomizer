@@ -9,7 +9,6 @@ import {
 
 import {
   processNamedSet as pns,
-  processOrderConstraint as poc,
 } from './shuffling.js'
 
 import {
@@ -17,30 +16,38 @@ import {
 } from './commands.js'
 
 import {
-  getNullStyleApplications,
   processApplication as pa,
 } from './styleApplier.js'
 
 import styleSetter from './styleSetter.js'
 
 // Adapter for numbered.js evals
-export default function ruleEngine(numberedSets, defaultStyle) {
-
+export const ruleEngine = function(numberedSets, defaultStyle) {
   const values = numberedSets
     .map(set => set.elements)
     .flat()
     .filter(elem => isSRToken(elem[3], 'value'))
 
-  const namedSets        = []
+  const namedSets = []
   const orderConstraints = []
-
-  const commands         = []
+  const commands = []
 
   const ss = styleSetter(defaultStyle)
-  const styleApplications = getNullStyleApplications(numberedSets)
+  const styleApplications = {}
 
-  const callthrough = function(f, iterName, setIndex, posIndex, argumentz) {
-    f(iterName, setIndex, posIndex, ...argumentz)
+  const callthrough = function(
+    f,
+    iterName,
+    setIndex,
+    posIndex,
+    argumentz,
+  ) {
+    f(
+      iterName,
+      setIndex,
+      posIndex,
+      ...argumentz
+    )
   }
 
   const rulethrough = function(
@@ -50,7 +57,7 @@ export default function ruleEngine(numberedSets, defaultStyle) {
   ) {
     if (vs) {
       values
-        .filter(value => {
+        .filter((value) => {
           const [
             vsname,
             vssetindex,
@@ -67,7 +74,13 @@ export default function ruleEngine(numberedSets, defaultStyle) {
     }
 
     else {
-      callthrough(f, iterName, setIndex, posIndex, argumentz)
+      callthrough(
+        f,
+        iterName,
+        setIndex,
+        posIndex,
+        argumentz
+      )
     }
   }
 
@@ -89,7 +102,7 @@ export default function ruleEngine(numberedSets, defaultStyle) {
     ...argumentz
   ) {
     // rulethrough(pc, iterName, setIndex, posIndex, 25, numberedSets, namedSets, ...argumentz)
-      // toOptArg(evalKeywordArguments(argumentz[argumentz.length])), numberedSets, namedSets,
+    // toOptArg(evalKeywordArguments(argumentz[argumentz.length])), numberedSets, namedSets,
   }
 
   const processStyle = function(
@@ -104,10 +117,24 @@ export default function ruleEngine(numberedSets, defaultStyle) {
     iterName, setIndex, posIndex,
     ...argumentz
   ) {
-    rulethrough(pa, iterName, setIndex, posIndex, ...argumentz, numberedSets, namedSets, styleApplications)
+    rulethrough(
+      pa,
+      iterName, setIndex, posIndex,
+
+      ...argumentz,
+      numberedSets,
+      namedSets,
+      styleApplications
+    )
   }
 
-  const exportResults = () => [namedSets, orderConstraints, commands, ss.exportStyleDefinitions(), styleApplications]
+  const exportResults = () => [
+    namedSets,
+    orderConstraints,
+    commands,
+    ss.exportStyleDefinitions(),
+    styleApplications
+  ]
 
   return {
     processNamedSet: processNamedSet,
@@ -117,3 +144,5 @@ export default function ruleEngine(numberedSets, defaultStyle) {
     exportResults: exportResults,
   }
 }
+
+export default ruleEngine
