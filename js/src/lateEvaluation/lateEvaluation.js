@@ -20,15 +20,8 @@ export default function lateEvaluate(
     }, [])
     .forEach(stmt => re.processNamedSet(...stmt))
 
-  console.log('le0', namedSetStatements)
-  console.log('le1', commandStatements)
-  console.log('le2', styleStatements)
-  console.log('le3', applyStatements)
-
   commandStatements.forEach(stmt => re.processCommand(...stmt))
-
   styleStatements.forEach(stmt => re.processStyle(...stmt))
-
   applyStatements.forEach(stmt => re.processApplication(...stmt))
 
   return re.exportResults()

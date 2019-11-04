@@ -51,8 +51,6 @@ const main2 = function(
       iterName,
     )
 
-    console.log('mememe', numberedSets)
-
     const [
       namedSets,
       orderConstraints,
@@ -60,8 +58,6 @@ const main2 = function(
       styleDefinitions,
       styleApplications,
     ] = lateEvaluate(numberedSets, defaultStyle, ...lateEvaluation)
-
-    console.log('oc', orderConstraints)
 
     const [
       reordersFirst,

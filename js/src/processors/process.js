@@ -78,7 +78,7 @@ export const process = function(
     }
 
     else if (patternResult = content.match(evalPattern)) {
-      evaluators.push([
+      evaluators.unshift([
         preprocessAmount(patternResult.slice(1, 2), 1),
         preprocessVs(patternResult.slice(2, 5)),
         preprocessUniq(patternResult.slice(5, 7)),
@@ -161,6 +161,8 @@ export const process = function(
         ...tokens
       ] = fromSRToken(content, false)
 
+      console.log('tn', tokenName, tokens)
+
       switch (tokenName) {
         case 'pick:number':
           const a = pg.expandPickNumber(
@@ -172,14 +174,14 @@ export const process = function(
 
         case 'pick:vs':
           return pg.expandPickValueSet(
-            valueSets,
             preprocessAmount(tokens.slice(0, 1)),
             preprocessVs(tokens.slice(1, 4)),
             preprocessUniq([null, tokens[5]]),
+            valueSets,
           )
 
         case 'vs':
-          return pg.expandValueSet(valueSets, evaluators, ...tokens)
+          return pg.expandValueSet(...tokens, valueSets, evaluators)
 
         default:
           // should never occur
@@ -205,8 +207,6 @@ export const process = function(
     styleStatements,
     applyStatements,
   ]
-
-  console.log('nss', namedSetStatements)
 
   return [
     numberedSets,

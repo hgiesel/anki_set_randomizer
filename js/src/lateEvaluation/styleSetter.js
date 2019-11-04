@@ -8,7 +8,7 @@ import {
 } from '../util.js'
 
 import {
-  valueSetPattern,
+  valueSetName,
 } from '../processors/util.js'
 
 import {
@@ -95,7 +95,7 @@ export default function styleSetter(defaultStyle) {
           .split(',')
           .map(w => w.trim()), 2, true)
           .map(([vsText, colorText]) => {
-            const regexResult = vsText.match(`^${valueSetPattern}$`)
+            const regexResult = vsText.match(`^${valueSetName}$`)
             const vs = preprocessVs(regexResult ? regexResult.slice(1) : [/* invalid vs */])
 
             return [vs, colorText]
@@ -108,7 +108,7 @@ export default function styleSetter(defaultStyle) {
           .split(',')
           .map(w => w.trim()), 2, true)
           .map(([vsText, classText]) => {
-            const regexResult = vsText.match(`^${valueSetPattern}$`)
+            const regexResult = vsText.match(`^${valueSetName}$`)
             const vs = preprocessVs(regexResult ? regexResult.slice(1) : [/* invalid vs */])
 
             return [vs, classText]

@@ -100,7 +100,6 @@ export const evalKeywordArguments = function(keywordArguments) {
 
 export const toOptArg = function(keywords) {
   const result = {}
-  console.log('mekeke', keywords)
 
   keywords
     .forEach(kw => result[kw[0]] = kw[1])

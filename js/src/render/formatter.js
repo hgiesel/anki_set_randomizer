@@ -89,7 +89,6 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
       exprRegex = RegExp(exprString, 'gmu')
     }
     catch (e) {
-      console.error('Invalid exprString', e)
       _isInvalid = true
       return _foundStructure[theSelector] = []
     }

@@ -32,11 +32,11 @@ const findUniqConstraints = function(uniqConstraints, uc) {
 
 export const expandPickNumber = function(
   uniqConstraints,
+
   amount,
   pick,
   uc,
 ) {
-  console.log('abcccdef', amount, pick, uc)
   const ucList = findUniqConstraints(uniqConstraints, uc)
 
   const generate = pick.type === pickInt
@@ -106,28 +106,28 @@ const getAllVsValues = function(valueSets, vs) {
 
   for (const vsName of vsNames) {
     if (vs.sub === vsStar) {
-      for (const sub of valueSets[vsName]) {
+      for (const [subIdx, sub] of valueSets[vsName].entries()) {
         if (vs.pos === vsStar) {
-          for (const value of sub.values) {
-            result.push(value)
+          for (const [posIdx /*, value */] of sub.values.entries()) {
+            result.push(toSRToken(['value', vsName, subIdx, posIdx]))
           }
         }
 
         else if (typeof sub.values[vs.pos] === 'string') {
-          result.push(sub.values[vs.pos])
+          result.push(toSRToken(['value', vsName, subIdx, vs.pos]))
         }
       }
     }
 
     else if (valueSets[vsName][vs.sub]) {
       if (vs.pos === vsStar) {
-        for (const value of valueSets[vsName].values) {
-          result.push(value)
+        for (const [posIdx /*, value */] of valueSets[vsName][vs.sub].values.entries()) {
+          result.push(toSRToken(['value', vsName, vs.sub, posIdx]))
         }
       }
 
       else if (typeof valueSets[vsName][vs.sub].values[vs.pos] === 'string') {
-        result.push(valueSets[vsName][vs.sub].values[vs.pos])
+        result.push(toSRToken(['value', vsName, vs.sub, vs.pos]))
       }
     }
   }
@@ -163,10 +163,12 @@ const getVsValue = function(valueSets, vs) {
 
 export const expandPickValueSet = function(
   uniqConstraints,
-  valueSets,
+
   amount,
   vs,
   uc,
+
+  valueSets,
 ) {
   const resultValues = []
   const ucList = findUniqConstraints(uniqConstraints, uc)
@@ -201,7 +203,6 @@ export const expandPickValueSet = function(
     case amountStar: default:
       const preresultValues = getAllVsValues(valueSets, vs)
 
-      console.log('vvvvvv', preresultValues)
       if (ucList) {
         resultValues.push(...preresultValues
           .filter(value => !ucList.values.includes(value))
@@ -221,13 +222,14 @@ export const expandPickValueSet = function(
 
 export const expandValueSet = function(
   uniqConstraints,
-  valueSets,
-  evaluators,
+
   vsName,
   vsSub,
+
+  valueSets,
+  evaluators,
 ) {
   const resolvedValues = []
-  const vs = valueSets[vsName][vsSub]
 
   const foundEvaluator = evaluators.find(([/* amount */, evalVs /*, uc */]) => (
     (evalVs.name === vsStar || evalVs.name === vsName)

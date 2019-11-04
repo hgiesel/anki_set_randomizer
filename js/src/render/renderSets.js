@@ -17,6 +17,7 @@ const htmlTagsNoBrRegex = (/<(?!br>).*?>/gu)
 
 const valuePicker = function(valueSets) {
   const pickValue = function(name, colorRules, classRules) {
+
     if (!isSRToken(name, 'value')) {
       return name
     }
@@ -24,28 +25,24 @@ const valuePicker = function(valueSets) {
     const vs = preprocessVs(fromSRToken(name))
     const theValue = valueSets[vs.name][vs.sub].values[vs.pos]
 
-    const theColor = colorRules
-      ? colorRules.find(([/* color */, rule]) => (
-        (rule.name === vsStar || rule.name === vs.name)
-          && (rule.sub === vsStar || rule.sub === vs.sub)
-          && (rule.pos === vsStar || rule.pos === vs.pos)
-      ))
-      : null
-
-    const theClass = classRules
-      ? colorRules.find(([/* class */, rule]) => (
-        (rule.name === vsStar || rule.name === vs.name)
-          && (rule.sub === vsStar || rule.sub === vs.sub)
-          && (rule.pos === vsStar || rule.pos === vs.pos)
-      ))
-      : null
+    const theColor = colorRules.find(([rule /*, color */]) => (
+      (rule.name === vsStar || rule.name === vs.name)
+      && (rule.sub === vsStar || rule.sub === vs.sub)
+      && (rule.pos === vsStar || rule.pos === vs.pos)
+    ))
 
     const theColorCss = theColor
-      ? ` style="color: ${theColor[0]}"`
+      ? ` style="color: ${theColor[1]}"`
       : ''
 
+    const theClass = classRules.find(([rule /*, class */]) => (
+      (rule.name === vsStar || rule.name === vs.name)
+      && (rule.sub === vsStar || rule.sub === vs.sub)
+      && (rule.pos === vsStar || rule.pos === vs.pos)
+    ))
+
     const theClassCss = theClass
-      ? ` class="${theClass[0]}"`
+      ? ` class="${theClass[1]}"`
       : ''
 
     return `<span${theColorCss}${theClassCss}>${theValue}</span>`
@@ -101,7 +98,7 @@ export const renderSets = function(
 
         const style = `style="padding: 0px ${pa.getProp(['fieldPadding'])}px;${colorChoice}${blockDisplay}"`
 
-        const pickedValue = vp.pickValue(elemContent, pa.getProp(['colors', 'rules']), pa.getProp(['classes', 'rules']))
+        const pickedValue = vp.pickValue(elemContent, pa.getProp(['colors', 'rules'], [/* preds */], [/* default */]), pa.getProp(['classes', 'rules'], [/* preds */], [/* default */]))
 
         if (pickedValue) {
           const filterHtml = pa.getProp(['filter'])
