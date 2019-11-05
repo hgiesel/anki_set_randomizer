@@ -40,9 +40,8 @@ export const parseInjections = function(
         case '|':
           return condition.slice(1).map(v => parseConditions(v)).reduce((accu, v) => accu || v)
 
-        default:
-          // should never happen
-          return false
+        default /* no conditions given */:
+          return true
       }
     }
 

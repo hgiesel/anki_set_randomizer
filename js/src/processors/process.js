@@ -161,8 +161,6 @@ export const process = function(
         ...tokens
       ] = fromSRToken(content, false)
 
-      console.log('tn', tokenName, tokens)
-
       switch (tokenName) {
         case 'pick:number':
           const a = pg.expandPickNumber(

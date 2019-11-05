@@ -113,7 +113,7 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
     const theFoundStructure = getFoundStructure(theSelector)
 
     const makeInjectionsMeta = '$apply(meta)'
-    const injectionKeyword = '$inject'
+    const injectionKeyword = '$inject()'
 
     const theElementsOriginal = theFoundStructure
       .map(group => group.split(inputSyntax.isRegex

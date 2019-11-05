@@ -70,8 +70,8 @@ export const ruleEngine = function(numberedSets, defaultStyle) {
 
       if (
         (vs.name === vsStar || vs.name === vsName)
-        && (vs.sub === vsStar || vs.sub === vsSub)
-        && (vs.pos === vsStar || vs.pos === vsPos)
+        && (vs.sub === vsStar || vs.sub === Number(vsSub))
+        && (vs.pos === vsStar || vs.pos === Number(vsPos))
       ) {
         callthrough(
           f,
