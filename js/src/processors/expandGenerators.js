@@ -150,12 +150,14 @@ const getVsValue = function(valueSets, vs) {
     ? foundVs[vsSub]
     : null
 
-  const vsPos = foundVsSub && vs.pos === vsStar
+  const foundVsPos = foundVsSub && vs.pos === vsStar
     ? Math.floor(Math.random() * foundVsSub.values.length)
-    : vs.pos
+    : vs.pos < foundVsSub.values.length
+    ? vs.pos
+    : null
 
-  const resultValue = foundVs && foundVsSub
-    ? toSRToken(['value', foundVsSub.name, vsSub, vsPos])
+  const resultValue = foundVs && foundVsSub && foundVsPos
+    ? toSRToken(['value', foundVsSub.name, vsSub, foundVsPos])
     : null
 
   return resultValue
