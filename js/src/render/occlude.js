@@ -41,12 +41,13 @@ const toSvgShape = function(
       : shapeName)
 
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+  const scalingFactorMedian = (scalingFactorX + scalingFactorY) / 2
 
   svgShape.setAttribute('fill', pa.getProp(['fill']))
   svgShape.setAttribute('fill-opacity', pa.getProp(['fillOpacity']))
 
   svgShape.setAttribute('stroke', pa.getProp(['stroke']))
-  svgShape.setAttribute('stroke-width', pa.getProp(['strokeWidth']))
+  svgShape.setAttribute('stroke-width', pa.getProp(['strokeWidth']) * scalingFactorMedian)
   svgShape.setAttribute('stroke-opacity', pa.getProp(['strokeOpacity']))
 
   if (pa.getProp(['display']) === 'none') {
@@ -65,10 +66,10 @@ const toSvgShape = function(
         break
 
       case 'ellipse':
-        svgShape.setAttribute('cx', shapeDims[0] * scalingFactorX)
-        svgShape.setAttribute('cy', shapeDims[1] * scalingFactorY)
-        svgShape.setAttribute('rx', shapeDims[2] * scalingFactorX)
-        svgShape.setAttribute('ry', (shapeDims[3] || shapeDims[2]) * scalingFactorY)
+        svgShape.setAttribute('cx', (shapeDims[0] * scalingFactorX) + (shapeDims[2] * scalingFactorX / 2))
+        svgShape.setAttribute('cy', (shapeDims[1] * scalingFactorY) + (shapeDims[3] * scalingFactorY / 2))
+        svgShape.setAttribute('rx', shapeDims[2] * scalingFactorX / 2)
+        svgShape.setAttribute('ry', (shapeDims[3] || shapeDims[2]) * scalingFactorY / 2)
         break
 
       case 'polygon':

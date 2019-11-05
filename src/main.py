@@ -25,6 +25,8 @@ def default_write():
     write_back(settings)
     setup_menu_option()
 
+    debugOpenWindow()
+
 def init():
     addHook('profileLoaded', default_write)
 
@@ -33,5 +35,4 @@ def debugOpenWindow():
     dialog.setupUi()
     return dialog.exec_()
 
-debugOpenWindow()
 init()
