@@ -108,11 +108,22 @@ const posPattern = `(?:`
   + `(${namePatternNonCapturing}(?::${namePatternNonCapturing})*)`
   + `)`
 
+const forcePattern = (
+  `(?:(force)(?:=(yes|no|true|false)?)?)`
+)
+
 export const namedSetPattern = new RegExp(wrapName(['name'], [
   wrapArg(valueSetName, left, true),
   wrapArg(namePattern, center),
   wrapArg(posPattern, right, true),
-  wrapArg(keywordArgPattern /* order and force */, right, true),
+  wrapArg(forcePattern, right, true),
+]), 'u')
+
+export const orderPattern = new RegExp(wrapName(['order'], [
+  wrapArg(valueSetName, left, true),
+  wrapArg(namePattern, center),
+  wrapArg(posPattern, right, true),
+  wrapArg(forcePattern, right, true),
 ]), 'u')
 
 export const availableCommands = `(copy|del|move|swap|repl)`

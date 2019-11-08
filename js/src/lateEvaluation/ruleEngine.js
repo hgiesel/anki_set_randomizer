@@ -6,11 +6,14 @@ import {
 } from '../util.js'
 
 import {
+  getCorrespondingSets,
   evalKeywordArguments,
+  keywordProcess,
 } from './util.js'
 
 import {
   processNamedSet as pns,
+  processOrder as po,
 } from './shuffling.js'
 
 import {
@@ -24,7 +27,7 @@ import {
 import styleSetter from './styleSetter.js'
 
 // Adapter for numbered.js evals
-export const ruleEngine = function(numberedSets, defaultStyle) {
+export const ruleEngine = function(numberedSets, yanks, defaultStyle) {
   const elementsValues = numberedSets
     .map(set => set.elements)
     .flat()
@@ -37,24 +40,13 @@ export const ruleEngine = function(numberedSets, defaultStyle) {
   const ss = styleSetter(defaultStyle)
   const styleApplications = {}
 
-  const callthrough = function(
-    f,
-    iterName,
-    setIndex,
-    posIndex,
-    argumentz,
-  ) {
-    f(
-      iterName,
-      setIndex,
-      posIndex,
-      ...argumentz
-    )
+  const callthrough = function(f, ...argumentz) {
+    f(...argumentz)
   }
 
   const rulethrough = function(
-    f, iterName, setIndex, elemIndex,
-    vs, ...argumentz
+    f, iterName, setIndex, elemIndex, appliedName, vs,
+    ...argumentz
   ) {
     const g = function([
       iterNameInner,
@@ -73,12 +65,21 @@ export const ruleEngine = function(numberedSets, defaultStyle) {
         && (vs.sub === vsStar || vs.sub === Number(vsSub))
         && (vs.pos === vsStar || vs.pos === Number(vsPos))
       ) {
+        const correspondingSets = getCorrespondingSets(
+          numberedSets,
+          namedSets,
+          yanks,
+          appliedName,
+          setIndexInner,
+        )
+
         callthrough(
           f,
           iterNameInner,
           setIndexInner,
           elemIndexInner,
-          argumentz,
+          correspondingSets,
+          ...argumentz,
         )
       }
     }
@@ -89,26 +90,54 @@ export const ruleEngine = function(numberedSets, defaultStyle) {
         break
 
       case vsNone: default:
+        const correspondingSets = getCorrespondingSets(
+          numberedSets,
+          namedSets,
+          yanks,
+          appliedName,
+          setIndex,
+        )
+
         callthrough(
           f,
           iterName,
           setIndex,
           elemIndex,
-          argumentz,
+          correspondingSets,
+          ...argumentz,
         )
         break
     }
   }
 
   /////////////////////////////
+  const processStyle = function(
+    iterName, setIndex, posIndex,
+    styleName, kwArgs,
+  ) {
+    evalKeywordArguments(kwArgs)
+      .forEach(pair => ss.setStyleAttribute(styleName, pair[0], pair[1]))
+  }
 
   const processNamedSet = function(
     iterName, setIndex, posIndex,
-    ...argumentz
+
+    vs, shuffleName, appliedName, kwargs,
   ) {
     rulethrough(
-      pns, iterName, setIndex, posIndex, ...argumentz,
-      numberedSets, namedSets, orderConstraints,
+      pns, iterName, setIndex, posIndex, appliedName, vs,
+      shuffleName, keywordProcess(kwargs), namedSets,
+    )
+  }
+
+  const processOrder = function(
+    iterName, setIndex, posIndex,
+
+    vs, orderName, appliedName, kwargs,
+  ) {
+    rulethrough(
+      po, iterName, setIndex, posIndex, appliedName, vs,
+      orderName, keywordProcess(kwargs), orderConstraints, namedSets,
     )
   }
 
@@ -121,26 +150,14 @@ export const ruleEngine = function(numberedSets, defaultStyle) {
     // toOptArg(evalKeywordArguments(argumentz[argumentz.length])), numberedSets, namedSets,
   }
 
-  const processStyle = function(
-    iterName, setIndex, posIndex,
-    styleName, kwArgs,
-  ) {
-    evalKeywordArguments(kwArgs)
-      .forEach(pair => ss.setStyleAttribute(styleName, pair[0], pair[1]))
-  }
-
   const processApplication = function(
     iterName, setIndex, posIndex,
-    ...argumentz
+
+    vs, styleName, appliedName,
   ) {
     rulethrough(
-      pa,
-      iterName, setIndex, posIndex,
-
-      ...argumentz,
-      numberedSets,
-      namedSets,
-      styleApplications
+      pa, iterName, setIndex, posIndex, appliedName, vs,
+      styleName, styleApplications,
     )
   }
 
@@ -154,9 +171,11 @@ export const ruleEngine = function(numberedSets, defaultStyle) {
 
   return {
     processNamedSet: processNamedSet,
+    processOrder: processOrder,
     processCommand: processCommand,
     processStyle: processStyle,
     processApplication: processApplication,
+
     exportResults: exportResults,
   }
 }

@@ -10,7 +10,9 @@ import {
   yankPattern,
 
   namedSetPattern,
+  orderPattern,
   commandPattern,
+
   stylePattern,
   applyPattern,
 } from './util.js'
@@ -47,6 +49,7 @@ export const process = function(
   const occlusions = []
 
   const namedSetStatements = []
+  const orderStatements = []
   const commandStatements = []
   const styleStatements = []
   const applyStatements = []
@@ -102,6 +105,18 @@ export const process = function(
     ////// LATE EVALUATION
     else if (patternResult = content.match(namedSetPattern)) {
       namedSetStatements.push([
+        iterNameSub,
+        setIndex,
+        elemIndex,
+        preprocessVs(patternResult.slice(1, 4)),
+        patternResult[4] /* name */,
+        preprocessNamepos(patternResult.slice(5, 9)),
+        patternResult.slice(9) /* keywords */,
+      ])
+    }
+
+    else if (patternResult = content.match(orderPattern)) {
+      orderStatements.push([
         iterNameSub,
         setIndex,
         elemIndex,
@@ -201,6 +216,7 @@ export const process = function(
 
   const forLateEvaluation = [
     namedSetStatements,
+    orderStatements,
     commandStatements,
     styleStatements,
     applyStatements,

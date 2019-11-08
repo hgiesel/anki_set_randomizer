@@ -39,7 +39,7 @@ const main2 = function(
     // FIRST RANDOMIZATION
     const [
       numberedSets,
-      occlusions,
+      yanks,
       generatedValues,
       uniquenessConstraints,
       valueSets,
@@ -57,7 +57,7 @@ const main2 = function(
       commands,
       styleDefinitions,
       styleApplications,
-    ] = lateEvaluate(numberedSets, defaultStyle, ...lateEvaluation)
+    ] = lateEvaluate(numberedSets, yanks, defaultStyle, ...lateEvaluation)
 
     const [
       reordersFirst,
@@ -100,7 +100,7 @@ const main2 = function(
       numberedSets,
       reorderForRendering(structureMatches, elementsSecond, iterName),
       valueSets,
-      occlusions,
+      yanks,
       styleDefinitions,
       styleApplications,
       randomIndicesInherited,

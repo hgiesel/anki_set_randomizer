@@ -33,7 +33,6 @@ export const partitionList = function(list, spacing = 1, drop = false) {
   return output
 }
 
-
 const analyzeName = function(numberedSets, namedSets, [name1, name2]) {
   const foundSets = namedSets
     .find(v => v.name === name1)
@@ -63,9 +62,12 @@ const analyzeName = function(numberedSets, namedSets, [name1, name2]) {
 export const getCorrespondingSets = function(
   numberedSets,
   namedSets,
+  yanks,
 
   name,
   currentPos,
+
+  evalNames = true,
 ) {
   switch (name.type) {
     case typeRel:
@@ -78,7 +80,9 @@ export const getCorrespondingSets = function(
       return [numberedSets.length + name.values - 1]
 
     case typeName: default:
-      return analyzeName(numberedSets, namedSets, name.values)
+      return evalNames
+        ? analyzeName(numberedSets, namedSets, name.values)
+        : name.name
   }
 }
 
@@ -98,11 +102,15 @@ export const evalKeywordArguments = function(keywordArguments) {
   return result
 }
 
-export const toOptArg = function(keywords) {
+const toOptArg = function(keywords) {
   const result = {}
 
   keywords
     .forEach(kw => result[kw[0]] = kw[1])
 
   return result
+}
+
+export const keywordProcess = function(kwArgs) {
+  return toOptArg(evalKeywordArguments(kwArgs))
 }

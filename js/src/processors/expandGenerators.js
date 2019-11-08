@@ -156,7 +156,7 @@ const getVsValue = function(valueSets, vs) {
     ? vs.pos
     : null
 
-  const resultValue = foundVs && foundVsSub && foundVsPos
+  const resultValue = foundVs && vsSub >= 0 && foundVsPos >= 0
     ? toSRToken(['value', foundVsSub.name, vsSub, foundVsPos])
     : null
 

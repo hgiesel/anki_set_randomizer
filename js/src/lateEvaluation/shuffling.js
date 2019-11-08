@@ -1,38 +1,17 @@
 import {
-  getCorrespondingSets,
   getBool,
-  evalKeywordArguments,
-  toOptArg,
 } from './util.js'
 
-const keywordProcess = function(kwArgs) {
-  return toOptArg(evalKeywordArguments(kwArgs))
-}
-
 export const processNamedSet = function(
-  iterName, setIndex, posIndex,
+  iterName, setIndex, posIndex, correspondingSets,
 
-  name,
-  pos,
-  kwArgs,
-
-  numberedSets,
+  shuffleName,
+  keywords,
   namedSets,
-  orderConstraints,
 ) {
-  const keywords = keywordProcess(kwArgs)
-
-  const correspondingSets = getCorrespondingSets(
-    numberedSets,
-    namedSets,
-
-    pos,
-    setIndex,
-  )
-
-  const actualName = name === '_'
+  const actualName = shuffleName === '_'
     ? `_unnamed${Math.random().toString().slice(2)}`
-    : name
+    : shuffleName
 
   let helpNs = null
   const ns = (helpNs = namedSets.find(w => w.name === actualName))
@@ -47,46 +26,54 @@ export const processNamedSet = function(
   ns.sets.push(...correspondingSets)
   ns.sets.sort()
 
-  if (getBool(keywords.force) || getBool(keywords.forceOrder)) {
+  if (getBool(keywords.force)) {
     ns.force = true
   }
 
-  else if (keywords.order) {
-    processOrderConstraint(
-      iterName, setIndex, posIndex,
-
-      keywords.order,
-      correspondingSets,
-
-      keywords.forceOrder,
-      orderConstraints
-    )
-  }
+  return actualName
 }
 
-export const processOrderConstraint = function(
-  iterName, setIndex, posIndex,
+export const processOrder = function(
+  iterName, setIndex, posIndex, correspondingSets,
 
   orderName,
-  correspondingSets,
-
-  forceOrder,
+  keywords,
   orderConstraints,
+  namedSets,
 ) {
+  let theName = null
+
+  if (typeof correspondingSets[0] === 'number') {
+    theName = processNamedSet(iterName, setIndex, posIndex, '_', correspondingSets, keywords, namedSets)
+  }
+
+  else {
+    const maybeNs = namedSets.find(ns => ns.name === correspondingSets[0])
+    theName = maybeNs ? maybeNs.name : null
+  }
+
   let theOc = null
   const oc = (theOc = orderConstraints.find(v => v.name === orderName))
     ? theOc
     : orderConstraints[orderConstraints.push({
       iter: iterName,
       name: orderName,
-      sets: [],
+      sets: [/* only named sets allowed */],
       force: false,
       dictator: false /* determined at later stage */,
     }) - 1]
 
-  oc.sets.push(...correspondingSets)
+  if (typeof theName === 'string' /* valid */) {
+    oc.sets.push(theName)
 
-  if (getBool(forceOrder)) {
-    oc.force = true
+    if (getBool(keywords.force)) {
+      oc.force = true
+    }
+
+    if (oc.force) {
+      namedSets.find(ns => ns.name === theName).force = true
+    }
   }
+
+  return orderName /* never really used */
 }
