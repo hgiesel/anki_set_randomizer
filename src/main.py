@@ -5,8 +5,13 @@ from anki.hooks import addHook
 from .lib import config
 from .lib import model_editor
 
-from .gui.custom.sr_config import SRConfigDialog, write_back
+from .gui.custom.sr_config import SRConfigDialog
 # from .occluder.custom.sr_occluder import SROccluder
+
+# def debugOpenWindow():
+#     dialog = SROccluder(mw)
+#     dialog.setupUi()
+#     return dialog.exec_()
 
 def setup_menu_option():
     action = QAction('Set Randomizer Settings...', mw)
@@ -19,20 +24,9 @@ def setup_menu_option():
 
     action.triggered.connect(invoke_options)
     mw.form.menuTools.addAction(action)
-
-def default_write():
-    settings = config.get_settings()
-    write_back(settings)
-    setup_menu_option()
-
     # debugOpenWindow()
 
 def init():
-    addHook('profileLoaded', default_write)
-
-# def debugOpenWindow():
-#     dialog = SROccluder(mw)
-#     dialog.setupUi()
-#     return dialog.exec_()
+    addHook('profileLoaded', setup_menu_option)
 
 init()

@@ -1,14 +1,13 @@
 import os
 import io
 import re
-import json
 import base64
+from json import dumps
+from functools import reduce
+from string import Template
 
 from anki import media
-from functools import reduce
-
 from aqt import mw
-from string import Template
 
 from .config import serialize_settings
 from .utils import version_string
@@ -54,7 +53,6 @@ def remove_model_template(model):
         ).strip()
 
 def get_injection_condition_parser(card, iterations):
-
     is_true = lambda v: type(v) == bool and v == True
     is_false = lambda v: type(v) == bool and v == False
 
@@ -108,8 +106,7 @@ def get_injection_condition_parser(card, iterations):
             if type(parsed_cond[1]) == bool:
                 return not parsed_cond[0], parsed_cond[1]
             else:
-                parsed_cond[1].insert(0, inj[0])
-                return not parsed_cond[0], parsed_cond[1]
+                return not parsed_cond[0], [inj[0], parsed_cond[1]]
 
         elif inj[0] == 'card':
             if inj[1] == '=':
@@ -207,14 +204,14 @@ def update_model_template(model, settings):
 
         with io.open(f'{js_path}/front.js', mode='r', encoding='utf-8') as template_front:
             js_front = BetterTemplate(template_front.read()).safe_substitute(
-                iterations=json.dumps(front_iterations, separators=minimal_sep),
-                injections=json.dumps(front_injections, separators=minimal_sep),
+                iterations=dumps(front_iterations, separators=minimal_sep),
+                injections=dumps(front_injections, separators=minimal_sep),
             )
 
         with io.open(f'{js_path}/back.js', mode='r', encoding='utf-8') as template_back:
             js_back =  BetterTemplate(template_back.read()).safe_substitute(
-                iterations=json.dumps(back_iterations, separators=minimal_sep),
-                injections=json.dumps(back_injections, separators=minimal_sep),
+                iterations=dumps(back_iterations, separators=minimal_sep),
+                injections=dumps(back_injections, separators=minimal_sep),
             )
 
         with io.open(f'{js_path}/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:
@@ -266,3 +263,5 @@ def update_model_template(model, settings):
             template['qfmt'] = template["qfmt"] + front_template
             template['afmt'] = template["afmt"] + back_template
 
+    # notify anki that models changed (for synchronization e.g.)
+    mw.col.models.save(model)

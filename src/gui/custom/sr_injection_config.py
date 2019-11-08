@@ -76,7 +76,7 @@ class SRInjectionConfig(QDialog):
         return json.loads(self.ui.conditionsTextEdit.toPlainText())
 
     def validateConditionsRaw(self):
-        schema_path = f'{os.path.dirname(os.path.realpath(__file__))}/../../lib/injection_cond.json'
+        schema_path = f'{os.path.dirname(os.path.realpath(__file__))}/../../json/injection_cond.json'
 
         with open(schema_path, 'r') as jsonfile:
 
