@@ -46,7 +46,7 @@ export const process = function(
 ) {
   const evaluators = []
   const valueSets = {}
-  const occlusions = []
+  const yanks = []
 
   const namedSetStatements = []
   const orderStatements = []
@@ -99,7 +99,7 @@ export const process = function(
     }
 
     else if (patternResult = content.match(yankPattern)) {
-      occlusions.push(preprocessYank(patternResult.slice(1)))
+      yanks.push([yanks.length, ...preprocessYank(patternResult.slice(1))])
     }
 
     ////// LATE EVALUATION
@@ -222,9 +222,11 @@ export const process = function(
     applyStatements,
   ]
 
+  console.log('foo', applyStatements)
+
   return [
     numberedSets,
-    occlusions,
+    yanks,
     pm.exportGeneratedValues(),
     pm.exportUniqConstraints(),
     valueSets,

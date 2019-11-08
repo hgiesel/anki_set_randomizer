@@ -9,6 +9,11 @@ import {
   typeRel,
   typeAbs,
   typeAbsNeg,
+  typeAll,
+
+  typeAbsYank,
+  typeAllYank,
+
   typeName,
 
   amountStar,
@@ -37,25 +42,49 @@ export const preprocessYank = function([
   ]
 }
 
-export const preprocessNamepos = function([abs, absNeg, rel, name]) {
+export const preprocessNamepos = function([abs, absNeg, rel, all, absYank, allYank, name]) {
   if (abs) {
     return {
       'type': typeAbs,
       'values': Number(abs),
     }
   }
+
   else if (absNeg) {
     return {
       'type': typeAbsNeg,
       'values': Number(absNeg),
     }
   }
+
+  else if (all) {
+    return {
+      'type': typeAll,
+      'values': null,
+    }
+  }
+
+  else if (absYank) {
+    return {
+      'type': typeAbsYank,
+      'values': Number(absYank),
+    }
+  }
+
+  else if (allYank) {
+    return {
+      'type': typeAllYank,
+      'values': null,
+    }
+  }
+
   else if (name) {
     return {
       'type': typeName,
       'values': name.split(':'),
     }
   }
+
   else /* rel */ {
     return {
       'type': typeRel,

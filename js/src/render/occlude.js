@@ -139,10 +139,10 @@ const getOccluder = function(shapeData, sa) {
     const scalingFactorX = event.target.width / event.target.naturalWidth
     const scalingFactorY = event.target.height / event.target.naturalHeight
 
-    for (const [yankName, ...properties] of shapeData) {
+    for (const [yankid, /* yankName */, ...properties] of shapeData) {
       for (const shape of toSvgShape(
         properties,
-        sa.propAccessor(yankName),
+        sa.propAccessor(`_${yankid}`),
         scalingFactorX,
         scalingFactorY,
       )) {
@@ -162,8 +162,8 @@ const getOccluder = function(shapeData, sa) {
 }
 
 // const shapes = [
-//   [0 /* imageid */, 'y1' /* yankname */, 'rect', [500, 500, 500, 200], 'some rect text'],
-//   [0 /* imageid */, 'y1' /* yankname */, 'polygon', [20, 20, 100, 30, 50, 120], 'some darrow text'],
+//   [0 /* yankid */, 0 /* imageid */, 'y1' /* yankName */, 'rect', [500, 500, 500, 200], 'some rect text'],
+//   [1 /* yankid */, /* imageid */, 'y1' /* yankName */, 'polygon', [20, 20, 100, 30, 50, 120], 'some darrow text'],
 // ]
 export const renderOcclusion = function(rawHtml /* from formatter */, rawData, styleAccessor) {
   const images = rawHtml
@@ -177,8 +177,8 @@ export const renderOcclusion = function(rawHtml /* from formatter */, rawData, s
     images
       .map((img, idx) => (
         rawData
-          .filter(([imageid]) => imageid === idx)
-          .map(([/* imageid */, ...args]) => args)
+          .filter(([/*yankid */, imageid]) => imageid === idx)
+          .map(([yankid, /* imageid */, ...args]) => [yankid, ...args])
       ))
       .forEach((data, idx) => {
         if (data.length > 0) {

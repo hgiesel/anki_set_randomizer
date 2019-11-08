@@ -14,13 +14,16 @@ const wrapArg = function(val, alignment = center, optional = false) {
     + `${optional ? '?' : ''}`
 }
 
-const namePatternRaw = '[a-zA-Z_][a-zA-Z0-9_\\-]*'
-const namePatternNonCapturing = `(?:${namePatternRaw}|\\*)`
-export const namePattern = `(${namePatternRaw}|\\*)`
+const namePatternRaw = '_?[a-zA-Z][a-zA-Z0-9_\\-]*'
+export const namePattern = `(${namePatternRaw})`
 
 const absoluteIdxPattern = `(\\d+)`
 const absoluteNegIdxPattern = `n(-\\d+)`
 const relativeIdxPattern = `((?:\\+|-)?\\d+)`
+
+const allSetsPattern = `(\\*)`
+const absoluteYankPattern = `_(\\d+)`
+const allYanksPattern = `_(\\*)`
 
 export const valSetPos = `(\\d+|\\*)`
 
@@ -52,7 +55,7 @@ export const keywordRegex = new RegExp(keywordPattern, 'gmu')
 export const keywordArgPattern = (
   `(`
 
-  + `(?:${namePatternNonCapturing})=` /* the keyword */
+  + `(?:${namePatternRaw})=` /* the keyword */
   + `(?:`
   + `\\[(?:.*?)\\]|` /* list notation */
   + `"(?:.*?)"|` /* double quote notation */
@@ -61,7 +64,7 @@ export const keywordArgPattern = (
   + `)?`
 
   + `(?:\\s*,\\s*`
-  + `(?:${namePatternNonCapturing})=` /* the keyword */
+  + `(?:${namePatternRaw})=` /* the keyword */
   + `(?:`
   + `\\[(?:.*?)\\]|` /* list notation */
   + `"(?:.*?)"|` /* double quote notation */
@@ -74,7 +77,7 @@ export const keywordArgPattern = (
 )
 
 const uniqConstraintPattern = (
-  `(?:(uniq)(?:=(${namePatternNonCapturing}?))?)`
+  `(?:(uniq)(?:=(${namePatternRaw}?))?)`
 )
 
 export const pickPattern = new RegExp(wrapName(['pick'], [
@@ -92,7 +95,7 @@ export const evalPattern = new RegExp(wrapName(['evaluate', 'eval'], [
 export const availableShapes = `(rect|ellipse|polygon|line|arrow|darrow)`
 export const attributeList = `(\\d+(?::\\d+){2,})`
 
-export const yankPattern = new RegExp(wrapName(['occlude', 'occ'], [
+export const yankPattern = new RegExp(wrapName(['yank'], [
   wrapArg(amountPattern /* imageid */, left, true),
   wrapArg(namePattern /* yankgroup */, center),
   wrapArg(availableShapes, right),
@@ -105,7 +108,10 @@ const posPattern = `(?:`
   + `${absoluteIdxPattern}|`
   + `${absoluteNegIdxPattern}|`
   + `${relativeIdxPattern}|`
-  + `(${namePatternNonCapturing}(?::${namePatternNonCapturing})*)`
+  + `${allSetsPattern}|`
+  + `${absoluteYankPattern}|`
+  + `${allYanksPattern}|`
+  + `(${namePatternRaw}(?::[0-9a-zA-Z_\\-]+)*)`
   + `)`
 
 const forcePattern = (

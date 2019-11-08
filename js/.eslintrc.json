@@ -104,7 +104,7 @@
     // disallows lonely if in else clause
     "no-lonely-if": "error",
     // disallows negated condition for if-else clause and ternary
-    "no-negated-condition": "error",
+    // "no-negated-condition": "error",
 
     // disallows a === 'a' ? true : false
     "no-unneeded-ternary": "error",

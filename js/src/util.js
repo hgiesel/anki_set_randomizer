@@ -6,8 +6,13 @@ export const pickInt = Symbol('pickInt')
 export const pickReal = Symbol('pickReal')
 
 export const typeRel = Symbol('typeRel')
+
 export const typeAbs = Symbol('typeAbs')
+export const typeAbsYank = Symbol('typeAbsYank')
 export const typeAbsNeg = Symbol('typeAbsNeg')
+
+export const typeAll = Symbol('typeAll')
+export const typeAllYank = Symbol('typeAllYank')
 export const typeName = Symbol('typeName')
 
 export const amountCount = Symbol('amountCount')

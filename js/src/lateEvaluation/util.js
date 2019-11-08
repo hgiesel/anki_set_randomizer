@@ -6,6 +6,10 @@ import {
   typeRel,
   typeAbs,
   typeAbsNeg,
+  typeAll,
+
+  typeAbsYank,
+  typeAllYank,
   typeName,
 } from '../util.js'
 
@@ -33,15 +37,11 @@ export const partitionList = function(list, spacing = 1, drop = false) {
   return output
 }
 
-const analyzeName = function(numberedSets, namedSets, [name1, name2]) {
+const analyzeName = function(numberedSets, namedSets, yanks, [name1, name2, name3, name4], allowYanks = true) {
   const foundSets = namedSets
     .find(v => v.name === name1)
 
-  if (!foundSets) {
-    return [name1 /* assume yank group */]
-  }
-
-  else if (foundSets && name2) {
+  if (foundSets && name2) {
     const namedPos = Number(name2)
 
     const idx = namedPos >= 0
@@ -53,8 +53,50 @@ const analyzeName = function(numberedSets, namedSets, [name1, name2]) {
       : []
   }
 
-  else {
+  else if (foundSets) {
     return foundSets.sets
+  }
+
+  else if (!allowYanks) {
+    return []
+  }
+
+  else /* !foundSets => look for yanks */ {
+    let foundYanks = []
+
+    if (name1 === 'img') /* img:imageid:yankgroup:count */ {
+      foundYanks = yanks
+
+      if (name2) {
+        foundYanks = foundYanks.filter(([/*yankid */, imageid]) => imageid === Number(name2))
+
+        if (name3 && Number.isNaN(Number(name3))) {
+          foundYanks = foundYanks.filter(([/*yankid */, /* imageid */, yankname]) => yankname === name3)
+
+          if (name4) {
+            const aYank = foundYanks[name4]
+            foundYanks = aYank ? [aYank] : []
+          }
+        }
+
+        else if (name3) {
+          const aYank = foundYanks[name3]
+          foundYanks = aYank ? [aYank] : []
+        }
+      }
+    }
+
+    else /* yankgroup:count */ {
+      foundYanks = yanks.filter(([/* yankid */, /* imageid */, yankname]) => yankname === name1)
+
+      if (name2) {
+        const aYank = foundYanks[name2]
+        foundYanks = aYank ? [aYank] : []
+      }
+    }
+
+    const result = foundYanks.map(([yankid /*, ... */]) => `_${yankid}`)
+    return result
   }
 }
 
@@ -68,20 +110,34 @@ export const getCorrespondingSets = function(
   currentPos,
 
   evalNames = true,
-) {
+  allowYanks = true,
+) /* returns a string */ {
   switch (name.type) {
     case typeRel:
-      return [currentPos + name.values]
+      return [String(currentPos + name.values)]
 
     case typeAbs:
-      return [name.values]
+      return [String(name.values)]
 
     case typeAbsNeg:
-      return [numberedSets.length + name.values - 1]
+      return [String(numberedSets.length + name.values - 1)]
+
+    case typeAll:
+      return numberedSets.map(numset => numset.name)
+
+    case typeAbsYank:
+      return allowYanks
+        ? [`_${name.values}`]
+        : []
+
+    case typeAllYank:
+      return allowYanks
+        ? yanks.map(([yankid /*, ... */]) => `_${yankid}`)
+        : []
 
     case typeName: default:
       return evalNames
-        ? analyzeName(numberedSets, namedSets, name.values)
+        ? analyzeName(numberedSets, namedSets, yanks, name.values)
         : name.name
   }
 }
