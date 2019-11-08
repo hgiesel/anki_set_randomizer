@@ -54,10 +54,10 @@ const valuePicker = function(valueSets) {
 }
 
 export const renderSets = function(
-  numberedSets,
   reordering,
   valueSets,
   styleAccessor,
+  elements,
 ) {
   const vp = valuePicker(valueSets)
 
@@ -72,7 +72,7 @@ export const renderSets = function(
       set.rendering.sort()
     }
     else if (pa.getProp(['display']) === 'orig') {
-      set.rendering = numberedSets.find(v => v.name === set.order).elements
+      set.rendering = elements[set.order]
     }
 
     for (const elem of set.rendering) {

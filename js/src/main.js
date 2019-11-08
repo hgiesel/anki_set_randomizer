@@ -1,31 +1,31 @@
-import render from './render/render.js'
-import formatter from './render/formatter.js'
+import structureMatcher from './matching.js'
+
 import process from './processors/process.js'
+
 import lateEvaluate from './lateEvaluation/lateEvaluation.js'
+import ruleEngine from './lateEvaluation/ruleEngine'
+
 import randomize from './randomize/randomize.js'
 
-import {
-  matchStructures,
-  matchGeneratedValues,
-  reorderForRendering,
-} from './randomize/matching.js'
+import render from './render/render.js'
+import formatter from './render/formatter.js'
 
 //////////////////////////////////////////////////////////////////////////////
-// elementsInherited + elementsOriginal -> elementsFirst -> elementsSecond
-// [['iter',0,0,'Hello','n'],['iter',0,1,'World'],[]],[[],[]], etc.]
-// numberedSets -> numberedSetsSecond
-// reorders -> reordersSecond [{name:1/name, length, sets, setLengths, order, force}]
+// elementsOld + elementsOriginal -> elementsShuffled -> elementsForced
+// [['iter', 0, 0, 'Hello', 'n'],['iter', 0, 1, 'World'],[]],[[],[]], etc.]
+// numberedSets -> numberedSetsForced
+// reorders -> reordersForced [{name:1/name, length, sets, setLengths, order, force}]
 const main2 = function(
   iterName,
   inputSyntax,
   defaultStyle,
 
-  elementsInherited,
-  generatedValuesInherited,
-  uniquenessConstraintsInherited,
-  reordersFirstInherited,
-  reordersSecondInherited,
-  randomIndicesInherited,
+  elementsOld,
+  generatedValuesOld,
+  uniquenessConstraintsOld,
+  reordersShuffledOld,
+  reordersForcedOld,
+  randomIndicesOld,
 
   injections,
 ) {
@@ -33,12 +33,12 @@ const main2 = function(
   const elementsOriginal = form.getElementsOriginal()
 
   if (!form.isInvalid() /* && !form.isContained() */ && elementsOriginal.length > 0) {
-    const structureMatches = matchStructures(elementsInherited, elementsOriginal)
+    const sm = structureMatcher(elementsOriginal, elementsOld, iterName)
 
     //////////////////////////////////////////////////////////////////////////////
-    // FIRST RANDOMIZATION
+    // SHUFFLING
     const [
-      numberedSets,
+      elementsToShuffle,
       yanks,
       generatedValues,
       uniquenessConstraints,
@@ -46,85 +46,72 @@ const main2 = function(
       lateEvaluation,
     ] = process(
       elementsOriginal,
-      matchGeneratedValues(structureMatches, generatedValuesInherited),
-      uniquenessConstraintsInherited,
+      sm.matchGeneratedValues(generatedValuesOld),
+      uniquenessConstraintsOld,
       iterName,
     )
 
-    const [
-      namedSets,
-      orderConstraints,
-      commands,
-      styleDefinitions,
-      styleApplications,
-    ] = lateEvaluate(numberedSets, yanks, defaultStyle, ...lateEvaluation)
+    const re = ruleEngine(
+      elementsToShuffle,
+      yanks,
+      defaultStyle,
+      iterName
+    )
+    lateEvaluate(re, ...lateEvaluation)
 
     const [
-      reordersFirst,
-      elementsFirst,
+      reordersShuffled /* namedSets with mixed order fields */,
+      elementsShuffled,
     ] = randomize(
-      numberedSets,
-      namedSets,
-      orderConstraints,
-      commands,
-      reordersFirstInherited,
-      structureMatches,
+      ...re.exportRandomizationData(),
+      sm.reorderMatcher(reordersShuffledOld),
+      elementsToShuffle,
     )
 
     //////////////////////////////////////////////////////////////////////////////
-    // SECOND RANDOMIZATION
-    const [numberedSetsSecond] = process(
-      elementsFirst,
-      [],
-      [],
-      iterName,
-    )
+    // FILTER DELETED + FORCING
+    const [elementsToForce] = process(elementsShuffled, [], [], iterName)
 
     const [
-      reordersSecond,
-      elementsSecond,
+      reordersForced,
+      elementsForced,
     ] = randomize(
-      numberedSetsSecond,
-      namedSets.filter(v => v.force),
-      orderConstraints.filter(v => v.force),
-      [],
-      reordersSecondInherited,
-      structureMatches,
-      true,
+      ...re.exportRandomizationData(true),
+      sm.reorderMatcher(reordersForcedOld),
+      elementsToForce,
     )
 
     //////////////////////////////////////////////////////////////////////////////
     // RENDERING
     const randomIndices = render(
       form,
-      numberedSets,
-      reorderForRendering(structureMatches, elementsSecond, iterName),
+      sm.reorderForRendering(elementsForced),
       valueSets,
       yanks,
-      styleDefinitions,
-      styleApplications,
-      randomIndicesInherited,
+      ...re.exportStyleData(),
+      randomIndicesOld,
+      elementsToShuffle,
     )
 
     //////////////////////////////////////////////////////////////////////////////
     return [[
-      elementsInherited.concat(elementsOriginal.filter(v => !structureMatches.find(w => w.to[0] === v[0][0] && w.to[1] === v[0][1]))),
+      sm.mergeElements(),
       generatedValues,
       uniquenessConstraints,
-      reordersFirstInherited.concat(reordersFirst),
-      reordersSecondInherited.concat(reordersSecond),
+      reordersShuffledOld.concat(reordersShuffled),
+      reordersForcedOld.concat(reordersForced),
       randomIndices,
     ], true]
   }
 
   else {
     return [[
-      elementsInherited,
-      generatedValuesInherited,
-      uniquenessConstraintsInherited,
-      reordersFirstInherited,
-      reordersSecondInherited,
-      randomIndicesInherited,
+      elementsOld,
+      generatedValuesOld,
+      uniquenessConstraintsOld,
+      reordersShuffledOld,
+      reordersForcedOld,
+      randomIndicesOld,
     ], false]
   }
 }

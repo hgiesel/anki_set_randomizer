@@ -1,9 +1,5 @@
-import ruleEngine from './ruleEngine'
-
 export default function lateEvaluate(
-  numberedSets,
-  yanks,
-  defaultStyle,
+  re,
 
   namedSetStatements,
   orderStatements,
@@ -12,8 +8,6 @@ export default function lateEvaluate(
   styleStatements,
   applyStatements,
 ) {
-  const re = ruleEngine(numberedSets, yanks, defaultStyle)
-
   namedSetStatements
     .reduce((accu, elem) => {
       elem[5] || elem[6] || elem[7] || elem[8] || elem[9]
@@ -27,6 +21,5 @@ export default function lateEvaluate(
   commandStatements.forEach(stmt => re.processCommand(...stmt))
   styleStatements.forEach(stmt => re.processStyle(...stmt))
   applyStatements.forEach(stmt => re.processApplication(...stmt))
-
-  return re.exportResults()
+  re.executeMeta()
 }

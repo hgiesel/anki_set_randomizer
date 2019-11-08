@@ -6,7 +6,7 @@ from .lib import config
 from .lib import model_editor
 
 from .gui.custom.sr_config import SRConfigDialog, write_back
-from .occluder.custom.sr_occluder import SROccluder
+# from .occluder.custom.sr_occluder import SROccluder
 
 def setup_menu_option():
     action = QAction('Set Randomizer Settings...', mw)
@@ -25,14 +25,14 @@ def default_write():
     write_back(settings)
     setup_menu_option()
 
-    debugOpenWindow()
+    # debugOpenWindow()
 
 def init():
     addHook('profileLoaded', default_write)
 
-def debugOpenWindow():
-    dialog = SROccluder(mw)
-    dialog.setupUi()
-    return dialog.exec_()
+# def debugOpenWindow():
+#     dialog = SROccluder(mw)
+#     dialog.setupUi()
+#     return dialog.exec_()
 
 init()

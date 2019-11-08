@@ -1,31 +1,7 @@
-import {
-  compareArrays,
-} from './util.js'
-
 // modifies in-place (!)
 const rotate = function(arr, count) {
   count -= arr.length * Math.floor(count / arr.length)
   arr.push.apply(arr, arr.splice(0, count))
-}
-
-const sortWithIndices = function(elems, indices) {
-  const result = []
-
-  for (const idx of indices) {
-    const maybeElem = elems[idx]
-
-    if (maybeElem) {
-      result.push(maybeElem)
-    }
-  }
-
-  if (indices.length < elems.length) {
-    for (const idx of Array.from(new Array(elems.length - indices.length), (x, i) => i + indices.length)) {
-      result.push(elems[idx])
-    }
-  }
-
-  return result
 }
 
 const applyCommand = function(cmd, elems) {
@@ -116,66 +92,6 @@ const applyCommand = function(cmd, elems) {
   rotate(theElems, -fromPosition)
 }
 
-const sliceWithLengths = function(elems, lengths) {
-  const result = []
-
-  let startIndex = 0
-  for (const l of lengths) {
-    result.push(elems.slice(startIndex, startIndex + l))
-    startIndex += l
-  }
-
-  return result
-}
-
-export const applySetReorder = function(srs, elems) {
-  // sort by size of sets to be reordered
-  const sortedSrs = srs.slice(0).sort(
-    (a, b) => {
-      if (a.sets.length > b.sets.length) {
-        return -1
-      }
-      else if (a.sets.length < b.sets.length) {
-        return 1
-      }
-      else if (typeof a.name === 'string') {
-        return -1
-      }
-      else {
-        return 1
-      }
-    })
-
-  const appliedSrs = []
-
-  for (const sr of sortedSrs) {
-    const alreadySorted = appliedSrs
-      .reduce(
-        (accu, v) => accu || sr.sets.every(srv => (
-          v.some(w => compareArrays(w, srv))
-        )),
-        false
-      )
-
-    if (!alreadySorted) {
-      const flatSaveElems = sr
-        .sets
-        .map(v => elems[v[1]])
-        .flat()
-
-      sliceWithLengths(
-        sortWithIndices(flatSaveElems, sr.order),
-        sr.setLengths
-      )
-        .forEach((v, i) => {
-          elems[sr.sets[i][1]] = v
-        })
-
-      appliedSrs.push(sr.sets)
-    }
-  }
-}
-
 // values states include 'n', 'c', 'd'
 // cmds states include 'c', 'd', 'm'
 // cmd = [0:cmdType, 1: amount, 2:fromPosition, 3:fromAmount, 4:toSet, 5:toPosition]
@@ -199,3 +115,4 @@ export const applyCommands = function(cmds, elems) {
     .forEach(cmd => applyCommand(cmd, elems)) // modifies newElements
 }
 
+export default applyCommands

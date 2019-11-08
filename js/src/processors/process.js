@@ -209,15 +209,9 @@ export const process = function(
     return [[iterName, setIndex, elemIndex, content, mode]]
   }
 
-  const numberedSets = elements
+  const elementsProcessed = elements
     .map(set => set.flatMap(elem => processElem(...elem)))
-    .map((set, i) => ({
-      'iter': iterName,
-      'name': i,
-      'sets': [i],
-      'elements': set
-        .flatMap(elem => expandGenerators(...elem)),
-    }))
+    .map(set => set.flatMap(elem => expandGenerators(...elem)))
 
   const forLateEvaluation = [
     namedSetStatements,
@@ -227,10 +221,8 @@ export const process = function(
     applyStatements,
   ]
 
-  console.log('foo', applyStatements)
-
   return [
-    numberedSets,
+    elementsProcessed,
     yanks,
     pm.exportGeneratedValues(),
     pm.exportUniqConstraints(),

@@ -1,85 +1,91 @@
-const shuffle = function(array) {
-  let currentIndex = array.length, temporaryValue = null, randomIndex = null
+import {
+  compareArrays,
+} from './util.js'
 
-  // While there remain elements to shuffle...
-  while (currentIndex !== 0) {
-    // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex)
-    currentIndex -= 1
-    // And swap it with the current element.
-    temporaryValue = array[currentIndex]
-    array[currentIndex] = array[randomIndex]
-    array[randomIndex] = temporaryValue
-  }
-  return array
-}
+const sortWithIndices = function(elems, indices) {
+  const result = []
 
-const detectOrderDictator = function(orderConstraint, setReorders) {
-  return orderConstraint
-    .sets
-    .map(v => ({
-      name: v,
-      length: setReorders.find(w => w.name === v).length
-    }))
-    .reduce((accu, v) => (accu.length < v.length ? v : accu))
-    .name
-}
+  for (const idx of indices) {
+    const maybeElem = elems[idx]
 
-export const reorderNumberedSets = function(numberedSets) {
-  return numberedSets.map(v => ({
-    iter: v.iter,
-    name: v.name,
-    length: v.elements.length,
-    sets: [[v.iter, v.name]],
-    setLengths: [v.elements.length],
-    order: shuffle([...new Array(v.elements.length).keys()]),
-    force: v.force,
-  }))
-}
-
-export const reorderNamedSets = function(namedSets, numberedSets) {
-  return namedSets.map((u) => {
-    const containedNumberedSets = u.sets
-      .map(v => numberedSets.filter(w => w.name === v))
-
-    const setLengths = containedNumberedSets
-      .map(v => v[0].elements.length)
-
-    const elementCount = setLengths
-      .reduce((accu, w) => accu + w, 0)
-
-    return {
-      iter: u.iter,
-      name: u.name,
-      length: elementCount,
-      sets: u.sets.map(w => [u.iter, w]),
-      setLengths: setLengths,
-      order: shuffle([...new Array(elementCount).keys()]),
-      force: u.force,
+    if (maybeElem) {
+      result.push(maybeElem)
     }
-  })
-}
-
-export const applyOrderConstraint = function(orderConstraint, setReorders) {
-  const dictator = detectOrderDictator(orderConstraint, setReorders)
-  orderConstraint.dictator = dictator
-
-  const dictatorOrder = setReorders.find(v => v.name === orderConstraint.dictator).order
-
-  for (const set of orderConstraint.sets) {
-    const oldOrder = setReorders.find(v => v.name === set).order
-    const newOrder = dictatorOrder.filter(v => v < oldOrder.length)
-
-    // modifies setReorders
-    setReorders.forEach((v) => {
-      if (v.name === set) {
-        v.order = newOrder
-        if (orderConstraint.force) {
-          v.force = true
-        }
-      }
-    })
   }
 
-  return setReorders
+  if (indices.length < elems.length) {
+    for (const idx of Array.from(new Array(elems.length - indices.length), (x, i) => i + indices.length)) {
+      result.push(elems[idx])
+    }
+  }
+
+  return result
 }
+
+const sliceWithLengths = function(elems, lengths) {
+  const result = []
+
+  let startIndex = 0
+  for (const l of lengths) {
+    result.push(elems.slice(startIndex, startIndex + l))
+    startIndex += l
+  }
+
+  return result
+}
+
+const sortByLengthAndName = function(a, b) {
+  // long sets first
+  if (a.sets.length > b.sets.length) {
+    return -1
+  }
+
+  else if (a.sets.length < b.sets.length) {
+    return 1
+  }
+
+  // if same length:
+  // * named sets have preference over numbered
+  else if (Number.isNaN(Number(a.name))) {
+    return -1
+  }
+
+  else {
+    return 1
+  }
+}
+
+export const applyReorders = function(reorders, elementsUnapplied) {
+  // sort by size of sets to be reordered
+  const reordersSorted = reorders.slice(0).sort(sortByLengthAndName)
+  const reordersApplied = []
+  const elements = elementsUnapplied.slice(0)
+
+  for (const reo of reordersSorted) {
+    const alreadySorted = reordersApplied.reduce((accu, reoApplied) => (
+      accu || reo.sets.every(set => reoApplied.sets.some(w => compareArrays(w, set)))
+    ), false)
+
+    if (!alreadySorted) {
+      const flatSaveElems = reo
+        .sets
+        .map(setIndex => elements[setIndex])
+        .flat()
+
+      const mixedAndSliced = sliceWithLengths(
+        sortWithIndices(flatSaveElems, reo.order),
+        reo.setLengths
+      )
+
+      mixedAndSliced.forEach((mixedSet, setIndex) => {
+        elements[reo.sets[setIndex]] = mixedSet
+      })
+
+      reordersApplied.push(reo)
+    }
+  }
+
+  return [reordersApplied, elements]
+}
+
+export default applyReorders

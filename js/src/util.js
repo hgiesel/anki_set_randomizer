@@ -83,7 +83,9 @@ export const createWarnings = function(wereSetsUsed) {
     if (!window.Persistence) {
       createWarningNotDefined()
     }
-    else if (!Persistence.isAvailable() && wereSetsUsed /* only show Warning if you used some sets at all */) {
+
+    else if (!Persistence.isAvailable() && wereSetsUsed) {
+      // only show Warning if you used some sets at all
       createWarningNotAvailable()
     }
   }

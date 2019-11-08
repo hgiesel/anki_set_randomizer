@@ -172,21 +172,23 @@ const styleAccessor = function(styleDefinitions, styleApplications, randomIndice
 
 export const render = function(
   form,
-  numberedSets,
   reordering,
   valueSets,
   occlusions,
+
   styleDefinitions,
   styleApplications,
   randomIndicesInherited,
+
+  elementsToShuffle,
 ) {
   const sa = styleAccessor(styleDefinitions, styleApplications, randomIndicesInherited)
 
   const stylizedResults = renderSets(
-    numberedSets,
     reordering,
     valueSets,
     sa,
+    elementsToShuffle,
   )
 
   form.outputSets(stylizedResults)

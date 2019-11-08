@@ -14,6 +14,8 @@ import {
 import {
   processNamedSet as pns,
   processOrder as po,
+  createDefaultNames,
+  addNamedSetMeta,
 } from './shuffling.js'
 
 import {
@@ -27,13 +29,12 @@ import {
 import styleSetter from './styleSetter.js'
 
 // Adapter for numbered.js evals
-export const ruleEngine = function(numberedSets, yanks, defaultStyle) {
-  const elementsValues = numberedSets
-    .map(set => set.elements)
+export const ruleEngine = function(elements, yanks, defaultStyle, iterNameOuter) {
+  const elementsValues = elements
     .flat()
     .filter(elem => isSRToken(elem[3], 'value'))
 
-  const namedSets = []
+  const namedSets = createDefaultNames(elements, iterNameOuter)
   const orderConstraints = []
   const commands = []
 
@@ -66,7 +67,7 @@ export const ruleEngine = function(numberedSets, yanks, defaultStyle) {
         && (vs.pos === vsStar || vs.pos === Number(vsPos))
       ) {
         const correspondingSets = getCorrespondingSets(
-          numberedSets,
+          elements,
           namedSets,
           yanks,
           appliedName,
@@ -91,7 +92,7 @@ export const ruleEngine = function(numberedSets, yanks, defaultStyle) {
 
       case vsNone: default:
         const correspondingSets = getCorrespondingSets(
-          numberedSets,
+          elements,
           namedSets,
           yanks,
           appliedName,
@@ -146,8 +147,8 @@ export const ruleEngine = function(numberedSets, yanks, defaultStyle) {
     // copyCmd, moveCmd, delCmd, xchCmd, replCmd,
     // ...argumentz
   ) {
-    // rulethrough(pc, iterName, setIndex, posIndex, 25, numberedSets, namedSets, ...argumentz)
-    // toOptArg(evalKeywordArguments(argumentz[argumentz.length])), numberedSets, namedSets,
+    // rulethrough(pc, iterName, setIndex, posIndex, 25, elements, namedSets, ...argumentz)
+    // toOptArg(evalKeywordArguments(argumentz[argumentz.length])), elements, namedSets,
   }
 
   const processApplication = function(
@@ -161,13 +162,24 @@ export const ruleEngine = function(numberedSets, yanks, defaultStyle) {
     )
   }
 
-  const exportResults = () => [
-    namedSets,
-    orderConstraints,
-    commands,
-    ss.exportStyleDefinitions(),
-    styleApplications
-  ]
+  const executeMeta = function() {
+    addNamedSetMeta(namedSets, elements)
+  }
+
+  const exportRandomizationData = function(forced) {
+    return [
+      forced ? namedSets.filter(ns => ns.force) : namedSets,
+      forced ? orderConstraints.filter(oc => oc.force) : orderConstraints,
+      forced ? [] : commands,
+    ]
+  }
+
+  const exportStyleData = function() {
+    return [
+      ss.exportStyleDefinitions(),
+      styleApplications,
+    ]
+  }
 
   return {
     processNamedSet: processNamedSet,
@@ -176,7 +188,9 @@ export const ruleEngine = function(numberedSets, yanks, defaultStyle) {
     processStyle: processStyle,
     processApplication: processApplication,
 
-    exportResults: exportResults,
+    executeMeta: executeMeta,
+    exportRandomizationData: exportRandomizationData,
+    exportStyleData: exportStyleData,
   }
 }
 

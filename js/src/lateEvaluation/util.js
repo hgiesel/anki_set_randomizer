@@ -37,7 +37,7 @@ export const partitionList = function(list, spacing = 1, drop = false) {
   return output
 }
 
-const analyzeName = function(numberedSets, namedSets, yanks, [name1, name2, name3, name4], allowYanks = true) {
+const analyzeName = function(elements, yanks, namedSets, [name1, name2, name3, name4], allowYanks = true) {
   const foundSets = namedSets
     .find(v => v.name === name1)
 
@@ -46,7 +46,7 @@ const analyzeName = function(numberedSets, namedSets, yanks, [name1, name2, name
 
     const idx = namedPos >= 0
       ? namedPos
-      : numberedSets.length + namedPos - 1
+      : elements.length + namedPos - 1
 
     return foundSets.sets[idx] >= 0
       ? [foundSets.sets[idx]]
@@ -102,7 +102,7 @@ const analyzeName = function(numberedSets, namedSets, yanks, [name1, name2, name
 
 // evaluates named set args in $n(), $o(), or $a()
 export const getCorrespondingSets = function(
-  numberedSets,
+  elements,
   namedSets,
   yanks,
 
@@ -111,20 +111,22 @@ export const getCorrespondingSets = function(
 
   evalNames = true,
   allowYanks = true,
-) /* returns a string */ {
+) {
   switch (name.type) {
+    /* returns [number] */
     case typeRel:
-      return [String(currentPos + name.values)]
+      return [currentPos + name.values]
 
     case typeAbs:
-      return [String(name.values)]
+      return [name.values]
 
     case typeAbsNeg:
-      return [String(numberedSets.length + name.values - 1)]
+      return [elements.length + name.values - 1]
 
     case typeAll:
-      return numberedSets.map(numset => numset.name)
+      return [...elements.keys()]
 
+    /* returns [string] */
     case typeAbsYank:
       return allowYanks
         ? [`_${name.values}`]
@@ -137,7 +139,7 @@ export const getCorrespondingSets = function(
 
     case typeName: default:
       return evalNames
-        ? analyzeName(numberedSets, namedSets, yanks, name.values)
+        ? analyzeName(elements, yanks, namedSets, name.values)
         : name.name
   }
 }
