@@ -146,9 +146,9 @@ export default function styleSetter(defaultStyle) {
         }
         break
 
-      case 'filter':
+      case 'filterTags':
         if (typeof (value = getBool(attributeValue)) === 'boolean') {
-          sd.stylings.filter = value
+          sd.stylings.filterTags = value
         }
         break
 

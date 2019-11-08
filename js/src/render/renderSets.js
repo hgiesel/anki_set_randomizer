@@ -101,10 +101,10 @@ export const renderSets = function(
         const pickedValue = vp.pickValue(elemContent, pa.getProp(['colors', 'rules'], [/* preds */], [/* default */]), pa.getProp(['classes', 'rules'], [/* preds */], [/* default */]))
 
         if (pickedValue) {
-          const filterHtml = pa.getProp(['filter'])
+          const filterTags = pa.getProp(['filterTags'])
           const displayBlock = pa.getProp(['block'])
 
-          const theValue = filterHtml
+          const theValue = filterTags
             ? displayBlock
             ? `<record ${className} ${style}><div>${treatNewlines(pickedValue).replace(htmlTagsNoBrRegex, '')}</div></record>`
             : `<record ${className} ${style}>${pickedValue.replace(htmlTagsRegex, '')}</record>`
