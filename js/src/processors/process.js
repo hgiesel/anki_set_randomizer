@@ -63,7 +63,11 @@ export const process = function(
   ) {
     let patternResult = null
 
-    if (!content.startsWith('$') && mode === 'n') {
+    if (mode === 'd' /* deleted */) {
+      return []
+    }
+
+    else if (!content.startsWith('$')) {
       return [[iterNameSub, setIndex, elemIndex, content, mode]]
     }
 
@@ -156,6 +160,7 @@ export const process = function(
       ])
     }
 
+    // calling invalid / nongenerator function element
     return []
   }
 
@@ -189,7 +194,7 @@ export const process = function(
           return pg.expandPickValueSet(
             preprocessAmount(tokens.slice(0, 1)),
             preprocessVs(tokens.slice(1, 4)),
-            preprocessUniq([null, tokens[5]]),
+            preprocessUniq([null, tokens[4]]),
             valueSets,
           )
 

@@ -20,9 +20,22 @@ import {
   amountCount,
 
   uniqSome,
+  uniqCond,
+  uniqHas,
   uniqNone,
   uniqAnon,
+
+  uniqEq,
+  uniqNeq,
+  uniqLt,
+  uniqLe,
+  uniqGt,
+  uniqGe,
 } from '../util.js'
+
+import {
+  uniqConstraintDiff
+} from './util.js'
 
 export const preprocessYank = function([
   imageId,
@@ -128,12 +141,59 @@ export const preprocessAmount = function([amountText], defaultAmount = 1) {
   }
 }
 
-export const preprocessUniq = function([uniqKeyword, uniqName]) {
-  if (uniqName) {
+const preprocessUniqCondAndHas = function([
+  nameCond, lt, le, eq, neq, ge, gt, compareNum, negation,
+  nameHas, vsName, vsSub, vsPos, elseValue,
+  nameSome
+]) {
+  if (nameSome) {
+    return {
+      'type': uniqSome,
+      'name': nameSome,
+    }
+  }
+
+  else if (nameCond) {
+    const op = lt
+      ? uniqLt
+      : le
+      ? uniqLe
+      : eq
+      ? uniqEq
+      : neq
+      ? uniqNeq
+      : ge
+      ? uniqGe
+      : uniqGt /* default */
+
+    return {
+      'type': uniqCond,
+      'op': op,
+      'num': Number(compareNum),
+    }
+  }
+
+  else /* nameHas */ {
+    return {
+      'type': uniqHas,
+      'neg': Boolean(negation),
+      'value': elseValue || preprocessVs(vsName, vsSub, vsPos),
+    }
+  }
+  // should never happen
+}
+
+export const preprocessUniq = function([uniqKeyword, uniqName], shortcut = false) {
+  if (uniqName && shortcut) {
     return {
       'type': uniqSome,
       'name': uniqName,
     }
+  }
+
+  else if (uniqName) {
+    const patternMatch = uniqName.match(uniqConstraintDiff).slice(1)
+    return preprocessUniqCondAndHas(patternMatch)
   }
 
   else if (uniqKeyword) {

@@ -76,8 +76,20 @@ export const keywordArgPattern = (
   + `)?`
 )
 
+const lt = `(?:<|&lt;)`
+const gt = `(?:>|&gt;)`
+
+const compareSymbols = `(?:${lt}|${lt}=|==|!=|${gt}=|${gt})`
+const compareSymbolsDiff = `(?:(${lt})|(${lt}=)|(==)|(!=)|(${gt}=)|(${gt}))`
+const hasPatternDiff = `(!?)(${namePatternRaw})\\[(?:${valueSetName}|(.*))\\]`
+
+export const uniqConstraintDiff = new RegExp(
+  `(?:(${namePatternRaw})\\s*${compareSymbolsDiff}\\s*(\\d+)|${hasPatternDiff}|((?:${namePatternRaw})?))`,
+  'u',
+)
+
 const uniqConstraintPattern = (
-  `(?:(uniq)(?:=(${namePatternRaw}?))?)`
+  `(uniq)(?:=(${namePatternRaw}\\s*${compareSymbols}\\s*\\d+|!?${namePatternRaw}\\[.*\\]|(?:${namePatternRaw})?))?`
 )
 
 export const pickPattern = new RegExp(wrapName(['pick'], [
