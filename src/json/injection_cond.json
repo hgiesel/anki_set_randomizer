@@ -1,0 +1,110 @@
+{
+  "definitions": {
+    "truthValue": {
+      "type": "boolean"
+    },
+    "condition": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": [
+        {
+          "type": "string",
+          "enum": [
+            "card",
+            "tag",
+            "iter"
+          ]
+        },
+        {
+          "type": "string",
+          "enum": [
+            "=",
+            "!=",
+            "includes",
+            "startsWith",
+            "endsWith"
+          ]
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+
+    "negation": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": [
+        {
+          "type": "string",
+          "enum": [
+            "!"
+          ]
+        }
+      ],
+      "additionalItems": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/truthValue"
+          },
+          {
+            "$ref": "#/definitions/condition"
+          },
+          {
+            "$ref": "#/definitions/negation"
+          },
+          {
+            "$ref": "#/definitions/conjunctionDisjunction"
+          }
+        ]
+      }
+    },
+
+    "conjunctionDisjunction": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string",
+          "enum": [
+            "&",
+            "|"
+          ]
+        }
+      ],
+      "additionalItems": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/truthValue"
+          },
+          {
+            "$ref": "#/definitions/condition"
+          },
+          {
+            "$ref": "#/definitions/negation"
+          },
+          {
+            "$ref": "#/definitions/conjunctionDisjunction"
+          }
+        ]
+      }
+    }
+
+  },
+
+  "oneOf": [
+    {
+      "$ref": "#/definitions/truthValue"
+    },
+    {
+      "$ref": "#/definitions/condition"
+    },
+    {
+      "$ref": "#/definitions/negation"
+    },
+    {
+      "$ref": "#/definitions/conjunctionDisjunction"
+    }
+  ]
+}

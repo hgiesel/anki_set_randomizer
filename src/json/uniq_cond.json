@@ -1,0 +1,117 @@
+{
+  "definitions": {
+
+    "condition_numeric": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "string",
+          "enum": [
+            "<",
+            "<=",
+            "eq",
+            "neq",
+            ">=",
+            ">",
+            "%"
+          ]
+        },
+        {
+          "type": "number"
+        }
+      ]
+    },
+
+    "condition_containment": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "string",
+          "enum": [
+            "includes",
+            "!includes"
+          ]
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+
+    "negation": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": [
+        {
+          "type": "string",
+          "enum": [
+            "!"
+          ]
+        }
+      ],
+      "additionalItems": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/condition"
+          },
+          {
+            "$ref": "#/definitions/negation"
+          },
+          {
+            "$ref": "#/definitions/conjunction+disjunction"
+          }
+        ]
+      }
+    },
+
+    "conjunction+disjunction": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string",
+          "enum": [
+            "&",
+            "|"
+          ]
+        }
+      ],
+      "additionalItems": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/condition"
+          },
+          {
+            "$ref": "#/definitions/negation"
+          },
+          {
+            "$ref": "#/definitions/conjunction+disjunction"
+          }
+        ]
+      }
+    }
+
+  },
+
+  "oneOf": [
+    {
+      "$ref": "#/definitions/condition"
+    },
+    {
+      "$ref": "#/definitions/negation"
+    },
+    {
+      "$ref": "#/definitions/conjunction+disjunction"
+    }
+  ]
+}

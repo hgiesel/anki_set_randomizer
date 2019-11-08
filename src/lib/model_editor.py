@@ -5,12 +5,15 @@ import json
 import base64
 
 from anki import media
+from functools import reduce
 
 from aqt import mw
 from string import Template
 
 from .config import serialize_settings
 from .utils import version_string
+
+from aqt.utils import showInfo
 
 class BetterTemplate(Template):
     delimiter = '$$'
@@ -50,40 +53,174 @@ def remove_model_template(model):
             flags=re.MULTILINE | re.DOTALL,
         ).strip()
 
+def get_injection_condition_parser(card, iterations):
+
+    is_true = lambda v: type(v) == bool and v == True
+    is_false = lambda v: type(v) == bool and v == False
+
+    # returns [needsInjection, simplifiedCondition]
+    def parse_injection(inj):
+        if len(inj) == 0:
+            # empty conditions
+            return True, inj
+
+        elif type(inj) == bool:
+            return inj, inj
+
+        elif inj[0] == '&':
+            parsed_conds = [parse_injection(i) for i in inj[1:]]
+            truth_result = reduce(lambda x, y: x and y, [res[0] for res in parsed_conds])
+
+            parsed_result = [res[1] for res in parsed_conds]
+
+            if any([is_false(pr) for pr in parsed_result]):
+                return truth_result, False
+            else:
+                result = list(filter(lambda v: not is_true(v), parsed_result))
+                if len(result) > 1:
+                    result.insert(0, inj[0])
+                else:
+                    result = [item for sublist in result for item in sublist]
+
+                return truth_result, result
+
+        elif inj[0] == '|':
+            parsed_conds = [parse_injection(i) for i in inj[1:]]
+            truth_result =  reduce(lambda x, y: x or y, [res[0] for res in parsed_conds])
+
+            parsed_result = [res[1] for res in parsed_conds]
+            parsed_result.insert(0, inj[0])
+
+            if any([is_true(pr) for pr in parsed_result]):
+                return truth_result, True
+            else:
+                result = list(filter(lambda v: not is_false(v), parsed_result))
+                if len(result) > 1:
+                    result.insert(0, inj[0])
+                else:
+                    result = [item for sublist in result for item in sublist]
+
+                return truth_result, result
+
+        elif inj[0] == '!':
+            parsed_cond = parse_injection(inj[1])
+
+            if type(parsed_cond[1]) == bool:
+                return not parsed_cond[0], parsed_cond[1]
+            else:
+                parsed_cond[1].insert(0, inj[0])
+                return not parsed_cond[0], parsed_cond[1]
+
+        elif inj[0] == 'card':
+            if inj[1] == '=':
+                val = card == inj[2]
+
+            elif inj[1] == '!=':
+                val = card != inj[2]
+
+            elif inj[1] == 'includes':
+                val = inj[2] in card
+
+            elif inj[1] == 'startsWith':
+                val = card.startswith(inj[2])
+
+            elif inj[1] == 'endsWith':
+                val = card.endswith(inj[2])
+
+            return val, val
+
+        elif inj[0] == 'iter':
+            iterNames = [iter['name'] for iter in iterations]
+
+            if inj[1] == '=':
+                truth_values = [x == inj[2] for x in iterNames]
+                if len(set(truth_values)) == 1:
+                    return truth_values[0], truth_values[0]
+                else:
+                    return reduce(lambda accu, x: accu or x, truth_values, False), inj
+
+            elif inj[1] == '!=':
+                truth_values = [x != inj[2] for x in iterNames]
+                if len(set(truth_values)) == 1:
+                    return truth_values[0], truth_values[0]
+                else:
+                    return reduce(lambda accu, x: accu or x, truth_values, False), inj
+
+            elif inj[1] == 'includes':
+                truth_values = [inj[2] in x for x in iterNames]
+                if len(set(truth_values)) == 1:
+                    return truth_values[0], truth_values[0]
+                else:
+                    return reduce(lambda accu, x: accu or x, truth_values, False), inj
+
+            elif inj[1] == 'startsWith':
+                truth_values = [x.startswith(inj[2]) for x in iterNames]
+                if len(set(truth_values)) == 1:
+                    return truth_values[0], truth_values[0]
+                else:
+                    return reduce(lambda accu, x: accu or x, truth_values, False), inj
+
+            elif inj[1] == 'endsWith':
+                truth_values = [x.endswith(inj[2]) for x in iterNames]
+                if len(set(truth_values)) == 1:
+                    return truth_values[0], truth_values[0]
+                else:
+                    return reduce(lambda accu, x: accu or x, truth_values, False), inj
+
+        elif inj[0] == 'tag':
+            return True, inj
+
+    return parse_injection
 
 def update_model_template(model, settings):
     js_path = f'{os.path.dirname(os.path.realpath(__file__))}/../../js/dist'
     minimal_sep = (',', ':')
 
-    with io.open(f'{js_path}/front.js', mode='r', encoding='utf-8') as template_front:
-        js_front = BetterTemplate(template_front.read()).safe_substitute(
-            iterations=json.dumps(
-                [iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('-')],
-                separators=minimal_sep,
-            ),
-            injections=json.dumps(
-                [inj for inj in settings['injections'] if inj['enabled']],
-                separators=minimal_sep,
-            ),
-        )
+    for template in model['tmpls']:
+        cardtype_name = template['name']
 
-    with io.open(f'{js_path}/back.js', mode='r', encoding='utf-8') as template_back:
-        js_back =  BetterTemplate(template_back.read()).safe_substitute(
-            iterations=json.dumps(
-                [iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('+')],
-                separators=minimal_sep,
-            ),
-            injections=json.dumps(
-                [inj for inj in settings['injections'] if inj['enabled']],
-                separators=minimal_sep,
-            ),
-        )
+        front_iterations = [iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('-')]
+        back_iterations = [iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('+')]
 
-    with io.open(f'{js_path}/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:
-        anki_persistence = template_anki_persistence.read() + '\n'
+        front_injection_parser = get_injection_condition_parser(cardtype_name, front_iterations)
+        back_injection_parser = get_injection_condition_parser(cardtype_name, back_iterations)
 
-    if settings['pasteIntoTemplate']:
-        for template in model['tmpls']:
+        front_injections = []
+        back_injections = []
+
+        for inj in settings['injections']:
+            needs_injection_front, simplified_conditions_front = front_injection_parser(inj['conditions'])
+
+            if needs_injection_front:
+                front_injections.append({
+                    'statements': inj['statements'],
+                    'conditions': simplified_conditions_front,
+                })
+
+            needs_injection_back, simplified_conditions_back = back_injection_parser(inj['conditions'])
+
+            if needs_injection_back:
+                back_injections.append({
+                    'statements': inj['statements'],
+                    'conditions': simplified_conditions_back,
+                })
+
+        with io.open(f'{js_path}/front.js', mode='r', encoding='utf-8') as template_front:
+            js_front = BetterTemplate(template_front.read()).safe_substitute(
+                iterations=json.dumps(front_iterations, separators=minimal_sep),
+                injections=json.dumps(front_injections, separators=minimal_sep),
+            )
+
+        with io.open(f'{js_path}/back.js', mode='r', encoding='utf-8') as template_back:
+            js_back =  BetterTemplate(template_back.read()).safe_substitute(
+                iterations=json.dumps(back_iterations, separators=minimal_sep),
+                injections=json.dumps(back_injections, separators=minimal_sep),
+            )
+
+        with io.open(f'{js_path}/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:
+            anki_persistence = template_anki_persistence.read() + '\n'
+
+        if settings['pasteIntoTemplate']:
             template['qfmt'] = (
                 f'{template["qfmt"]}\n\n<script {gen_data_attributes("Front")}>\n'
                 f'{anki_persistence if settings["insertAnkiPersistence"] else ""}{js_front}'
@@ -96,36 +233,36 @@ def update_model_template(model, settings):
                 f'</script>'
             )
 
-    else:
-        front_name = f'_front{model["id"]}.js'
-        back_name = f'_back{model["id"]}.js'
+        else:
+            front_name = f'_front{model["id"]}_{cardtype_name}.js'
+            back_name = f'_back{model["id"]}_{cardtype_name}.js'
 
-        front_template = f"""\n
+            front_template = f"""\n
 <script {gen_data_attributes("Front")}>
   var script = document.createElement("script")
   script.src = "{front_name}"
   document.getElementsByTagName('head')[0].appendChild(script)
 </script>
-        """
+"""
 
-        back_template = f"""\n
+            back_template = f"""\n
 <script {gen_data_attributes("Back")}>
   var script = document.createElement("script")
   script.src = "{back_name}"
   document.getElementsByTagName('head')[0].appendChild(script)
 </script>
-        """
+"""
 
-        mw.col.media.writeData(front_name, ((
-            anki_persistence
-            if settings['insertAnkiPersistence']
-            else '') + js_front).encode('ascii'))
+            mw.col.media.writeData(front_name, ((
+                anki_persistence
+                if settings['insertAnkiPersistence']
+                else '') + js_front).encode('ascii'))
 
-        mw.col.media.writeData(back_name, ((
-            anki_persistence
-            if settings['insertAnkiPersistence']
-            else '') + js_back).encode('ascii'))
+            mw.col.media.writeData(back_name, ((
+                anki_persistence
+                if settings['insertAnkiPersistence']
+                else '') + js_back).encode('ascii'))
 
-        for template in model['tmpls']:
             template['qfmt'] = template["qfmt"] + front_template
             template['afmt'] = template["afmt"] + back_template
+
