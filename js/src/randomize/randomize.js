@@ -10,13 +10,10 @@ import {
 } from './sort.js'
 
 import {
-  matchStructures,
-  matchGeneratedValues,
   matchSetReorder,
-  reorderForRendering,
 } from './matching.js'
 
-export function generateRandomization(
+export const generateRandomization = function(
   numberedSets,
   namedSets,
 ) {
@@ -30,7 +27,7 @@ export function generateRandomization(
   return [elements, setReorders]
 }
 
-export function shareOrder(
+export const shareOrder = function(
   orderConstraints,
   setReorders,
 ) {
@@ -39,8 +36,7 @@ export function shareOrder(
     .forEach(orderConstraint => applyOrderConstraint(orderConstraint, setReorders))
 }
 
-export function adjustForSecondRandomization(orderConstraints, numberedSets, namedSets) {
-
+export const adjustForSecondRandomization = function(orderConstraints, numberedSets, namedSets) {
   const joinedSets = [numberedSets, namedSets].flat()
 
   for (const oc of orderConstraints.filter(v => v.force)) {
@@ -51,13 +47,12 @@ export function adjustForSecondRandomization(orderConstraints, numberedSets, nam
 }
 
 // numbered are sorted 0 -> n, then named are in order of appearance
-export default function randomize(numberedSets, namedSets, orderConstraints, commands, reordersInherited, structureMatches, force=false) {
-
+export const randomize = function(numberedSets, namedSets, orderConstraints, commands, reordersInherited, structureMatches, force = false) {
   const [elements, reordersAlpha] = generateRandomization(numberedSets, namedSets)
 
-  const reordersBeta = !force
-    ? reordersAlpha
-    : reordersAlpha.filter(v => v.force)
+  const reordersBeta = force
+    ? reordersAlpha.filter(v => v.force)
+    : reordersAlpha
 
   const reorders = matchSetReorder(
     structureMatches,
@@ -77,3 +72,5 @@ export default function randomize(numberedSets, namedSets, orderConstraints, com
     elements,
   ]
 }
+
+export default randomize

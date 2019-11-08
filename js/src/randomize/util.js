@@ -1,5 +1,4 @@
-
-export function compareArrays(array, otherArray) {
+export const compareArrays = function(array, otherArray) {
   if (!otherArray || array.length !== otherArray.length) {
     return false
   }
@@ -12,7 +11,7 @@ export function compareArrays(array, otherArray) {
         return false
       }
     }
-    else if (array[i] != otherArray[i]) {
+    else if (array[i] !== otherArray[i]) {
       // Warning - two different object instances will never be equal: {x:20} != {x:20}
       return false
     }
