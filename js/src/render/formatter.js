@@ -103,6 +103,11 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
     return _foundStructure[theSelector] = theFoundStructure
   }
 
+  const deleteFromFoundStructure = function(theSelector = inputSyntax.cssSelector, markedForDeletion) {
+    _foundStructure[theSelector] = _foundStructure[theSelector]
+      .filter((set, idx) => !markedForDeletion.includes(idx))
+  }
+
   // 2d list of elements in the form of [[i, j, element]]
   const _elementsOriginal = {}
   const getElementsOriginal = function(theSelector = inputSyntax.cssSelector) {
@@ -111,23 +116,35 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
     }
 
     const theFoundStructure = getFoundStructure(theSelector)
+    const markedForDeletion = []
 
-    const makeInjectionsMeta = '$apply(meta)'
     const injectionKeyword = '$inject()'
+    const metaKeyword = '$meta()'
 
-    const theElementsOriginal = theFoundStructure
+    const trueInjections = injections
+      .map(injectionSet => injectionSet.concat(metaKeyword))
+
+    const elementsRaw = theFoundStructure
       .map(group => group.split(inputSyntax.isRegex
         ? new RegExp(inputSyntax.fieldSeparator, 'u')
         : inputSyntax.fieldSeparator))
-      .flatMap(set => (set.includes(injectionKeyword)
-        ? [set].concat(injections.map(injectionSet => (
-          injectionSet.concat(makeInjectionsMeta)
-        )))
-        : [set]
+      .flatMap(set => (
+        set.includes(injectionKeyword)
+          ? [set].concat(trueInjections)
+          : [set]
       ))
+
+    elementsRaw.forEach((set, idx) => {
+      if (set.includes(metaKeyword)) {
+        markedForDeletion.push(idx)
+      }
+    })
+
+    const elementsOriginal = elementsRaw
       .map((set, i) => set.map((elem, j) => [iterIndex, i, j, elem, 'n']))
 
-    return _elementsOriginal[theSelector] = theElementsOriginal
+    deleteFromFoundStructure(theSelector, markedForDeletion)
+    return _elementsOriginal[theSelector] = elementsOriginal
   }
 
   const outputSets = function(stylizedResults, theSelector = inputSyntax.cssSelector) {

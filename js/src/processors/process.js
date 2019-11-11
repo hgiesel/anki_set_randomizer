@@ -44,6 +44,7 @@ export const process = function(
   uniqConstraints,
   iterName,
 ) {
+  const markedForDeletion = []
   const evaluators = []
   const valueSets = {}
   const yanks = []
@@ -63,15 +64,15 @@ export const process = function(
   ) {
     let patternResult = null
 
-    if (mode === 'd' /* deleted */) {
-      return []
-    }
-
-    else if (!content.startsWith('$')) {
+    if (!content.startsWith('$')) {
       return [[iterNameSub, setIndex, elemIndex, content, mode]]
     }
 
-    ////// PROCESSING
+    else if (content === '$meta()' || content === '$inject()') {
+      markedForDeletion.push(setIndex)
+    }
+
+    ////// GENERATION
     else if (patternResult = content.match(valueSetPattern)) {
       const vsToken = processValueSet(
         valueSets,
@@ -106,7 +107,7 @@ export const process = function(
       yanks.push([yanks.length, ...preprocessYank(patternResult.slice(1))])
     }
 
-    ////// LATE EVALUATION
+    ////// RANDOMIZATION
     else if (patternResult = content.match(namedSetPattern)) {
       namedSetStatements.push([
         iterNameSub,
@@ -140,6 +141,7 @@ export const process = function(
       ])
     }
 
+    ////// STYLING
     else if (patternResult = content.match(stylePattern)) {
       styleStatements.push([
         iterNameSub,
@@ -173,6 +175,8 @@ export const process = function(
     content,
     mode,
   ) {
+    let result = null
+
     if (isSRToken(content)) {
       const pg = pm.pregenChecker(iterNameSub, setIndex, elemIndex)
 
@@ -182,36 +186,44 @@ export const process = function(
       ] = fromSRToken(content, false)
 
       switch (tokenName) {
+        case 'value':
+          // don't need anymore evaluation
+          break
+
         case 'pick:number':
-          const a = pg.expandPickNumber(
+          result = pg.expandPickNumber(
             preprocessAmount(tokens.slice(0, 1)),
             preprocessPickNumber(tokens.slice(1, 4)),
             preprocessUniq([null, tokens[4]]),
           )
-          return a
+          break
 
         case 'pick:vs':
-          return pg.expandPickValueSet(
+          result = pg.expandPickValueSet(
             preprocessAmount(tokens.slice(0, 1)),
             preprocessVs(tokens.slice(1, 4)),
             preprocessUniq([null, tokens[4]]),
             valueSets,
           )
+          break
 
-        case 'vs':
-          return pg.expandValueSet(...tokens, valueSets, evaluators)
-
-        default:
-          // should never occur
+        case 'vs': default:
+          result = pg.expandValueSet(...tokens, valueSets, evaluators)
+          break
       }
     }
 
-    return [[iterName, setIndex, elemIndex, content, mode]]
+    return mode === 'd' /* deleted */
+      ? []
+      : result
+      ? result
+      : [[iterName, setIndex, elemIndex, content, mode]]
   }
 
   const elementsProcessed = elements
     .map(set => set.flatMap(elem => processElem(...elem)))
     .map(set => set.flatMap(elem => expandGenerators(...elem)))
+    .filter((_, idx) => !markedForDeletion.includes(idx))
 
   const forLateEvaluation = [
     namedSetStatements,
