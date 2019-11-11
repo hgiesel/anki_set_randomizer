@@ -3,7 +3,6 @@ from copy import deepcopy
 
 from aqt import mw
 from aqt.qt import QWidget, QLabel, Qt
-from aqt.utils import showInfo
 
 from .util import mapTruthValueToIcon
 

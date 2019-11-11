@@ -1,5 +1,4 @@
 from functools import reduce
-from aqt.utils import showInfo
 
 version_string = '2.2'
 

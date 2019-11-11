@@ -12,8 +12,6 @@ from aqt import mw
 from .config import serialize_settings
 from .utils import version_string
 
-from aqt.utils import showInfo
-
 class BetterTemplate(Template):
     delimiter = '$$'
 
@@ -83,7 +81,6 @@ def get_injection_condition_parser(card, iterations):
                     # flatten list, drop "&"
                     result = [item for sublist in result for item in sublist]
 
-            showInfo(str(inj) + ' ::: ' + str(truth_result) + ' ;;; ' + str(result))
             return truth_result, result
 
         elif inj[0] == '|':
@@ -102,7 +99,6 @@ def get_injection_condition_parser(card, iterations):
                 else:
                     result = [item for sublist in result for item in sublist]
 
-            showInfo(str(inj) + ' ::: ' + str(truth_result) + ' ;;; ' + str(result))
             return truth_result, result
 
         elif inj[0] == '!':
@@ -171,8 +167,6 @@ def get_injection_condition_parser(card, iterations):
 
         elif inj[0] == 'tag':
             return True, inj
-        else:
-            showInfo(str(inj) + ' ::: hee? ')
 
     return parse_injection
 
@@ -193,7 +187,6 @@ def update_model_template(model, settings):
         back_injections = []
 
         for inj in settings['injections']:
-            showInfo('conditions: ' + str(inj['conditions']))
             needs_injection_front, simplified_conditions_front = front_injection_parser(inj['conditions'])
 
             if needs_injection_front:

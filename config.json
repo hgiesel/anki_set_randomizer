@@ -89,8 +89,8 @@
         {
           "name": "Example Injection",
           "enabled": false,
-          "conditions": ["&", ["|", ["tag", "startsWith", "allred"], ["card", "endsWith", "Red"], ["iter", "includes", "1"]]],
-          "statements": ["$style(default, clrs:[red])"]
+          "conditions": ["&", ["|", ["tag", "=", "allred"], ["card", "endsWith", "allred"], ["iter", "includes", "allred"]]],
+          "statements": ["$style(default, clrs=[red])"]
         }
       ]
     }

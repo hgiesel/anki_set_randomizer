@@ -3,7 +3,6 @@ import os.path as path
 
 from collections import namedtuple
 from aqt import mw
-from aqt.utils import showInfo
 
 from .utils import (
     safenav,
@@ -144,9 +143,6 @@ def deserialize_settings_with_default(model_names, settings):
 
 
         model_settings.append(model_deserialized)
-
-        # showInfo('default : ' + str(model_default))
-        # showInfo('deserialized : ' + str(model_deserialized))
 
     return model_settings
 
