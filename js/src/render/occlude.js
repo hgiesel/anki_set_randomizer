@@ -182,7 +182,7 @@ export const renderOcclusion = function(rawHtml /* from formatter */, rawData, s
       ))
       .forEach((data, idx) => {
         if (data.length > 0) {
-          images[idx].onload = getOccluder(data, styleAccessor)
+          images[idx].addEventListener('load', getOccluder(data, styleAccessor))
         }
       })
   }

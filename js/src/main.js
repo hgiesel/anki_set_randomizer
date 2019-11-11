@@ -1,5 +1,4 @@
 import structureMatcher from './matching.js'
-
 import process from './processors/process.js'
 
 import lateEvaluate from './lateEvaluation/lateEvaluation.js'

@@ -68,37 +68,42 @@ def get_injection_condition_parser(card, iterations):
         elif inj[0] == '&':
             parsed_conds = [parse_injection(i) for i in inj[1:]]
             truth_result = reduce(lambda x, y: x and y, [res[0] for res in parsed_conds])
-
             parsed_result = [res[1] for res in parsed_conds]
 
             if any([is_false(pr) for pr in parsed_result]):
-                return truth_result, False
+                # and condition contains False
+                result = False
             else:
+                # filter out False
                 result = list(filter(lambda v: not is_true(v), parsed_result))
                 if len(result) > 1:
+                    # reinsert "&"
                     result.insert(0, inj[0])
                 else:
+                    # flatten list, drop "&"
                     result = [item for sublist in result for item in sublist]
 
-                return truth_result, result
+            showInfo(str(inj) + ' ::: ' + str(truth_result) + ' ;;; ' + str(result))
+            return truth_result, result
 
         elif inj[0] == '|':
             parsed_conds = [parse_injection(i) for i in inj[1:]]
             truth_result =  reduce(lambda x, y: x or y, [res[0] for res in parsed_conds])
-
             parsed_result = [res[1] for res in parsed_conds]
-            parsed_result.insert(0, inj[0])
 
             if any([is_true(pr) for pr in parsed_result]):
-                return truth_result, True
+                # or condition contains True
+                result = True
             else:
+                # filter out True
                 result = list(filter(lambda v: not is_false(v), parsed_result))
                 if len(result) > 1:
                     result.insert(0, inj[0])
                 else:
                     result = [item for sublist in result for item in sublist]
 
-                return truth_result, result
+            showInfo(str(inj) + ' ::: ' + str(truth_result) + ' ;;; ' + str(result))
+            return truth_result, result
 
         elif inj[0] == '!':
             parsed_cond = parse_injection(inj[1])
@@ -166,6 +171,8 @@ def get_injection_condition_parser(card, iterations):
 
         elif inj[0] == 'tag':
             return True, inj
+        else:
+            showInfo(str(inj) + ' ::: hee? ')
 
     return parse_injection
 
@@ -186,6 +193,7 @@ def update_model_template(model, settings):
         back_injections = []
 
         for inj in settings['injections']:
+            showInfo('conditions: ' + str(inj['conditions']))
             needs_injection_front, simplified_conditions_front = front_injection_parser(inj['conditions'])
 
             if needs_injection_front:
