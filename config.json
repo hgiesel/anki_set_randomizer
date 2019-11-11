@@ -51,9 +51,9 @@
           "inputSyntax": {
             "cssSelector": "div#qa",
             "openDelim": "[[",
-              "closeDelim": "]]",
-              "fieldSeparator": "::",
-              "isRegex": false
+            "closeDelim": "]]",
+            "fieldSeparator": "::",
+            "isRegex": false
           },
           "defaultStyle": {
             "colors": {
@@ -89,10 +89,24 @@
         {
           "name": "Example Injection",
           "enabled": false,
-          "conditions": ["&", ["|", ["tag", "=", "allred"], ["card", "endsWith", "allred"], ["iter", "includes", "allred"]]],
+          "conditions": ["&", ["|",
+              ["tag", "=", "allred"],
+              ["card", "endsWith", "allred"],
+              ["iter", "includes", "allred"]
+            ]
+          ],
           "statements": ["$style(default, clrs=[red])"]
         }
-      ]
-    }
+      ],
+      "sourceMode": {
+        "clozeOptions": {
+          "shortcutsEnabled": false,
+          "vsPrefix": "c",
+          "openDelim": "[[",
+          "closeDelim": "]]"
+          },
+          "occlusionOptions": {}
+        }
+      }
   ]
 }

@@ -9,6 +9,8 @@ from string import Template
 from anki import media
 from aqt import mw
 
+from aqt.utils import showInfo
+
 from .config import serialize_settings
 from .utils import version_string
 
@@ -187,17 +189,17 @@ def update_model_template(model, settings):
         back_injections = []
 
         for inj in settings['injections']:
-            needs_injection_front, simplified_conditions_front = front_injection_parser(inj['conditions'])
+            needs_front_inject, simplified_conditions_front = front_injection_parser(inj['conditions'])
 
-            if needs_injection_front:
+            if needs_front_inject:
                 front_injections.append({
                     'statements': inj['statements'],
                     'conditions': simplified_conditions_front,
                 })
 
-            needs_injection_back, simplified_conditions_back = back_injection_parser(inj['conditions'])
+            needs_back_inject, simplified_conditions_back = back_injection_parser(inj['conditions'])
 
-            if needs_injection_back:
+            if needs_back_inject:
                 back_injections.append({
                     'statements': inj['statements'],
                     'conditions': simplified_conditions_back,

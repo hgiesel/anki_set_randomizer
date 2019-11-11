@@ -29,6 +29,10 @@ class SRConfigTabwidget(QTabWidget):
             setting.injections,
         )
 
+        self.ui.sourceModeTab.setupUi(
+            setting.source_mode,
+        )
+
     def exportData(self):
         modelName, enabled, insertAnkiPersistence, pasteIntoTemplate = self.ui.generalTab.exportData()
 
@@ -39,4 +43,5 @@ class SRConfigTabwidget(QTabWidget):
             pasteIntoTemplate,
             self.ui.iterationTab.exportData(),
             self.ui.injectionTab.exportData(),
+            self.ui.sourceModeTab.exportData(),
         )

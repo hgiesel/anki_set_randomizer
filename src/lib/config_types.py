@@ -7,6 +7,7 @@ SRSetting = namedtuple('SRSetting', [
     'paste_into_template',     # bool
     'iterations',              # list of SRIterations
     'injections',              # list of SRInjections
+    'source_mode',             # SRSourceMode
 ])
 
 SRInjection = namedtuple('SRInjection', [
@@ -45,6 +46,21 @@ SRDefaultStyle = namedtuple('SRDefaultStyle', [
     'stroke_width',    # number
     'fill',            # str
     'fill_opacity',    # number
+])
+
+SRSourceMode = namedtuple('SRSourceMode', [
+    'cloze_options',        # SRCloze
+    'occlusion_options',    # SRCloze
+])
+
+SRClozeOptions = namedtuple('SRClozeOptions', [
+    'shortcuts_enabled',  # bool
+    'vs_prefix',         # str
+    'open_delim',        # str
+    'close_delim',       # str
+])
+
+SROcclusionOptions = namedtuple('SROcclusionOptions', [
 ])
 
 SRValues = namedtuple('SRValues', [

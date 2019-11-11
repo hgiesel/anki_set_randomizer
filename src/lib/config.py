@@ -13,6 +13,7 @@ from .config_types import (
     SRSetting,
     SRIteration, SRInjection,
     SRInputSyntax, SRDefaultStyle, SRValues,
+    SRSourceMode, SRClozeOptions, SROcclusionOptions,
 )
 
 def serialize_settings(settings):
@@ -64,6 +65,16 @@ def serialize_settings(settings):
                 'conditions': inj.conditions,
                 'statements': inj.statements,
             } for inj in s.injections],
+            'sourceMode': {
+                'clozeOptions': {
+                    'shortcutsEnabled': s.source_mode.cloze_options.shortcuts_enabled,
+                    'vsPrefix': s.source_mode.cloze_options.vs_prefix,
+                    'closeDelim': s.source_mode.cloze_options.close_delim,
+                    'openDelim': s.source_mode.cloze_options.open_delim,
+                },
+                'occlusionOptions': {
+                }
+            }
         })
 
     return settings_serialized
@@ -114,46 +125,58 @@ def deserialize_setting(model_name, model_setting, access_func):
             access_func([injection], ['conditions']),
             access_func([injection], ['statements']),
         ) for injection in access_func([model_setting], ['injections'])],
+        SRSourceMode(
+            SRClozeOptions(
+                access_func([model_setting], ['sourceMode', 'clozeOptions', 'shortcutsEnabled']),
+                access_func([model_setting], ['sourceMode', 'clozeOptions', 'vsPrefix']),
+                access_func([model_setting], ['sourceMode', 'clozeOptions', 'openDelim']),
+                access_func([model_setting], ['sourceMode', 'clozeOptions', 'closeDelim']),
+            ),
+            SROcclusionOptions(),
+        )
     )
 
-def deserialize_settings_with_default(model_names, settings):
-    model_settings = []
+def deserialize_setting_with_default(model_name, settings):
     model_default = SETTINGS_DEFAULT
 
-    for model_name in model_names:
-        found = filter(lambda v: v['modelName'] == model_name, settings)
+    found = filter(lambda v: v['modelName'] == model_name, settings)
 
-        try:
-            safe_get = safenav_preset([
-                model_default,
-                model_default['iterations'][0],
-                model_default['injections'][0],
-            ])
-            model_deserialized = deserialize_setting(model_name, next(found), safe_get)
+    try:
+        safe_get = safenav_preset([
+            model_default,
+            model_default['iterations'][0],
+            model_default['injections'][0],
+        ])
+        model_deserialized = deserialize_setting(model_name, next(found), safe_get)
 
-        except StopIteration as e:
-            model_deserialized = SRSetting(
-                model_name,
-                model_default.enabled,
-                model_default.insert_anki_persistence,
-                model_default.paste_into_template,
-                model_default.iterations,
-                model_default.injections,
-            )
+    except StopIteration as e:
+        model_deserialized = SRSetting(
+            model_name,
+            model_default.enabled,
+            model_default.insert_anki_persistence,
+            model_default.paste_into_template,
+            model_default.iterations,
+            model_default.injections,
+        )
 
 
-        model_settings.append(model_deserialized)
+    return model_deserialized
 
-    return model_settings
-
-def get_settings():
+def get_settings(model_name=None):
     CONFIG = mw.addonManager.getConfig(__name__)
 
-    model_names = []
-    for model in mw.col.models.models.values():
-        model_names.append(model['name'])
+    if model_name:
+        return deserialize_setting_with_default(model_name, safenav([CONFIG], ['settings'], default=None))
 
-    return deserialize_settings_with_default(model_names, safenav([CONFIG], ['settings'], default=[]))
+    else:
+        model_settings = []
+
+        for model in mw.col.models.models.values():
+            model_name = (model['name'])
+            model_deserialized = deserialize_setting_with_default(model_name, safenav([CONFIG], ['settings'], default=[]))
+            model_settings.append(model_deserialized)
+
+        return model_settings
 
 # write config data to config.json
 def write_settings(settings):

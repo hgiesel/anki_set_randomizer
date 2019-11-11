@@ -14,7 +14,7 @@
    <string>TabWidget</string>
   </property>
   <property name="currentIndex">
-   <number>2</number>
+   <number>3</number>
   </property>
   <widget class="SRGeneralTab" name="generalTab">
    <attribute name="title">
@@ -29,6 +29,11 @@
   <widget class="SRInjectionTab" name="injectionTab">
    <attribute name="title">
     <string>Injections</string>
+   </attribute>
+  </widget>
+  <widget class="SRSourceModeTab" name="sourceModeTab">
+   <attribute name="title">
+    <string>Source Mode</string>
    </attribute>
   </widget>
  </widget>
@@ -49,6 +54,12 @@
    <class>SRInjectionTab</class>
    <extends>QWidget</extends>
    <header>anki_set_randomizer/src/gui/custom/sr_injection_tab</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SRSourceModeTab</class>
+   <extends>QWidget</extends>
+   <header>anki_set_randomizer/src/gui/custom/sr_source_mode_tab</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

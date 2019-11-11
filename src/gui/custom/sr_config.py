@@ -28,7 +28,6 @@ class SRConfigDialog(QDialog):
         self.ui.cancelButton.clicked.connect(self.reject)
 
     def setupUi(self, settings, startId=0):
-
         def saveCurrentSetting(isClicked):
             nonlocal self
             nonlocal settings

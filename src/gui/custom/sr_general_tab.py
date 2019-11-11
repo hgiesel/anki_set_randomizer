@@ -22,7 +22,6 @@ class SRGeneralTab(QWidget):
         self.ui.pasteIntoCardTemplateCheckBox.setChecked(pasteIntoTemplate)
 
     def exportData(self):
-
         return [
             self.ui.nameLineEdit.text(),
             self.ui.enableCheckBox.isChecked(),
