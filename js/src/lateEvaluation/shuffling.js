@@ -78,7 +78,6 @@ export const processOrder = function(
       name: actualOrderName,
       sets: [/* only named sets allowed */],
       force: false,
-      dictator: false /* evaluated at a later stage */,
     }) - 1]
 
   for (const stringName of theNames) {

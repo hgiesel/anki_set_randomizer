@@ -10,10 +10,10 @@ import render from './render/render.js'
 import formatter from './render/formatter.js'
 
 //////////////////////////////////////////////////////////////////////////////
-// elementsOld + elementsOriginal -> elementsShuffled -> elementsForced
+// elementsOld + elementsOriginal -> elementsShuffle -> elementsForce
 // [['iter', 0, 0, 'Hello', 'n'],['iter', 0, 1, 'World'],[]],[[],[]], etc.]
-// numberedSets -> numberedSetsForced
-// reorders -> reordersForced [{name:1/name, length, sets, setLengths, order, force}]
+// namedSets [{iter, name, sets, force}]
+// reordersShuffle -> reordersShuffle [{iter, name, order}]
 const main2 = function(
   iterName,
   inputSyntax,
@@ -22,8 +22,8 @@ const main2 = function(
   elementsOld,
   generatedValuesOld,
   uniquenessConstraintsOld,
-  reordersShuffledOld,
-  reordersForcedOld,
+  reordersShuffleOld,
+  reordersForceOld,
   randomIndicesOld,
 
   injections,
@@ -37,7 +37,7 @@ const main2 = function(
     //////////////////////////////////////////////////////////////////////////////
     // SHUFFLING
     const [
-      elementsToShuffle,
+      elementsShuffle,
       yanks,
       generatedValues,
       uniquenessConstraints,
@@ -51,34 +51,26 @@ const main2 = function(
     )
 
     const re = ruleEngine(
-      elementsToShuffle,
+      elementsShuffle,
       yanks,
       defaultStyle,
       iterName
     )
     lateEvaluate(re, ...lateEvaluation)
 
-    debugger
-
-    const [
-      reordersShuffled /* namedSets with mixed order fields */,
-      elementsShuffled,
-    ] = randomize(
-      elementsToShuffle,
-      sm.reorderMatcher(reordersShuffledOld),
+    const reordersShuffle = randomize(
+      elementsShuffle /* is modified */,
+      sm.reorderMatcher(reordersShuffleOld),
       ...re.exportRandomizationData(),
     )
 
     //////////////////////////////////////////////////////////////////////////////
     // FILTER DELETED + FORCING
-    const [elementsToForce] = process(elementsShuffled, [], [], iterName)
+    const [elementsForce] = process(elementsShuffle, [], [], iterName)
 
-    const [
-      reordersForced,
-      elementsForced,
-    ] = randomize(
-      elementsToForce,
-      sm.reorderMatcher(reordersForcedOld),
+    const reordersForce = randomize(
+      elementsForce /* is modified */,
+      sm.reorderMatcher(reordersForceOld),
       ...re.exportRandomizationData(true),
     )
 
@@ -86,12 +78,12 @@ const main2 = function(
     // RENDERING
     const randomIndices = render(
       form,
-      sm.reorderForRendering(elementsForced),
+      sm.reorderForRendering(elementsForce),
       valueSets,
       yanks,
       ...re.exportStyleData(),
       randomIndicesOld,
-      elementsToShuffle,
+      elementsShuffle,
     )
 
     //////////////////////////////////////////////////////////////////////////////
@@ -99,8 +91,8 @@ const main2 = function(
       sm.mergeElements(),
       generatedValues,
       uniquenessConstraints,
-      reordersShuffledOld.concat(reordersShuffled),
-      reordersForcedOld.concat(reordersForced),
+      reordersShuffleOld.concat(reordersShuffle),
+      reordersForceOld.concat(reordersForce),
       randomIndices,
     ], true]
   }
@@ -110,8 +102,8 @@ const main2 = function(
       elementsOld,
       generatedValuesOld,
       uniquenessConstraintsOld,
-      reordersShuffledOld,
-      reordersForcedOld,
+      reordersShuffleOld,
+      reordersForceOld,
       randomIndicesOld,
     ], false]
   }

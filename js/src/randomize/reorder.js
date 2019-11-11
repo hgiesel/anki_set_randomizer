@@ -1,3 +1,7 @@
+import {
+  getLengths,
+} from './util.js'
+
 const sortWithIndices = function(elems, indices) {
   const result = []
 
@@ -51,37 +55,54 @@ const sortByLengthAndName = function(a, b) {
   }
 }
 
-export const applyReorders = function(reorders, elementsUnapplied) {
-  // sort by size of sets to be reordered
-  const reordersSorted = reorders.slice(0).sort(sortByLengthAndName)
-  const reordersApplied = []
-  const elements = elementsUnapplied.slice(0)
+const applyReorder = function(ns, elements, shuffler) {
+  const flatSaveElems = ns
+    .sets
+    .map(setIndex => elements[setIndex])
+    .flat()
 
-  for (const reo of reordersSorted) {
-    const alreadySorted = reordersApplied.reduce((accu, reoApplied) => (
-      accu || reo.sets.every(set => reoApplied.sets.some(w => w === set))
+  const [
+    length,
+    setLengths,
+  ] = getLengths(ns, elements)
+
+  const order = shuffler.shuffleFromNs(ns, length)
+
+  const mixedAndSliced = sliceWithLengths(
+    sortWithIndices(flatSaveElems, order),
+    setLengths,
+  )
+
+  mixedAndSliced.forEach((mixedSet, setIndex) => {
+    elements[ns.sets[setIndex]] = mixedSet
+  })
+
+  return {
+    iter: ns.iter,
+    name: ns.name,
+    order: order,
+  }
+}
+
+export const applyReorders = function(namedSets, elements, shuffler) {
+  const reorders = []
+  const namedSetsApplied = []
+
+  // sort by size of sets to be reordered
+  namedSets.sort(sortByLengthAndName)
+
+  for (const ns of namedSets) {
+    const alreadySorted = namedSetsApplied.reduce((accu, nsApplied) => (
+      accu || ns.sets.every(set => nsApplied.sets.some(w => w === set))
     ), false)
 
     if (!alreadySorted) {
-      const flatSaveElems = reo
-        .sets
-        .map(setIndex => elements[setIndex])
-        .flat()
-
-      const mixedAndSliced = sliceWithLengths(
-        sortWithIndices(flatSaveElems, reo.order),
-        reo.setLengths,
-      )
-
-      mixedAndSliced.forEach((mixedSet, setIndex) => {
-        elements[reo.sets[setIndex]] = mixedSet
-      })
-
-      reordersApplied.push(reo)
+      namedSetsApplied.push(ns)
+      reorders.push(applyReorder(ns, elements, shuffler))
     }
   }
 
-  return [reordersApplied, elements]
+  return reorders
 }
 
 export default applyReorders
