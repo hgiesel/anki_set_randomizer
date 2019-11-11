@@ -7,7 +7,7 @@
       "pasteIntoTemplate": true,
       "iterations": [
         {
-          "name": "-1",
+          "name": "-Preset",
           "enabled": true,
           "inputSyntax": {
             "cssSelector": "div#qa",
@@ -37,11 +37,16 @@
             "fieldSeparator": " ",
             "openDelim": "〔",
             "closeDelim": "〕",
-            "emptySet": "…"
+            "emptySet": "…",
+            "stroke": "skyblue",
+            "strokeOpacity": 1.0,
+            "strokeWidth": 3,
+            "fill": "beige",
+            "fillOpacity": 1.0
           }
         },
         {
-          "name": "+1",
+          "name": "+Preset",
           "enabled": true,
           "inputSyntax": {
             "cssSelector": "div#qa",
@@ -71,7 +76,12 @@
             "fieldSeparator": " ",
             "openDelim": "〔",
             "closeDelim": "〕",
-            "emptySet": "…"
+            "emptySet": "…",
+            "stroke": "skyblue",
+            "strokeOpacity": 1.0,
+            "strokeWidth": 3,
+            "fill": "beige",
+            "fillOpacity": 1.0
           }
         }
       ],
@@ -83,160 +93,6 @@
           "statements": ["$style(default, clrs:[red])"]
         }
       ]
-    },
-    {
-      "modelName": "Cloze",
-      "enabled": false,
-      "insertAnkiPersistence": true,
-      "pasteIntoTemplate": true,
-      "iterations": [
-        {
-          "name": "-1",
-          "enabled": true,
-          "inputSyntax": {
-            "cssSelector": "div#qa",
-            "openDelim": "<<",
-            "closeDelim": ">>",
-            "fieldSeparator": ";;",
-            "isRegex": false
-          },
-          "defaultStyle": {
-            "colors": {
-              "values": [
-                "orange",
-                "olive",
-                "maroon",
-                "aqua",
-                "fuchsia"
-              ],
-              "randomStartIndex": false,
-              "collectiveIndexing": true
-            },
-            "classes": {
-              "values": [],
-              "randomStartIndex": false,
-              "collectiveIndexing": true
-            },
-            "fieldPadding": 2,
-            "fieldSeparator": " ",
-            "openDelim": "〔",
-            "closeDelim": "〕",
-            "emptySet": "…"
-          }
-        },
-        {
-          "name": "+1",
-          "enabled": true,
-          "inputSyntax": {
-            "cssSelector": "div#qa",
-            "openDelim": "<<",
-            "closeDelim": ">>",
-            "fieldSeparator": ";;",
-            "isRegex": false
-          },
-          "defaultStyle": {
-            "colors": {
-              "values": [
-                "orange",
-                "olive",
-                "maroon",
-                "aqua",
-                "fuchsia"
-              ],
-              "randomStartIndex": false,
-              "collectiveIndexing": true
-            },
-            "classes": {
-              "values": [],
-              "randomStartIndex": false,
-              "collectiveIndexing": true
-            },
-            "fieldPadding": 2,
-            "fieldSeparator": " ",
-            "openDelim": "〔",
-            "closeDelim": "〕",
-            "emptySet": "…"
-          }
-        }
-      ],
-      "injections": []
-    },
-    {
-      "modelName": "Cloze (overlapping)",
-      "enabled": false,
-      "insertAnkiPersistence": true,
-      "pasteIntoTemplate": true,
-      "iterations": [
-        {
-          "name": "-1",
-          "enabled": true,
-          "inputSyntax": {
-            "cssSelector": "div#clozed",
-            "openDelim": "<<",
-            "closeDelim": ">>",
-            "fieldSeparator": ";;",
-            "isRegex": false
-          },
-          "defaultStyle": {
-            "colors": {
-              "values": [
-                "orange",
-                "olive",
-                "maroon",
-                "aqua",
-                "fuchsia"
-              ],
-              "randomStartIndex": false,
-              "collectiveIndexing": true
-            },
-            "classes": {
-              "values": [],
-              "randomStartIndex": false,
-              "collectiveIndexing": true
-            },
-            "fieldPadding": 2,
-            "fieldSeparator": " ",
-            "openDelim": "〔",
-            "closeDelim": "〕",
-            "emptySet": "…"
-          }
-        },
-        {
-          "name": "+1",
-          "enabled": true,
-          "inputSyntax": {
-            "cssSelector": "div#clozed",
-            "openDelim": "<<",
-            "closeDelim": ">>",
-            "fieldSeparator": ";;",
-            "isRegex": false
-          },
-          "defaultStyle": {
-            "colors": {
-              "values": [
-                "orange",
-                "olive",
-                "maroon",
-                "aqua",
-                "fuchsia"
-              ],
-              "randomStartIndex": false,
-              "collectiveIndexing": true
-            },
-            "classes": {
-              "values": [],
-              "randomStartIndex": false,
-              "collectiveIndexing": true
-            },
-            "fieldPadding": 2,
-            "fieldSeparator": " ",
-            "openDelim": "〔",
-            "closeDelim": "〕",
-            "emptySet": "…"
-          }
-        }
-      ],
-      "injections": []
     }
   ]
 }

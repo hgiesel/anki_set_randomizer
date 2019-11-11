@@ -19,7 +19,6 @@ def write_back(settings):
     setup_models(settings)
 
 class SRConfigDialog(QDialog):
-
     def __init__(self, parent):
         super().__init__(parent=parent)
 

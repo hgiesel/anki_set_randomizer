@@ -14,7 +14,6 @@ class SRConfigTabwidget(QTabWidget):
         self.setCurrentIndex(0)
 
     def setupUi(self, setting):
-
         self.ui.generalTab.setupUi(
             setting.model_name,
             setting.enabled,
@@ -31,7 +30,6 @@ class SRConfigTabwidget(QTabWidget):
         )
 
     def exportData(self):
-
         modelName, enabled, insertAnkiPersistence, pasteIntoTemplate = self.ui.generalTab.exportData()
 
         return SRSetting(

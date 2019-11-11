@@ -10,7 +10,6 @@ from ..sr_injection_config_ui import Ui_SRInjectionConfig
 from ...lib.config_types import SRInjection
 
 class SRInjectionConfig(QDialog):
-
     def __init__(self, parent):
         super().__init__(parent=parent)
 
@@ -21,6 +20,8 @@ class SRInjectionConfig(QDialog):
         self.rejected.connect(self.onReject)
 
         self.ui.saveButton.clicked.connect(self.tryAccept)
+        self.ui.saveButton.setDefault(True)
+
         self.ui.cancelButton.clicked.connect(self.reject)
 
         self.ui.validateButton.clicked.connect(self.validateConditions)
@@ -30,7 +31,6 @@ class SRInjectionConfig(QDialog):
         self.ui.enableInjectionCheckBox.stateChanged.connect(self.enableChangeGui)
 
     def setupUi(self, injection, callback):
-
         self.callback = callback
 
         self.ui.nameLineEdit.setText(injection.name)
@@ -46,14 +46,12 @@ class SRInjectionConfig(QDialog):
             self.makeItemEditable(self.ui.statementsList.count() - 1)
 
     def tryAccept(self):
-
         try:
             self.validateConditionsRaw()
         except:
             showInfo('Invalid Conditions. Please correct the conditions or just set it to `[]`.')
         else:
             self.accept()
-
 
     def onAccept(self):
         self.callback(self.exportData())
@@ -84,7 +82,6 @@ class SRInjectionConfig(QDialog):
             instance = self.getConditions()
 
             jsonschema.validate(instance, schema)
-
     def validateConditions(self):
 
         try:
@@ -117,7 +114,6 @@ class SRInjectionConfig(QDialog):
             self.ui.statementsList.takeItem(idx)
 
     def exportData(self):
-
         return SRInjection(
             self.ui.nameLineEdit.text(),
             self.ui.enableInjectionCheckBox.isChecked(),

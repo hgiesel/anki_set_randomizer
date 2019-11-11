@@ -1,10 +1,12 @@
 from functools import reduce
+from aqt.utils import showInfo
 
 version_string = '2.2'
 
 def safenav_preset(preset):
+    ensure_value = lambda v: v is not None
 
-    def safenav_mod(records, props=[], preds=[], default=None):
+    def safenav_mod(records, props=[], preds=[ensure_value], default=None):
         nonlocal preset
         records.extend(preset)
 
@@ -13,7 +15,6 @@ def safenav_preset(preset):
     return safenav_mod
 
 def safenav(records, props=[], preds=[], default=None):
-
     nothing = {}
 
     def access(record, prop):
@@ -42,4 +43,3 @@ def safenav(records, props=[], preds=[], default=None):
 
     result = reduce(find_record, records, nothing)
     return default if result is nothing else result
-

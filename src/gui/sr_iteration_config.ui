@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>854</width>
-    <height>379</height>
+    <width>1038</width>
+    <height>417</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,7 +42,7 @@
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The input syntax of the iteration. This will be used to detect sets in the card content.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="title">
-      <string>Input syntax</string>
+      <string>Input Syntax</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
@@ -126,19 +126,122 @@
      </layout>
     </widget>
    </item>
-   <item row="0" column="1" rowspan="2">
-    <widget class="QGroupBox" name="defaultStyle">
+   <item row="2" column="0">
+    <widget class="QGroupBox" name="yanksDefaultStyle">
+     <property name="title">
+      <string>Default Style: Yanks</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="0">
+       <widget class="QLabel" name="strokeLabel">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The opening delimiter of the randomized sets after processing. Shortcut: od.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Stroke</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="strokeWidthLabel">
+        <property name="text">
+         <string>Stroke Width</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLineEdit" name="fillLineEdit">
+        <property name="text">
+         <string>pink</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="fillOpacityLabel">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The field padding of the randomized sets after processing. Shortcut: fp.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Fill Opacity</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="fillLabel">
+        <property name="text">
+         <string>Fill</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="strokeLineEdit">
+        <property name="text">
+         <string>red</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="strokeOpacityLabel">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The closing delimiter of the randomized sets after processing. Shortcut: cd.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Stroke Opacity</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="strokeWidthSpinBox">
+        <property name="suffix">
+         <string>px</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QDoubleSpinBox" name="fillOpacitySpinBox">
+        <property name="suffix">
+         <string>%</string>
+        </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="strokeOpacitySpinBox">
+        <property name="suffix">
+         <string>%</string>
+        </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="1" rowspan="3">
+    <widget class="QGroupBox" name="setsDefaultStyle">
      <property name="toolTip">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Every iteration has a default style with the name &amp;quot;default&amp;quot;. If no other style is applied, and no rule is applicable, the &amp;quot;default&amp;quot; style will be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="title">
-      <string>Default style</string>
+      <string>Default Style: Sets</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="11" column="0">
-       <widget class="QLabel" name="emptySetLabel">
+      <item row="0" column="0">
+       <widget class="QLabel" name="cssColorsLabel">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A list of CSS colors. The first field will be displayed with the first color. Colors will be repeated, if fields exceed colors. Shortcut: clrs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
-         <string>Empty set</string>
+         <string>CSS colors</string>
         </property>
        </widget>
       </item>
@@ -149,6 +252,98 @@
         </property>
         <property name="text">
          <string>Close delimiter</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="3">
+       <widget class="QSpinBox" name="fieldPaddingSpinBox">
+        <property name="suffix">
+         <string>px</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="2">
+       <widget class="QLabel" name="fieldPaddingLabel">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The field padding of the randomized sets after processing. Shortcut: fp.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Field padding</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0">
+       <widget class="QLabel" name="emptySetLabel">
+        <property name="text">
+         <string>Empty set</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1" colspan="3">
+       <widget class="QLineEdit" name="htmlClassesLineEdit">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>class1, class2, class3</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="1">
+       <widget class="QLineEdit" name="emptySetLineEdit">
+        <property name="text">
+         <string>---</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="2">
+       <widget class="QLabel" name="dsFieldSeparatorLabel">
+        <property name="text">
+         <string>Field separator</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QLineEdit" name="dsOpenDelimLineEdit">
+        <property name="text">
+         <string>(((</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="3">
+       <widget class="QLineEdit" name="dsFieldSeparatorLineEdit">
+        <property name="text">
+         <string>%%%</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="2">
+       <widget class="QCheckBox" name="htmlClassesRandomStartIndexCheckBox">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Normally, the choice of a class always start with class 1. With this option turned on, the first class will be chosen at random, before normally iterating through the classes again. Shortcut: clsrsi.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Random Start Index</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="4">
+       <widget class="QFrame" name="hruler1">
+        <property name="frameShape">
+         <enum>QFrame::HLine</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="4">
+       <widget class="QFrame" name="hruler2">
+        <property name="frameShape">
+         <enum>QFrame::HLine</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
         </property>
        </widget>
       </item>
@@ -172,10 +367,13 @@
         </property>
        </widget>
       </item>
-      <item row="8" column="2">
-       <widget class="QLabel" name="dsFieldSeparatorLabel">
+      <item row="1" column="0" colspan="2">
+       <widget class="QCheckBox" name="cssColorsRandomStartIndexCheckBox">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Normally, the choice of a color always start with color 1. With this option turned on, the first color will be chosen at random, before normally iterating through the colors again. Shortcut: clrrsi.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
-         <string>Field separator</string>
+         <string>Random Start Index</string>
         </property>
        </widget>
       </item>
@@ -189,23 +387,13 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="2" colspan="2">
-       <widget class="QCheckBox" name="cssColorsCollectiveIndexingCheckBox">
+      <item row="4" column="0">
+       <widget class="QLabel" name="htmlClassesLabel">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Normally, the choice of a color is reset for each new randomized set. With this option, all elements collectively will iterate through the colors. E.g. Two sets with one element each will both have color 1, with this option turned on, the second one will have color 2. Shortcut: clrci.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A list of HTML classes. The first field will be displayed with the first class. Classes will be repeated, if fields exceed classes. Shortcut: clss.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>Collective Indexing</string>
-        </property>
-        <property name="tristate">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="3">
-       <widget class="QLineEdit" name="dsFieldSeparatorLineEdit">
-        <property name="text">
-         <string>%%%</string>
+         <string>HTML classes</string>
         </property>
        </widget>
       </item>
@@ -219,104 +407,16 @@
         </property>
        </widget>
       </item>
-      <item row="10" column="3">
-       <widget class="QSpinBox" name="fieldPaddingSpinBox">
-        <property name="suffix">
-         <string>px</string>
-        </property>
-       </widget>
-      </item>
-      <item row="11" column="1">
-       <widget class="QLineEdit" name="emptySetLineEdit">
-        <property name="text">
-         <string>---</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="2">
-       <widget class="QCheckBox" name="cssColorsRandomStartIndexCheckBox">
+      <item row="1" column="2" colspan="2">
+       <widget class="QCheckBox" name="cssColorsCollectiveIndexingCheckBox">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Normally, the choice of a color always start with color 1. With this option turned on, the first color will be chosen at random, before normally iterating through the colors again. Shortcut: clrrsi.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Normally, the choice of a color is reset for each new randomized set. With this option, all elements collectively will iterate through the colors. E.g. Two sets with one element each will both have color 1, with this option turned on, the second one will have color 2. Shortcut: clrci.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>Random Start Index</string>
+         <string>Collective Indexing</string>
         </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="cssColorsLabel">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A list of CSS colors. The first field will be displayed with the first color. Colors will be repeated, if fields exceed colors. Shortcut: clrs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>CSS colors</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0" colspan="4">
-       <widget class="QFrame" name="hruler2">
-        <property name="frameShape">
-         <enum>QFrame::HLine</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="htmlClassesLabel">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A list of HTML classes. The first field will be displayed with the first class. Classes will be repeated, if fields exceed classes. Shortcut: clss.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>HTML classes</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="1">
-       <widget class="QLineEdit" name="dsOpenDelimLineEdit">
-        <property name="text">
-         <string>(((</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0" colspan="4">
-       <widget class="QFrame" name="hruler1">
-        <property name="frameShape">
-         <enum>QFrame::HLine</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1" colspan="3">
-       <widget class="QLineEdit" name="htmlClassesLineEdit">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string>class1, class2, class3</string>
-        </property>
-       </widget>
-      </item>
-      <item row="10" column="2">
-       <widget class="QLabel" name="fieldPaddingLabel">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The field padding of the randomized sets after processing. Shortcut: fp.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>Field padding</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0" colspan="2">
-       <widget class="QCheckBox" name="htmlClassesRandomStartIndexCheckBox">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Normally, the choice of a class always start with class 1. With this option turned on, the first class will be chosen at random, before normally iterating through the classes again. Shortcut: clsrsi.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>Random Start Index</string>
+        <property name="tristate">
+         <bool>false</bool>
         </property>
        </widget>
       </item>

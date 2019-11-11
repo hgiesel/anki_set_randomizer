@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>804</width>
-    <height>401</height>
+    <width>1038</width>
+    <height>365</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,6 +36,9 @@
      <property name="text">
       <string>Cancel</string>
      </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
     </widget>
    </item>
    <item row="2" column="1">
@@ -43,12 +46,18 @@
      <property name="text">
       <string>About</string>
      </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
     </widget>
    </item>
    <item row="2" column="0">
     <widget class="QPushButton" name="helpButton">
      <property name="text">
       <string>Help</string>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
      </property>
     </widget>
    </item>

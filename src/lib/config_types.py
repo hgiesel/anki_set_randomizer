@@ -39,6 +39,12 @@ SRDefaultStyle = namedtuple('SRDefaultStyle', [
     'open_delim',          # str
     'close_delim',         # str
     'empty_set',           # str
+
+    'stroke',          # str
+    'stroke_opacity',  # number
+    'stroke_width',    # number
+    'fill',            # str
+    'fill_opacity',    # number
 ])
 
 SRValues = namedtuple('SRValues', [
@@ -46,6 +52,3 @@ SRValues = namedtuple('SRValues', [
     'random_start_index',  # boolean
     'collective_indexing', # boolean
 ])
-
-INPUT_SYNTAX_CLOZE    = SRInputSyntax('div#qa', '<<', '>>', ';;', False)
-INPUT_SYNTAX_CLOZE_OL = SRInputSyntax('div#clozed', '<<', '>>', ';;', False)

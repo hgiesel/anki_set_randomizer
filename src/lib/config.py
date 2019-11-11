@@ -14,14 +14,12 @@ from .config_types import (
     SRSetting,
     SRIteration, SRInjection,
     SRInputSyntax, SRDefaultStyle, SRValues,
-    INPUT_SYNTAX_CLOZE, INPUT_SYNTAX_CLOZE_OL,
 )
 
 def serialize_settings(settings):
     settings_serialized = []
 
     for s in settings:
-
         settings_serialized.append({
             'modelName': s.model_name,
             'enabled': s.enabled,
@@ -53,6 +51,12 @@ def serialize_settings(settings):
                     'openDelim': it.default_style.open_delim,
                     'closeDelim': it.default_style.close_delim,
                     'emptySet': it.default_style.empty_set,
+
+                    'stroke': it.default_style.stroke,
+                    'strokeOpacity': it.default_style.stroke_opacity,
+                    'strokeWidth': it.default_style.stroke_width,
+                    'fill': it.default_style.fill,
+                    'fillOpacity': it.default_style.fill_opacity,
                 }
             } for it in s.iterations],
             'injections': [{
@@ -66,7 +70,6 @@ def serialize_settings(settings):
     return settings_serialized
 
 def deserialize_setting(model_name, model_setting, access_func):
-
     return SRSetting(
         model_name,
         access_func([model_setting], ['enabled']),
@@ -98,6 +101,12 @@ def deserialize_setting(model_name, model_setting, access_func):
                 access_func([iteration], ['defaultStyle', 'openDelim']),
                 access_func([iteration], ['defaultStyle', 'closeDelim']),
                 access_func([iteration], ['defaultStyle', 'emptySet']),
+
+                access_func([iteration], ['defaultStyle', 'stroke']),
+                access_func([iteration], ['defaultStyle', 'strokeOpacity']),
+                access_func([iteration], ['defaultStyle', 'strokeWidth']),
+                access_func([iteration], ['defaultStyle', 'fill']),
+                access_func([iteration], ['defaultStyle', 'fillOpacity']),
             ),
         ) for iteration in access_func([model_setting], ['iterations'])],
         [SRInjection(
@@ -110,40 +119,34 @@ def deserialize_setting(model_name, model_setting, access_func):
 
 def deserialize_settings_with_default(model_names, settings):
     model_settings = []
-
-    from aqt.utils import showInfo
+    model_default = SETTINGS_DEFAULT
 
     for model_name in model_names:
-
         found = filter(lambda v: v['modelName'] == model_name, settings)
 
-        model_default = (
-            SETTINGS_CLOZE_OL
-            if 'Cloze (overlapping)' in model_name
-            else (SETTINGS_CLOZE
-                  if 'Cloze' in model_name
-                  else SETTINGS_DEFAULT)
-        )
-
         try:
-            safe_get = safenav_preset([model_default])
-
-            model_settings.append(
-                deserialize_setting(model_name, next(found), safe_get)
-            )
+            safe_get = safenav_preset([
+                model_default,
+                model_default['iterations'][0],
+                model_default['injections'][0],
+            ])
+            model_deserialized = deserialize_setting(model_name, next(found), safe_get)
 
         except StopIteration as e:
-
-            model_settings.append(
-                SRSetting(
-                    model_name,
-                    model_default.enabled,
-                    model_default.insert_anki_persistence,
-                    model_default.paste_into_template,
-                    model_default.iterations,
-                    model_default.injections,
-                )
+            model_deserialized = SRSetting(
+                model_name,
+                model_default.enabled,
+                model_default.insert_anki_persistence,
+                model_default.paste_into_template,
+                model_default.iterations,
+                model_default.injections,
             )
+
+
+        model_settings.append(model_deserialized)
+
+        # showInfo('default : ' + str(model_default))
+        # showInfo('deserialized : ' + str(model_deserialized))
 
     return model_settings
 
@@ -166,23 +169,7 @@ SCRIPTNAME = path.dirname(path.realpath(__file__))
 
 # initialize default type
 with open(path.join(SCRIPTNAME, '../../config.json'), encoding='utf-8') as config:
+    config_default = json.load(config)
 
-    settings = json.load(config)['settings']
-
-    SETTINGS_DEFAULT = deserialize_setting(
-        'Default',
-        settings[0],
-        safenav,
-    )
-
-    SETTINGS_CLOZE = deserialize_setting(
-        'Cloze',
-        settings[1],
-        safenav,
-    )
-
-    SETTINGS_CLOZE_OL = deserialize_setting(
-        'Cloze (overlapping)',
-        settings[2],
-        safenav,
-    )
+    SETTINGS_DEFAULT = config_default['settings'][0]
+    SETTINGS_DEFAULT_DESERIALIZED = deserialize_setting('Default', SETTINGS_DEFAULT, safenav)

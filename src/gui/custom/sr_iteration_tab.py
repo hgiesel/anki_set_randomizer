@@ -2,8 +2,8 @@ from itertools import groupby
 from copy import deepcopy
 
 from aqt import mw
-
 from aqt.qt import QWidget, QLabel, Qt
+from aqt.utils import showInfo
 
 from .util import mapTruthValueToIcon
 
@@ -15,21 +15,14 @@ from ...lib.config_types import SRIteration
 def mapSyntaxToExample(openDelim, closeDelim, fieldSeparator):
     return f'{openDelim} item1 {fieldSeparator} item2 {closeDelim}'
 
+def toMatrix(lst, n):
+    return [lst[i:i+n] for i in range(0, len(lst), n)]
+
 # sorts and groups -1 with +1, -2 with +2, etc.
 def groupIterations(its):
-
-    def sort_negative_first(v):
-        return abs(int(v.name)) * 2 if int(v.name) < 0 else abs(int(v.name)) * 2 + 1
-
-    result = []
-
-    for k, group in groupby(sorted(its, key=sort_negative_first), lambda v: abs(int(v.name))):
-        result.append(list(group))
-
-    return result
+    return list(filter(lambda v: len(v) == 2, toMatrix(its, 2)))
 
 class SRIterationTab(QWidget):
-
     def __init__(self):
         super().__init__()
 
@@ -101,7 +94,11 @@ class SRIterationTab(QWidget):
 
     def duplicateIteration(self):
         newIteration = deepcopy(self.ic[self.ui.iterationsTable.currentRow()])
-        self.ic.append(newIteration)
+
+        self.ic.append([
+            newIteration[0]._replace(name=f'{newIteration[0].name}_copy'),
+            newIteration[1]._replace(name=f'{newIteration[1].name}_copy'),
+        ])
         self.drawIterations()
 
     def deleteIteration(self):
@@ -130,7 +127,7 @@ class SRIterationTab(QWidget):
 
         # flatten iterations
         for idx, sublist in enumerate(self.ic, start=1):
-            result.append(sublist[0]._replace(name=f'-{idx}'))
-            result.append(sublist[1]._replace(name=f'+{idx}'))
+            result.append(sublist[0])
+            result.append(sublist[1])
 
         return result

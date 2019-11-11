@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>814</width>
-    <height>245</height>
+    <width>829</width>
+    <height>303</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" colspan="6">
+   <item row="2" column="0" colspan="10">
     <widget class="QTabWidget" name="tabWidget">
      <property name="tabPosition">
       <enum>QTabWidget::North</enum>
@@ -23,7 +23,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="SRIterationConfig" name="frontside">
       <attribute name="title">
@@ -37,21 +37,38 @@
      </widget>
     </widget>
    </item>
-   <item row="2" column="1">
-    <widget class="QPushButton" name="copyToOtherSideButton">
+   <item row="5" column="4">
+    <widget class="QPushButton" name="copyDsToOtherSideButton">
      <property name="text">
-      <string>Copy To Other Side</string>
+      <string>Copy Default Style To Other Side</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="4">
+   <item row="0" column="0">
+    <widget class="QLabel" name="iterationNameLabel">
+     <property name="text">
+      <string>Iteration Name:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="8">
     <widget class="QPushButton" name="cancelButton">
      <property name="text">
       <string>Cancel</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="2">
+   <item row="5" column="9">
+    <widget class="QPushButton" name="saveButton">
+     <property name="text">
+      <string>Save</string>
+     </property>
+     <property name="autoDefault">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="6">
     <spacer name="horizontalSpacer">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -64,10 +81,13 @@
      </property>
     </spacer>
    </item>
-   <item row="2" column="5">
-    <widget class="QPushButton" name="saveButton">
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="iterationNameLineEdit"/>
+   </item>
+   <item row="5" column="0" colspan="4">
+    <widget class="QPushButton" name="copyIsToOtherSideButton">
      <property name="text">
-      <string>Save</string>
+      <string>Copy Input Syntax To Other Side</string>
      </property>
     </widget>
    </item>
