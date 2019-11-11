@@ -28,13 +28,15 @@ def on_cloze(self, _old):
             query = f'{re.escape(sm_config.open_delim)}\\${re.escape(sm_config.vs_prefix)}(\d+)'
             matches.extend(re.findall(query, item))
 
-        values = [1]
+        values = [0]
         values.extend([int(x) for x in matches])
 
         top = max(values)
 
         if not self.mw.app.keyboardModifiers() & Qt.AltModifier:
-            top = top + 1 if top > 1 else 1
+            top = top + 1
+        else:
+            top = top + 1 if top == 0 else top
 
         cmd = f'wrap(\'{sm_config.open_delim}${sm_config.vs_prefix}{top}|\', \'{sm_config.close_delim}\');'
         self.web.eval(cmd)

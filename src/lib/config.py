@@ -69,8 +69,8 @@ def serialize_settings(settings):
                 'clozeOptions': {
                     'shortcutsEnabled': s.source_mode.cloze_options.shortcuts_enabled,
                     'vsPrefix': s.source_mode.cloze_options.vs_prefix,
-                    'closeDelim': s.source_mode.cloze_options.close_delim,
                     'openDelim': s.source_mode.cloze_options.open_delim,
+                    'closeDelim': s.source_mode.cloze_options.close_delim,
                 },
                 'occlusionOptions': {
                 }

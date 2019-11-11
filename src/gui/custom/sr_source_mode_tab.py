@@ -16,8 +16,8 @@ class SRSourceModeTab(QWidget):
 
         self.ui.clozeShortcutsEnabledCheckBox.setChecked(cloze_options.shortcuts_enabled)
         self.ui.clozeVsPrefixLineEdit.setText(cloze_options.vs_prefix)
-        self.ui.clozeOpenDelimLineEdit.setText(cloze_options.close_delim)
-        self.ui.clozeCloseDelimLineEdit.setText(cloze_options.open_delim)
+        self.ui.clozeOpenDelimLineEdit.setText(cloze_options.open_delim)
+        self.ui.clozeCloseDelimLineEdit.setText(cloze_options.close_delim)
 
     def exportData(self):
         return SRSourceMode(
