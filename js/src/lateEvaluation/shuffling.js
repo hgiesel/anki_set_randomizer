@@ -8,15 +8,6 @@ const getActual = function(name) {
     : name
 }
 
-export const addNamedSetMeta = function(namedSets, elements) {
-  namedSets.forEach((ns) => {
-    ns.elements = ns.sets.map(set => elements[set])
-    ns.setLengths = ns.sets.map(set => elements[set].length)
-    ns.length = ns.setLengths.reduce((accu, setLength) => accu + setLength, 0)
-    ns.order = [...Array(ns.length).keys() /* to be changed at a later stage */]
-  })
-}
-
 export const processNamedSet = function(
   iterName, setIndex, posIndex, correspondingSets,
 
@@ -68,9 +59,9 @@ export const processOrder = function(
   let theNames = null
   if (typeof correspondingSets[0] === 'number') {
     theNames = correspondingSets
-      .map((set, idx) => processNamedSet(
+      .map(set => processNamedSet(
         iterName, setIndex, posIndex, [set],
-        String(idx), keywords, namedSets
+        String(set), keywords, namedSets
       ))
   }
 

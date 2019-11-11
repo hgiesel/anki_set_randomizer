@@ -1,19 +1,6 @@
-const shuffle = function(array) {
-  let currentIndex = array.length, temporaryValue = null, randomIndex = null
-
-  // While there remain elements to shuffle...
-  while (currentIndex !== 0) {
-    // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex)
-    currentIndex -= 1
-    // And swap it with the current element.
-    temporaryValue = array[currentIndex]
-    array[currentIndex] = array[randomIndex]
-    array[randomIndex] = temporaryValue
-  }
-
-  return array
-}
+import {
+  shuffle,
+} from './util.js'
 
 const shuffleNamedSets = function(reorders, reorderMatcher, orderConstraints) {
   for (const reo of reorders) {
@@ -21,7 +8,7 @@ const shuffleNamedSets = function(reorders, reorderMatcher, orderConstraints) {
     let maybeOc = null
 
     if (maybeOc = orderConstraints.find(oc => oc.sets.includes(reo.name))) {
-      reo.order = maybeOc.dictator.order.filter(index => index < reo.order.length)
+      reo.order = maybeOc.dictator.order.filter(index => index < reo.length)
     }
 
     else if (maybeReorder = reorderMatcher.matchReorder(reo)) {
@@ -29,36 +16,36 @@ const shuffleNamedSets = function(reorders, reorderMatcher, orderConstraints) {
     }
 
     else {
-      reo.order = shuffle(reo.order)
+      reo.order = shuffle([...Array(reo.length).keys()])
     }
   }
 }
 
-///////////////// ORDERS
-
+/////////////////
+// ORDERS
 const detectOrderDictator = function(oc, reorders) {
-  const nullReo = { length: 0 }
-
-  return oc.sets.reduce((accuReo, setName) => {
+  const dictator = oc.sets.reduce((accuReo, setName) => {
     const foundReorder = reorders.find(w => w.name === setName)
 
     return accuReo.length <= foundReorder.length
       ? foundReorder
       : accuReo
-  }, nullReo)
+  })
+
+  return dictator
 }
 
-const processOrderConstraints = function(orderConstraints, reorders) {
+const processOrderConstraints = function(reorders, reorderMatcher, orderConstraints) {
   for (const oc of orderConstraints) {
     // dictator ultimately decides order of other sets of same uc
     oc.dictator = detectOrderDictator(oc, reorders)
+    shuffleNamedSets([oc.dictator], reorderMatcher, [])
   }
 }
 
 ///////////
-
 export const shuffleReorders = function(reorders, reorderMatcher, orderConstraints) {
-  processOrderConstraints(orderConstraints, reorders)
+  processOrderConstraints(reorders, reorderMatcher, orderConstraints)
   shuffleNamedSets(reorders, reorderMatcher, orderConstraints)
 }
 

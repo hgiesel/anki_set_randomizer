@@ -1,7 +1,7 @@
 import {
-  getData,
+  getNullData,
   saveData,
-} from './save.js'
+} from './persistence.js'
 
 import {
   createWarnings,
@@ -32,7 +32,7 @@ const front = function() {
   const [
     theSaveData,
     wereSetsUsed,
-  ] = main(iterations, injectionsParsed, getData())
+  ] = main(iterations, injectionsParsed, getNullData())
 
   saveData(theSaveData)
   createWarnings(wereSetsUsed)
@@ -43,5 +43,6 @@ try {
 }
 
 catch (e) {
-  console.error('Front Exception Caught', e)
+  console.error(`Front Exception Caught`, e)
+  // throw `Front Exception Caught: ${e}`
 }

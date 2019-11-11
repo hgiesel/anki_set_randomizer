@@ -21,5 +21,4 @@ export default function lateEvaluate(
   commandStatements.forEach(stmt => re.processCommand(...stmt))
   styleStatements.forEach(stmt => re.processStyle(...stmt))
   applyStatements.forEach(stmt => re.processApplication(...stmt))
-  re.executeMeta()
 }

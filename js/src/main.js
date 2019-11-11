@@ -58,13 +58,15 @@ const main2 = function(
     )
     lateEvaluate(re, ...lateEvaluation)
 
+    debugger
+
     const [
       reordersShuffled /* namedSets with mixed order fields */,
       elementsShuffled,
     ] = randomize(
-      ...re.exportRandomizationData(),
-      sm.reorderMatcher(reordersShuffledOld),
       elementsToShuffle,
+      sm.reorderMatcher(reordersShuffledOld),
+      ...re.exportRandomizationData(),
     )
 
     //////////////////////////////////////////////////////////////////////////////
@@ -75,9 +77,9 @@ const main2 = function(
       reordersForced,
       elementsForced,
     ] = randomize(
-      ...re.exportRandomizationData(true),
-      sm.reorderMatcher(reordersForcedOld),
       elementsToForce,
+      sm.reorderMatcher(reordersForcedOld),
+      ...re.exportRandomizationData(true),
     )
 
     //////////////////////////////////////////////////////////////////////////////

@@ -1,21 +1,16 @@
 import {
   compareArrays,
+  shuffle,
 } from './randomize/util.js'
 
-const complementArrays = function(elems1, elems2) {
-  const result = []
+const complementArrays = function(elemsOld, elemsNew) {
+  const result = elemsOld.order.slice(0)
 
-  for (const e of elems1) {
-    result.push(e)
-  }
+  const additionalIndices = shuffle(
+    [...Array(elemsNew.length).keys()].filter(v => !result.includes(v))
+  )
 
-  for (const e of elems2) {
-    if (!result.includes(e)) {
-      result.push(e)
-    }
-  }
-
-  return result
+  return result.concat(additionalIndices)
 }
 
 const getContent = function([/* iterName */, /* setIndex */, /* posIndex */, content]) {
@@ -93,7 +88,7 @@ export const structureMatcher = function(
         : null
 
       return reorderOld
-        ? complementArrays(reorderOld.order, reorder.order)
+        ? complementArrays(reorderOld, reorder)
         : null
     }
 

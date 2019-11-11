@@ -1,26 +1,29 @@
+import toReorders from './transform.js'
 import shuffleReorders from './shuffling.js'
-import applyReorder from './reorder.js'
-import applyCommands from './commands.js'
+import applyReorders from './reorder.js'
+// import applyCommands from './commands.js'
 
 // numbered are sorted 0 -> n, then named are in order of appearance
 export const randomize = function(
-  reorders /* reo.order is modified */,
+  elements,
+  reorderMatcher,
+  namedSets /* reo.order is modified */,
   orderConstraints,
   commands,
-  reorderMatcher,
-  elements
 ) {
-  // shuffle reorders from uc, inherited, or new
+  const reorders = toReorders(namedSets, elements)
+
+  // add reo.order using uc, inherited, or from new
   shuffleReorders(reorders, reorderMatcher, orderConstraints)
 
   // apply reorders
   const [
     reordersApplied,
     elementsNew,
-  ] = applyReorder(reorders, elements)
+  ] = applyReorders(reorders, elements)
 
   // modifies elementsNew
-  applyCommands(commands, elementsNew)
+  // applyCommands(commands, elementsNew)
 
   return [
     reordersApplied,

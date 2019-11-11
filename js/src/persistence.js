@@ -1,19 +1,18 @@
 const dataName = 'SRData'
 
-const getNullData = function() {
+export const getNullData = function() {
   return [
-    [/* elementsInherited */],
+    [/* setsHistory */],
     [/* generatedValues */],
     [/* uniquenessConstraints */],
-    [/* reordersFirst */],
-    [/* reordersSecond */],
+    [/* reordersShuffle */],
+    [/* reordersForce */],
     {/* randomIndices */},
   ]
 }
 
 export const saveData = function(theSaveData) {
   if (window.Persistence && Persistence.isAvailable()) {
-    Persistence.removeItem(dataName)
     Persistence.setItem(dataName, theSaveData)
   }
 }

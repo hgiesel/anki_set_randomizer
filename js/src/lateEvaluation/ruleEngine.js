@@ -12,10 +12,9 @@ import {
 } from './util.js'
 
 import {
+  createDefaultNames,
   processNamedSet as pns,
   processOrder as po,
-  createDefaultNames,
-  addNamedSetMeta,
 } from './shuffling.js'
 
 import {
@@ -162,10 +161,6 @@ export const ruleEngine = function(elements, yanks, defaultStyle, iterNameOuter)
     )
   }
 
-  const executeMeta = function() {
-    addNamedSetMeta(namedSets, elements)
-  }
-
   const exportRandomizationData = function(forced) {
     return [
       forced ? namedSets.filter(ns => ns.force) : namedSets,
@@ -188,7 +183,6 @@ export const ruleEngine = function(elements, yanks, defaultStyle, iterNameOuter)
     processStyle: processStyle,
     processApplication: processApplication,
 
-    executeMeta: executeMeta,
     exportRandomizationData: exportRandomizationData,
     exportStyleData: exportStyleData,
   }

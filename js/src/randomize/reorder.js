@@ -1,7 +1,3 @@
-import {
-  compareArrays,
-} from './util.js'
-
 const sortWithIndices = function(elems, indices) {
   const result = []
 
@@ -63,7 +59,7 @@ export const applyReorders = function(reorders, elementsUnapplied) {
 
   for (const reo of reordersSorted) {
     const alreadySorted = reordersApplied.reduce((accu, reoApplied) => (
-      accu || reo.sets.every(set => reoApplied.sets.some(w => compareArrays(w, set)))
+      accu || reo.sets.every(set => reoApplied.sets.some(w => w === set))
     ), false)
 
     if (!alreadySorted) {
@@ -74,7 +70,7 @@ export const applyReorders = function(reorders, elementsUnapplied) {
 
       const mixedAndSliced = sliceWithLengths(
         sortWithIndices(flatSaveElems, reo.order),
-        reo.setLengths
+        reo.setLengths,
       )
 
       mixedAndSliced.forEach((mixedSet, setIndex) => {
