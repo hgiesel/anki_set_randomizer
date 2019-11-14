@@ -1,8 +1,8 @@
 import {
   vsStar,
-  pickInt,
-  uniqSome, uniqCond, uniqNone,
-  amountCount, amountStar,
+  pickInt, pickReal,
+  uniqSome, uniqCond,
+  amountStar,
 
   toSRToken,
 } from '../util.js'
@@ -11,18 +11,8 @@ import {
   preprocessVs,
 } from './preprocess.js'
 
-const triesMax = 100
-
-const generateRandomInt = function(min, max, extra) {
-  const preValue = Math.random() * (max - min) + min
-  return String(Math.round(preValue) * extra)
-}
-
-const generateRandomReal = function(min, max, extra) {
-  const preValue = Math.random() * (max - min) + min
-  return preValue.toFixed(extra)
-}
-
+//////////////////////////////////////////////////
+// UNIQUENESS SETS AND CONSTRAINTS
 const getUc = function(uniqConstraints, uc) {
   return uniqConstraints.find(v => v.name === uc.name)
     || uniqConstraints[uniqConstraints.push({ name: uc.name, values: [] }) - 1]
@@ -112,78 +102,78 @@ const getUniqProcessor = function(uniqConstraints, uc) {
     ? processUniqCond
     : uc.type === uniqSome
     ? processUniqSome
-    : () => true
+    : /* uniqNone */ () => true
+}
+
+//////////////////////////////////////////////////
+// EXPAND NUMBER
+const intGenerator = function*(min, max, extra, filter = false) {
+  const searchDomain = [...Array(max - min + 1).keys()]
+    .map(v => v + min)
+    .map(v => v * extra)
+    .map(String)
+
+  const maxTries = 100
+  let tries = 0
+
+  while (searchDomain.length > 0 && tries < maxTries) {
+    const randomIndex = Math.floor(Math.random() * searchDomain.length)
+
+    if (filter) {
+      // removes value from search domain
+      yield searchDomain.splice(randomIndex, 1)[0]
+    }
+    else {
+      yield searchDomain[randomIndex]
+    }
+
+    tries++
+  }
+}
+
+const realGenerator = function*(min, max, extra) {
+  const maxTries = 100
+  let tries = 0
+
+  while (tries < maxTries) {
+    const value = Math.random() * (max - min) + min
+    const stringValue = value.toFixed(extra)
+
+    yield stringValue
+
+    tries++
+  }
 }
 
 export const expandPickNumber = function(
   uniqConstraints,
 
-  amount,
-  pick,
-  uc,
+  amount, pick, uc,
 ) {
-  const ucList = uc.type === uniqSome
-    ? getUc(uniqConstraints, uc)
-    : null
-
-  const generate = pick.type === pickInt
-    ? generateRandomInt
-    : generateRandomReal /* pickReal */
-
   const resultValues = []
+  const uniqProc = getUniqProcessor(uniqConstraints, uc)
 
-  switch (amount.type) {
-    case amountCount:
-      for (let i = 0; i < amount.value; i++) {
-        let resultValue = generate(pick.min, pick.max, pick.extra)
+  const generator = pick.type === pickInt
+    ? intGenerator(pick.min, pick.max, pick.extra, uc.type === uniqSome)
+    : realGenerator(pick.min, pick.max, pick.extra)
 
-        for (let tries = 0; ucList && tries < triesMax; tries++) {
-          resultValue = generate(pick.min, pick.max, pick.extra)
+  while ((amount.type === amountStar && pick.type !== pickReal) || resultValues.length < amount.value) {
+    const value = generator.next()
 
-          if (!ucList.values.includes(resultValue)) {
-            break
-          }
-
-          resultValue = null
-        }
-
-        /* adding to resultValues */
-        if (typeof resultValue !== 'string') {
-          break
-        }
-
-        if (ucList) {
-          ucList.values.push(resultValue)
-        }
-
-        resultValues.push(resultValue)
-      }
+    if (value.done) {
       break
+    }
 
-    case amountStar: default:
-      const preresultValues = pick.type === pickInt
-        ? [...Array(pick.max - pick.min + 1).keys()]
-          .map(v => v + pick.min)
-          .filter(v => v % pick.extra === 0)
-          .map(String)
-        : [/* pickReal has infinite values */]
-
-      if (ucList) {
-        resultValues.push(...preresultValues
-          .filter(value => !ucList.values.includes(value))
-        )
-
-        ucList.values.push(...resultValues)
-      }
-      else {
-        resultValues.push(...preresultValues)
-      }
-      break
+    else if (uniqProc(value.value)) {
+      resultValues.push(value.value)
+    }
   }
 
   return resultValues
 }
 
+//////////////////////////////////////////////////
+// EXPAND VALUE SETS
 const getAllVsValues = function(valueSets, vs) {
   const vsNames = vs.name === vsStar
     ? Object.keys(valueSets)
@@ -243,34 +233,6 @@ const valueGenerator = function*(valueSets, vs, filter = false) {
   }
 }
 
-const getVsValue = function(valueSets, vs) {
-  const foundVs = valueSets[
-    vs.name === vsStar
-    ? Object.keys(valueSets)[Math.floor(Math.random() * Object.keys(valueSets).length)]
-    : vs.name
-  ]
-
-  const vsSub = foundVs && vs.sub === vsStar
-    ? Math.floor(Math.random() * foundVs.length)
-    : vs.sub
-
-  const foundVsSub = foundVs && foundVs.length > 0
-    ? foundVs[vsSub]
-    : null
-
-  const foundVsPos = foundVsSub && vs.pos === vsStar
-    ? Math.floor(Math.random() * foundVsSub.values.length)
-    : vs.pos < foundVsSub.values.length
-    ? vs.pos
-    : null
-
-  const resultValue = foundVs && vsSub >= 0 && foundVsPos >= 0
-    ? toSRToken(['value', foundVsSub.name, vsSub, foundVsPos])
-    : null
-
-  return resultValue
-}
-
 export const expandPickValueSet = function(
   uniqConstraints,
   amount, vs, uc,
@@ -303,77 +265,36 @@ export const expandValueSet = function(
   const resolvedValues = []
 
   const foundEvaluator = evaluators.find(([/* amount */, evalVs /*, uc */]) => (
-    (evalVs.name === vsStar || evalVs.name === vsName)
-    && (evalVs.sub === vsStar || evalVs.sub === vsSub)
+    (evalVs.name === vsStar || evalVs.name === vsName) && (evalVs.sub === vsStar || evalVs.sub === vsSub)
   ))
 
   if (foundEvaluator) {
     const [
       amount,
-      theVs,
+      evalVs,
       uc,
     ] = foundEvaluator
 
-    const ucList = uc.type === uniqSome
-      ? getUc(uniqConstraints, uc)
-      : null
+    const uniqProc = getUniqProcessor(uniqConstraints, uc)
+    const vsGen = valueGenerator(valueSets, {
+      name: vsName,
+      sub: vsSub,
+      pos: evalVs.pos
+    }, uc.type === uniqSome)
 
-    switch (amount.type) {
-      case amountCount:
-        for (let i = 0; i < amount.value; i++) {
-          let resultValue = getVsValue(valueSets, {
-            name: vsName,
-            sub: vsSub,
-            pos: theVs.pos
-          })
+    while (amount.type === amountStar || resolvedValues.length < amount.value) {
+      const value = vsGen.next()
 
-          /* dealing with uc */
-          for (let tries = 0; ucList && tries < triesMax; tries++) {
-            resultValue = getVsValue(valueSets, {
-              name: vsName,
-              sub: vsSub,
-              pos: theVs.pos,
-            })
-
-            if (!ucList.values.includes(resultValue)) {
-              break
-            }
-
-            resultValue = null
-          }
-
-          /* adding to resultValues */
-          if (typeof resultValue === 'string') {
-            if (ucList) {
-              ucList.values.push(resultValue)
-            }
-
-            resolvedValues.push(resultValue)
-          }
-        }
+      if (value.done) {
         break
+      }
 
-      case amountStar: default:
-        const preresultValues = getAllVsValues(valueSets, {
-          name: vsName,
-          sub: vsSub,
-          pos: theVs.pos,
-        })
-
-        if (ucList) {
-          resolvedValues.push(...preresultValues
-            .filter(value => !ucList.values.includes(value))
-          )
-
-          ucList.push(...resolvedValues)
-        }
-
-        else {
-          resolvedValues.push(...preresultValues)
-        }
-        break
+      else if (uniqProc(value.value)) {
+        resolvedValues.push(value.value)
+      }
     }
   }
 
   return resolvedValues
 }
+
