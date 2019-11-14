@@ -207,11 +207,14 @@ const parseUniqConditions = function(cond, add, fail) {
 }
 
 export const preprocessUniq = function(options, shortcut = false) {
-  if (options.hasOwnProperty('cond')) {
+  if (options.hasOwnProperty('cond')
+    || options.hasOwnProperty('add')
+    || options.hasOwnProperty('fail')
+  ) {
     if (shortcut) {
       return {
         'type': uniqCond,
-        'cond': options.cond,
+        'cond': options.cond || [],
         'add': options.add || [],
         'fail': options.fail || [],
       }

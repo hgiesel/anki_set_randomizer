@@ -60,54 +60,60 @@ const getUniqProcessor = function(uniqConstraints, uc) {
           let vs = null
           let currentVs = null
 
-          switch (condition[1]) {
-            case 'includes':
-              vs = preprocessVs(condition[2].match(vsRegex).slice(1))
-              currentVs = preprocessVs(fromSRToken(currentValue, true))
+          if (condition.length === 0) {
+            return true
+          }
 
-              return Boolean(uniqSet.values.find((usVs) => {
-                const usVsDeserialized = preprocessVs(fromSRToken(usVs, true))
+          else {
+            switch (condition[1]) {
+              case 'includes':
+                vs = preprocessVs(condition[2].match(vsRegex).slice(1))
+                currentVs = preprocessVs(fromSRToken(currentValue, true))
 
-                return (vs.name === vsStar || (vs.name === vsSelf ? currentVs.name : vs.name) === usVsDeserialized.name)
-                  && (vs.sub === vsStar || (vs.sub === vsSelf ? currentVs.sub : vs.sub) === usVsDeserialized.sub)
-                  && (vs.pos === vsStar || (vs.pos === vsSelf ? currentVs.pos : vs.pos) === usVsDeserialized.pos)
-              }))
+                return Boolean(uniqSet.values.find((usVs) => {
+                  const usVsDeserialized = preprocessVs(fromSRToken(usVs, true))
 
-            case '!includes':
-              vs = preprocessVs(condition[2].match(vsRegex).slice(1))
-              currentVs = preprocessVs(fromSRToken(currentValue, true))
+                  return (vs.name === vsStar || (vs.name === vsSelf ? currentVs.name : vs.name) === usVsDeserialized.name)
+                    && (vs.sub === vsStar || (vs.sub === vsSelf ? currentVs.sub : vs.sub) === usVsDeserialized.sub)
+                    && (vs.pos === vsStar || (vs.pos === vsSelf ? currentVs.pos : vs.pos) === usVsDeserialized.pos)
+                }))
 
-              return !Boolean(uniqSet.values.find((usVs) => {
-                const usVsDeserialized = preprocessVs(fromSRToken(usVs, true))
+              case '!includes':
+                vs = preprocessVs(condition[2].match(vsRegex).slice(1))
+                currentVs = preprocessVs(fromSRToken(currentValue, true))
 
-                return (vs.name === vsStar || (vs.name === vsSelf ? currentVs.name : vs.name) === usVsDeserialized.name)
-                  && (vs.sub === vsStar || (vs.sub === vsSelf ? currentVs.sub : vs.sub) === usVsDeserialized.sub)
-                  && (vs.pos === vsStar || (vs.pos === vsSelf ? currentVs.pos : vs.pos) === usVsDeserialized.pos)
-              }))
+                return !Boolean(uniqSet.values.find((usVs) => {
+                  const usVsDeserialized = preprocessVs(fromSRToken(usVs, true))
 
-            case '<': case '&lt;':
-              return uniqSet.values.length < condition[2]
+                  return (vs.name === vsStar || (vs.name === vsSelf ? currentVs.name : vs.name) === usVsDeserialized.name)
+                    && (vs.sub === vsStar || (vs.sub === vsSelf ? currentVs.sub : vs.sub) === usVsDeserialized.sub)
+                    && (vs.pos === vsStar || (vs.pos === vsSelf ? currentVs.pos : vs.pos) === usVsDeserialized.pos)
+                }))
 
-            case '<=': case '&lt;=':
-              return uniqSet.values.length <= condition[2]
+              case '<': case '&lt;':
+                return uniqSet.values.length < condition[2]
 
-            case 'eq':
-              return uniqSet.values.length === condition[2]
+              case '<=': case '&lt;=':
+                return uniqSet.values.length <= condition[2]
 
-            case 'neq':
-              return uniqSet.values.length !== condition[2]
+              case 'eq':
+                return uniqSet.values.length === condition[2]
 
-            case '>=': case '&gt;=':
-              return uniqSet.values.length >= condition[2]
+              case 'neq':
+                return uniqSet.values.length !== condition[2]
 
-            case '>': case '&gt;':
-              return uniqSet.values.length > condition[2]
+              case '>=': case '&gt;=':
+                return uniqSet.values.length >= condition[2]
 
-            case '%':
-              return (uniqSet.values.length % condition[2]) === 0
+              case '>': case '&gt;':
+                return uniqSet.values.length > condition[2]
 
-            default:
-              return false
+              case '%':
+                return (uniqSet.values.length % condition[2]) === 0
+
+              default:
+                return false
+            }
           }
       }
     }
