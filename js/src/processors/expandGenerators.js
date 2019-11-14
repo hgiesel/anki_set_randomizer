@@ -1,7 +1,7 @@
 import {
   vsStar,
   pickInt,
-  uniqSome, uniqNone,
+  uniqSome, uniqCond, uniqNone,
   amountCount, amountStar,
 
   toSRToken,
@@ -19,14 +19,66 @@ const generateRandomReal = function(min, max, extra) {
   return preValue.toFixed(extra)
 }
 
-const findUniqConstraints = function(uniqConstraints, uc) {
-  switch (uc.type) {
-    case uniqSome:
-      return uniqConstraints.find(v => v.name === uc.name)
-        || uniqConstraints[uniqConstraints.push({ name: uc.name, values: [] }) - 1]
+const getUc = function(uniqConstraints, uc) {
+  return uniqConstraints.find(v => v.name === uc.name)
+    || uniqConstraints[uniqConstraints.push({ name: uc.name, values: [] }) - 1]
+}
 
-    case uniqNone: default:
-      return null
+const getProcessUniqCond = function(uniqConstraints) {
+  const processUniqCond = function(condition, currentVsValue) {
+    switch (condition[0]) {
+      case '&':
+        return condition
+          .slice(1)
+          .map(processUniqCond)
+          .reduce((accu, v) => accu && v)
+
+      case '|':
+        return condition
+          .slice(1)
+          .map(processUniqCond)
+          .reduce((accu, v) => accu || v)
+
+      case '!':
+        return !processUniqCond(condition[1])
+
+      default:
+        switch (condition[1]) {
+          case 'includes':
+            return uniqConstraints[condition[0]].includes(condition[2])
+
+          case '!includes':
+            return !uniqConstraints[condition[0]].includes(condition[2])
+
+          case '<':
+            return uniqConstraints[condition[0]].length < condition[2]
+
+          case '<=':
+            return uniqConstraints[condition[0]].length <= condition[2]
+
+          case 'eq':
+            return uniqConstraints[condition[0]].length === condition[2]
+
+          case 'neq':
+            return uniqConstraints[condition[0]].length !== condition[2]
+
+          case '>=':
+            return uniqConstraints[condition[0]].length >= condition[2]
+
+          case '>':
+            return uniqConstraints[condition[0]].length > condition[2]
+
+          case '%':
+            return (uniqConstraints[condition[0]].length % condition[2]) === 0
+
+          default:
+            break
+        }
+    }
+  }
+
+  return {
+    processUniqCond: processUniqCond,
   }
 }
 
@@ -37,7 +89,9 @@ export const expandPickNumber = function(
   pick,
   uc,
 ) {
-  const ucList = findUniqConstraints(uniqConstraints, uc)
+  const ucList = uc.type === uniqSome
+    ? getUc(uniqConstraints, uc)
+    : null
 
   const generate = pick.type === pickInt
     ? generateRandomInt
@@ -94,6 +148,7 @@ export const expandPickNumber = function(
       break
   }
 
+  debugger
   return resultValues
 }
 
@@ -173,7 +228,9 @@ export const expandPickValueSet = function(
   valueSets,
 ) {
   const resultValues = []
-  const ucList = findUniqConstraints(uniqConstraints, uc)
+  const ucList = uc.type === uniqSome
+    ? getUc(uniqConstraints, uc)
+    : null
 
   switch (amount.type) {
     case amountCount:
@@ -245,7 +302,9 @@ export const expandValueSet = function(
       uc,
     ] = foundEvaluator
 
-    const ucList = findUniqConstraints(uniqConstraints, uc)
+    const ucList = uc.type === uniqSome
+      ? getUc(uniqConstraints, uc)
+      : null
 
     switch (amount.type) {
       case amountCount:

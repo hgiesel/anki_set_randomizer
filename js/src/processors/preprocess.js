@@ -30,6 +30,7 @@ import {
 } from './util.js'
 
 import {
+  simpleStringToList,
   getBool,
 } from './kwargs.js'
 
@@ -165,21 +166,46 @@ export const preprocessAmount = function(amountText, defaultAmount = 1) {
 }
 
 const parseUniqConditions = function(cond, add, fail) {
+
+  let condJsonParsed = null
+  try {
+    condJsonParsed = JSON.parse(cond)
+  }
+  catch (e) {
+    return {
+      'type': uniqNone,
+      'name': null,
+    }
+  }
+
+  const addResult = add
+    ? simpleStringToList(add)
+    : []
+
+  const failResult = fail
+    ? simpleStringToList(fail)
+    : []
+
   return {
     'type': uniqCond,
-    'cond': cond,
-    'add': add,
-    'fail': fail,
+    'cond': condJsonParsed,
+    'add': addResult,
+    'fail': failResult,
   }
 }
 
 export const preprocessUniq = function(options, shortcut = false) {
   if (options.hasOwnProperty('cond')) {
     if (shortcut) {
-      return 'foo'
+      return {
+        'type': uniqCond,
+        'cond': options.cond,
+        'add': options.add,
+        'fail': options.fail,
+      }
     }
     else {
-      parseUniqConditions(options.cond, options.add, options.fail)
+      return parseUniqConditions(options.cond, options.add, options.fail)
     }
   }
 

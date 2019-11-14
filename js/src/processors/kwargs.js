@@ -105,3 +105,23 @@ export const partitionList = function(list, spacing = 1, drop = false) {
 
   return output
 }
+
+export const simpleStringToList = function(string) {
+  // e.g. for style colors, uniqCond add/fail
+  if (typeof string === 'boolean') {
+    return ''
+  }
+
+  else if (string[0] === '[' && string[string.length - 1] === ']') {
+    return string
+      .slice(1, -1)
+      .split(',')
+      .map(v => v.trim())
+      .filter(v => v.length > 0)
+  }
+
+  else {
+    return [string.trim()]
+  }
+}
+

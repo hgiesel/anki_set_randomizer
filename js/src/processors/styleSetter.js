@@ -1,6 +1,7 @@
 import {
   partitionList,
   getBool,
+  simpleStringToList,
 } from './kwargs.js'
 
 import {
@@ -77,26 +78,17 @@ export default function styleSetter(defaultStyle) {
         break
 
       case 'colors':
-        sd.stylings.colors.values = attributeValue
-          .slice(1, -1)
-          .split(',')
-          .map(v => v.trim())
-          .filter(v => v.length > 0)
+        sd.stylings.colors.values = simpleStringToList(attributeValue)
         break
 
       case 'classes':
-        sd.stylings.classes.values = attributeValue
-          .slice(1, -1)
-          .split(',')
-          .map(v => v.trim())
-          .filter(v => v.length > 0)
+        sd.stylings.classes.values = simpleStringToList(attributeValue)
         break
 
       case 'colorRules':
-        sd.stylings.colors.rules = partitionList(attributeValue
-          .slice(1, -1)
-          .split(',')
-          .map(w => w.trim()), 2, true)
+        sd.stylings.colors.rules = partitionList(
+          simpleStringToList(attributeValue), 2, true
+        )
           .map(([vsText, colorText]) => {
             const regexResult = vsText.match(`^${valueSetName}$`)
             const vs = preprocessVs(regexResult ? regexResult.slice(1) : [/* invalid vs */])
@@ -107,10 +99,9 @@ export default function styleSetter(defaultStyle) {
         break
 
       case 'classRules':
-        sd.stylings.classes.rules = partitionList(attributeValue
-          .slice(1, -1)
-          .split(',')
-          .map(w => w.trim()), 2, true)
+        sd.stylings.classes.rules = partitionList(
+          simpleStringToList(attributeValue), 2, true
+        )
           .map(([vsText, classText]) => {
             const regexResult = vsText.match(`^${valueSetName}$`)
             const vs = preprocessVs(regexResult ? regexResult.slice(1) : [/* invalid vs */])
