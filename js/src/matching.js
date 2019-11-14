@@ -6,6 +6,10 @@ const getContent = function([/* iterName */, /* setIndex */, /* posIndex */, con
   return content
 }
 
+const adaptForReorders = function(structureMatch) {
+  return [structureMatch[0], String(structureMatch[1])]
+}
+
 export const structureMatcher = function(
   elementsOriginal,
   elementsOld,
@@ -34,8 +38,8 @@ export const structureMatcher = function(
       // inherited set moved FROM position TO new position
       // used to be found at FROM position, but now is found at TO position
       structureMatches.push({
-        from: [fromIter, String(fromSet)],
-        to: [toIter, String(toSet)],
+        from: [fromIter, fromSet],
+        to: [toIter, toSet],
       })
     }
   }
@@ -54,23 +58,25 @@ export const structureMatcher = function(
     const result = []
 
     for (const value of generatedValuesInherited) {
-      const match = structureMatches.find(v => compareArrays(v.from.slice(0, 2), value.slice(0, 2)))
+      const match = structureMatches
+        .find(v => compareArrays(v.from, value.slice(0, 2)))
 
       if (match) {
         result.push([...match.to, value[2], value[3]])
       }
     }
+
     return generatedValuesInherited.concat(result)
   }
 
   const reorderMatcher = function(reordersOld) {
     const matchReorder = function(reorder) {
       const match = structureMatches
-        .find(sm => compareArrays([reorder.iter, reorder.name], sm.to.slice(0, 2)))
+        .find(({to}) => compareArrays([reorder.iter, reorder.name], adaptForReorders(to)))
 
       const reorderOld = match
         // search if inherited numbered set
-        ? reordersOld.find(({iter, name}) => compareArrays([iter, name], match.from.slice(0, 2)))
+        ? reordersOld.find(({iter, name}) => compareArrays([iter, name], adaptForReorders(match.from)))
         : Number.isNaN(Number(reorder.name))
         // search if inherited named set
         ? reordersOld.find(({name}) => reorder.name === name)
@@ -96,7 +102,7 @@ export const structureMatcher = function(
       .entries()
     ) {
       const match = structureMatches
-        .find(v => iterName === v.to[0] && i === v.to[1])
+        .find(({to}) => compareArrays(to, [iterName, i]))
 
       if (match) {
         resultMatched.splice(match.from[1], 0, ro)
