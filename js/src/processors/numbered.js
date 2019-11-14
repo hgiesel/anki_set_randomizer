@@ -5,8 +5,9 @@ import {
   pickInt, pickReal,
   uniqAnon, uniqSome, uniqCond,
   amountCount,
-  vsStar, vsSelf,
   toSRToken,
+
+  vsSerialize,
 } from '../util.js'
 
 import {
@@ -18,7 +19,7 @@ export const processValueSet = function(
   valueSets,
   iterName, setIndex, elemIndex,
 
-  valueSetName,
+  vsName,
   valueSeparator,
   valueString
 ) {
@@ -29,23 +30,15 @@ export const processValueSet = function(
     .split(valueSeparator)
     .map(v => v.replace(toSRToken(['escdelim']), valueSeparator))
 
-  const valueSetIndex = (valueSets[valueSetName] || (valueSets[valueSetName] = [])).push({
-    name: valueSetName,
-    sub: valueSets[valueSetName]
-      ? valueSets[valueSetName].length
+  const vsSub = (valueSets[vsName] || (valueSets[vsName] = [])).push({
+    name: vsName,
+    sub: valueSets[vsName]
+      ? valueSets[vsName].length
       : 0,
     values: values,
   }) - 1
 
-  return toSRToken(['vs', valueSetName, valueSetIndex])
-}
-
-const vsBackToString = function(component) {
-  return component === vsSelf
-    ? '_'
-    : component === vsStar
-    ? '*'
-    : component
+  return toSRToken(['vs', vsName, vsSub])
 }
 
 export const processPick = function(amount, pick, uniq) {
@@ -86,9 +79,9 @@ export const processPick = function(amount, pick, uniq) {
       return toSRToken([
         'pick:vs',
         amountText,
-        vsBackToString(pick.name),
-        vsBackToString(pick.sub),
-        vsBackToString(pick.pos),
+        vsSerialize(pick.name),
+        vsSerialize(pick.sub),
+        vsSerialize(pick.pos),
         uniqString,
       ])
   }

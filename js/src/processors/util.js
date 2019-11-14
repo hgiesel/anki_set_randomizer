@@ -31,6 +31,9 @@ const allYanksPattern = `_(\\*)`
 export const valSetPos = `(\\d+|\\*|_)`
 
 export const valueSetName = `\\$(${namePatternRaw}|\\*|_|\\$)(?:(?::${valSetPos})?:${valSetPos})?`
+
+export const vsRegex = new RegExp(`^\\$(${namePatternRaw}|\\*|_|\\$)(?:(?::${valSetPos})?:${valSetPos})?$`, 'u')
+
 export const valueSetPattern = new RegExp(`^\\$${namePattern}`
   + `(?!\\()` /* no opening parenthesis allowed */
   + `(\\W)` /* separator character */

@@ -24,6 +24,14 @@ export const uniqCond = Symbol('uniqCond')
 export const uniqAnon = Symbol('uniqAnon')
 export const uniqNone = Symbol('uniqNone')
 
+export const vsSerialize = function(component) {
+  return component === vsSelf
+    ? '_'
+    : component === vsStar
+    ? '*'
+    : component
+}
+
 export const isSRToken = function(token, name = '') {
   return token.startsWith(`%%sr%%${name}`)
 }

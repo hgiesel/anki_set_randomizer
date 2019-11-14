@@ -1,11 +1,16 @@
 import {
-  vsStar,
+  vsStar, vsSelf,
   pickInt, pickReal,
   uniqSome, uniqCond,
   amountStar,
 
   toSRToken,
+  fromSRToken,
 } from '../util.js'
+
+import {
+  vsRegex,
+} from './util.js'
 
 import {
   preprocessVs,
@@ -13,14 +18,14 @@ import {
 
 //////////////////////////////////////////////////
 // UNIQUENESS SETS AND CONSTRAINTS
-const getUc = function(uniqConstraints, uc) {
-  return uniqConstraints.find(v => v.name === uc.name)
-    || uniqConstraints[uniqConstraints.push({ name: uc.name, values: [] }) - 1]
+const getUc = function(uniqConstraints, ucName) {
+  return uniqConstraints.find(v => v.name === ucName)
+    || uniqConstraints[uniqConstraints.push({ name: ucName, values: [] }) - 1]
 }
 
 const getUniqProcessor = function(uniqConstraints, uc) {
   const processUniqSome = function(currentValue) {
-    const uniqSet = getUc(uniqConstraints, uc)
+    const uniqSet = getUc(uniqConstraints, uc.name)
 
     if (uniqSet.values.includes(currentValue)) {
       return false
@@ -34,38 +39,56 @@ const getUniqProcessor = function(uniqConstraints, uc) {
 
   const processUniqCond = function(currentValue) {
     const processUniqCondRecursive = function(condition) {
-      return true
-
       switch (condition[0]) {
-        case '&':
+        case '&': case '&amp;':
           return condition
             .slice(1)
-            .map(processUniqCond)
+            .map(processUniqCondRecursive)
             .reduce((accu, v) => accu && v)
 
         case '|':
           return condition
             .slice(1)
-            .map(processUniqCond)
+            .map(processUniqCondRecursive)
             .reduce((accu, v) => accu || v)
 
         case '!':
-          return !processUniqCond(condition[1])
+          return !processUniqCondRecursive(condition[1])
 
         default:
-          uniqSet = getUc(uniqConstraints, condition[0])
+          const uniqSet = getUc(uniqConstraints, condition[0])
+          let vs = null
+          let currentVs = null
 
           switch (condition[1]) {
             case 'includes':
-              return uniqSet.values.includes(condition[2])
+              vs = preprocessVs(condition[2].match(vsRegex).slice(1))
+              currentVs = preprocessVs(fromSRToken(currentValue, true))
+
+              return Boolean(uniqSet.values.find((usVs) => {
+                const usVsDeserialized = preprocessVs(fromSRToken(usVs, true))
+
+                return (vs.name === vsStar || (vs.name === vsSelf ? currentVs.name : vs.name) === usVsDeserialized.name)
+                  && (vs.sub === vsStar || (vs.sub === vsSelf ? currentVs.sub : vs.sub) === usVsDeserialized.sub)
+                  && (vs.pos === vsStar || (vs.pos === vsSelf ? currentVs.pos : vs.pos) === usVsDeserialized.pos)
+              }))
 
             case '!includes':
-              return !uniqSet.values.includes(condition[2])
+              vs = preprocessVs(condition[2].match(vsRegex).slice(1))
+              currentVs = preprocessVs(fromSRToken(currentValue, true))
 
-            case '<':
+              return !Boolean(uniqSet.values.find((usVs) => {
+                const usVsDeserialized = preprocessVs(fromSRToken(usVs, true))
+
+                return (vs.name === vsStar || (vs.name === vsSelf ? currentVs.name : vs.name) === usVsDeserialized.name)
+                  && (vs.sub === vsStar || (vs.sub === vsSelf ? currentVs.sub : vs.sub) === usVsDeserialized.sub)
+                  && (vs.pos === vsStar || (vs.pos === vsSelf ? currentVs.pos : vs.pos) === usVsDeserialized.pos)
+              }))
+
+            case '<': case '&lt;':
               return uniqSet.values.length < condition[2]
 
-            case '<=':
+            case '<=': case '&lt;=':
               return uniqSet.values.length <= condition[2]
 
             case 'eq':
@@ -74,24 +97,32 @@ const getUniqProcessor = function(uniqConstraints, uc) {
             case 'neq':
               return uniqSet.values.length !== condition[2]
 
-            case '>=':
+            case '>=': case '&gt;=':
               return uniqSet.values.length >= condition[2]
 
-            case '>':
+            case '>': case '&gt;':
               return uniqSet.values.length > condition[2]
 
             case '%':
               return (uniqSet.values.length % condition[2]) === 0
 
             default:
-              break
+              return false
           }
       }
     }
 
-    const passes = processUniqCondRecursive(uc.cond)
+    let passes = null
 
-    for (const name of passes ? uc.add : uc.fail) {
+    try {
+      passes = processUniqCondRecursive(uc.cond)
+    }
+    catch (e) {
+      console.error('Invalid Uniqueness Condition', e)
+      return false
+    }
+
+    for (const name of (passes ? uc.add : uc.fail)) {
       getUc(uniqConstraints, name).values.push(currentValue)
     }
 
@@ -297,4 +328,3 @@ export const expandValueSet = function(
 
   return resolvedValues
 }
-

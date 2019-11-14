@@ -97,7 +97,7 @@ export const process = function(
       evaluators.unshift([
         preprocessAmount(patternResult[1], 1),
         preprocessVs(patternResult.slice(2, 5), true),
-        preprocessUniq(kwargs(patternResult[5]), true),
+        preprocessUniq(kwargs(patternResult[5])),
       ])
     }
 
@@ -211,7 +211,8 @@ export const process = function(
           break
 
         case 'vs': default:
-          result = pg.expandValueSet(...tokens, valueSets, evaluators)
+          const [vsName, vsSub] = tokens
+          result = pg.expandValueSet(vsName, Number(vsSub), valueSets, evaluators)
           break
       }
     }

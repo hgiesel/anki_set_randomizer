@@ -179,7 +179,6 @@ export const preprocessAmount = function(amountText, defaultAmount = 1) {
 }
 
 const parseUniqConditions = function(cond, add, fail) {
-
   let condJsonParsed = null
   try {
     condJsonParsed = JSON.parse(cond)
@@ -213,8 +212,8 @@ export const preprocessUniq = function(options, shortcut = false) {
       return {
         'type': uniqCond,
         'cond': options.cond,
-        'add': options.add,
-        'fail': options.fail,
+        'add': options.add || [],
+        'fail': options.fail || [],
       }
     }
     else {
