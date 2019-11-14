@@ -1,6 +1,7 @@
 export const vsSome = Symbol('vsSome')
 export const vsNone = Symbol('vsNone')
 export const vsStar = Symbol('vsStar')
+export const vsSelf = Symbol('vsSelf')
 
 export const pickInt = Symbol('pickInt')
 export const pickReal = Symbol('pickReal')

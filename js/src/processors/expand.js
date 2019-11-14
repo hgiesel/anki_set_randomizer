@@ -7,6 +7,10 @@ import {
   toSRToken,
 } from '../util.js'
 
+import {
+  preprocessVs,
+} from './preprocess.js'
+
 const triesMax = 100
 
 const generateRandomInt = function(min, max, extra) {
@@ -24,62 +28,91 @@ const getUc = function(uniqConstraints, uc) {
     || uniqConstraints[uniqConstraints.push({ name: uc.name, values: [] }) - 1]
 }
 
-const getProcessUniqCond = function(uniqConstraints) {
-  const processUniqCond = function(condition, currentVsValue) {
-    switch (condition[0]) {
-      case '&':
-        return condition
-          .slice(1)
-          .map(processUniqCond)
-          .reduce((accu, v) => accu && v)
+const getUniqProcessor = function(uniqConstraints, uc) {
+  const processUniqSome = function(currentValue) {
+    const uniqSet = getUc(uniqConstraints, uc)
 
-      case '|':
-        return condition
-          .slice(1)
-          .map(processUniqCond)
-          .reduce((accu, v) => accu || v)
+    if (uniqSet.values.includes(currentValue)) {
+      return false
+    }
 
-      case '!':
-        return !processUniqCond(condition[1])
-
-      default:
-        switch (condition[1]) {
-          case 'includes':
-            return uniqConstraints[condition[0]].includes(condition[2])
-
-          case '!includes':
-            return !uniqConstraints[condition[0]].includes(condition[2])
-
-          case '<':
-            return uniqConstraints[condition[0]].length < condition[2]
-
-          case '<=':
-            return uniqConstraints[condition[0]].length <= condition[2]
-
-          case 'eq':
-            return uniqConstraints[condition[0]].length === condition[2]
-
-          case 'neq':
-            return uniqConstraints[condition[0]].length !== condition[2]
-
-          case '>=':
-            return uniqConstraints[condition[0]].length >= condition[2]
-
-          case '>':
-            return uniqConstraints[condition[0]].length > condition[2]
-
-          case '%':
-            return (uniqConstraints[condition[0]].length % condition[2]) === 0
-
-          default:
-            break
-        }
+    else {
+      uniqSet.values.push(currentValue)
+      return true
     }
   }
 
-  return {
-    processUniqCond: processUniqCond,
+  const processUniqCond = function(currentValue) {
+    const processUniqCondRecursive = function(condition) {
+      return true
+
+      switch (condition[0]) {
+        case '&':
+          return condition
+            .slice(1)
+            .map(processUniqCond)
+            .reduce((accu, v) => accu && v)
+
+        case '|':
+          return condition
+            .slice(1)
+            .map(processUniqCond)
+            .reduce((accu, v) => accu || v)
+
+        case '!':
+          return !processUniqCond(condition[1])
+
+        default:
+          uniqSet = getUc(uniqConstraints, condition[0])
+
+          switch (condition[1]) {
+            case 'includes':
+              return uniqSet.values.includes(condition[2])
+
+            case '!includes':
+              return !uniqSet.values.includes(condition[2])
+
+            case '<':
+              return uniqSet.values.length < condition[2]
+
+            case '<=':
+              return uniqSet.values.length <= condition[2]
+
+            case 'eq':
+              return uniqSet.values.length === condition[2]
+
+            case 'neq':
+              return uniqSet.values.length !== condition[2]
+
+            case '>=':
+              return uniqSet.values.length >= condition[2]
+
+            case '>':
+              return uniqSet.values.length > condition[2]
+
+            case '%':
+              return (uniqSet.values.length % condition[2]) === 0
+
+            default:
+              break
+          }
+      }
+    }
+
+    const passes = processUniqCondRecursive(uc.cond)
+
+    for (const name of passes ? uc.add : uc.fail) {
+      getUc(uniqConstraints, name).values.push(currentValue)
+    }
+
+    return passes
   }
+
+  return uc.type === uniqCond
+    ? processUniqCond
+    : uc.type === uniqSome
+    ? processUniqSome
+    : () => true
 }
 
 export const expandPickNumber = function(
@@ -148,7 +181,6 @@ export const expandPickNumber = function(
       break
   }
 
-  debugger
   return resultValues
 }
 
@@ -190,6 +222,27 @@ const getAllVsValues = function(valueSets, vs) {
   return result
 }
 
+const valueGenerator = function*(valueSets, vs, filter = false) {
+  const searchDomain = getAllVsValues(valueSets, vs)
+
+  const maxTries = 100
+  let tries = 0
+
+  while (searchDomain.length > 0 && tries < maxTries) {
+    const randomIndex = Math.floor(Math.random() * searchDomain.length)
+
+    if (filter) {
+      // removes value from search domain
+      yield searchDomain.splice(randomIndex, 1)[0]
+    }
+    else {
+      yield searchDomain[randomIndex]
+    }
+
+    tries++
+  }
+}
+
 const getVsValue = function(valueSets, vs) {
   const foundVs = valueSets[
     vs.name === vsStar
@@ -220,60 +273,23 @@ const getVsValue = function(valueSets, vs) {
 
 export const expandPickValueSet = function(
   uniqConstraints,
-
-  amount,
-  vs,
-  uc,
-
+  amount, vs, uc,
   valueSets,
 ) {
   const resultValues = []
-  const ucList = uc.type === uniqSome
-    ? getUc(uniqConstraints, uc)
-    : null
+  const vsGen = valueGenerator(valueSets, vs, uc.type === uniqSome)
+  const uniqProc = getUniqProcessor(uniqConstraints, uc)
 
-  switch (amount.type) {
-    case amountCount:
-      for (let i = 0; i < amount.value; i++) {
-        let resultValue = getVsValue(valueSets, vs)
+  while (amount.type === amountStar || resultValues.length < amount.value) {
+    const value = vsGen.next()
 
-        /* dealing with uc */
-        for (let tries = 0; ucList && tries < triesMax; tries++) {
-          resultValue = getVsValue(valueSets, vs)
-
-          if (!ucList.values.includes(resultValue)) {
-            break
-          }
-
-          resultValue = null
-        }
-
-        /* adding to resultValues */
-        if (typeof resultValue === 'string') {
-          if (ucList) {
-            ucList.values.push(resultValue)
-          }
-
-          resultValues.push(resultValue)
-        }
-      }
+    if (value.done) {
       break
+    }
 
-    case amountStar: default:
-      const preresultValues = getAllVsValues(valueSets, vs)
-
-      if (ucList) {
-        resultValues.push(...preresultValues
-          .filter(value => !ucList.values.includes(value))
-        )
-
-        ucList.values.push(...resultValues)
-      }
-
-      else {
-        resultValues.push(...preresultValues)
-      }
-      break
+    else if (uniqProc(value.value)) {
+      resultValues.push(value.value)
+    }
   }
 
   return resultValues
@@ -281,12 +297,8 @@ export const expandPickValueSet = function(
 
 export const expandValueSet = function(
   uniqConstraints,
-
-  vsName,
-  vsSub,
-
-  valueSets,
-  evaluators,
+  vsName, vsSub,
+  valueSets, evaluators,
 ) {
   const resolvedValues = []
 

@@ -2,7 +2,7 @@ import {
   expandPickNumber as epn,
   expandPickValueSet as epvs,
   expandValueSet as evs,
-} from './expandGenerators.js'
+} from './expand.js'
 
 import {
   amountStar,

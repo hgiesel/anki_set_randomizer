@@ -1,28 +1,15 @@
 import {
-  vsNone,
-  vsSome,
-  vsStar,
+  vsNone, vsSome, vsStar, vsSelf,
 
-  pickInt,
-  pickReal,
+  pickInt, pickReal,
 
-  typeRel,
-  typeAbs,
-  typeAbsNeg,
-  typeAll,
+  typeRel, typeAbs, typeAbsNeg, typeAll,
 
-  typeAbsYank,
-  typeAllYank,
+  typeAbsYank, typeAllYank, typeName,
 
-  typeName,
+  amountStar, amountCount,
 
-  amountStar,
-  amountCount,
-
-  uniqSome,
-  uniqCond,
-  uniqNone,
-  uniqAnon,
+  uniqSome, uniqCond, uniqNone, uniqAnon,
 } from '../util.js'
 
 import {
@@ -130,16 +117,42 @@ export const preprocessForce = function(options) {
   }
 }
 
-export const preprocessVs = function([vsName, vsSubIndex, vsPosIndex]) {
-  if (vsName) {
+export const preprocessVs = function(
+  [vsName, vsSubIndex, vsPosIndex],
+  noSelf = false /* only makes sense in uniqCond */
+) {
+  if (vsName
+    && (!noSelf || (vsName !== '_' && vsName !== '$' && vsSubIndex !== '_' && vsPosIndex !== '_'))
+  ) {
     const maybeVsSub = Number(vsSubIndex)
     const maybeVsPos = Number(vsPosIndex)
 
+    if (vsName === '$') {
+      return {
+        'type': vsSome,
+        'name': vsSelf,
+        'sub': vsSelf,
+        'pos': vsSelf,
+      }
+    }
+
     return {
       'type': vsSome,
-      'name': vsName === '*' ? vsStar : vsName,
-      'sub': Number.isNaN(maybeVsSub) ? vsStar : maybeVsSub,
-      'pos': Number.isNaN(maybeVsPos) ? vsStar : maybeVsPos,
+      'name': vsName === '*'
+        ? vsStar
+        : vsName === '_'
+        ? vsSelf
+        : vsName,
+      'sub': !Number.isNaN(maybeVsSub)
+        ? maybeVsSub
+        : vsSubIndex === '_'
+        ? vsSelf
+        : vsStar /* default */,
+      'pos': !Number.isNaN(maybeVsPos)
+        ? maybeVsPos
+        : vsSubIndex === '_'
+        ? vsSelf
+        : vsStar /* default */,
     }
   }
 
@@ -258,5 +271,5 @@ export const preprocessPick = function([minValue, maxValue, extraValue, ...vsArg
     return preprocessPickNumber([minValue, maxValue, extraValue])
   }
 
-  return preprocessVs(vsArgs)
+  return preprocessVs(vsArgs, true)
 }

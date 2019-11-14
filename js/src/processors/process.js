@@ -72,8 +72,6 @@ export const process = function(
   ) {
     let patternResult = null
 
-    console.log('content', content)
-
     if (!content.startsWith('$')) {
       return [[iterNameSub, setIndex, elemIndex, content, mode]]
     }
@@ -98,8 +96,8 @@ export const process = function(
     else if (patternResult = content.match(evalPattern)) {
       evaluators.unshift([
         preprocessAmount(patternResult[1], 1),
-        preprocessVs(patternResult.slice(2, 5)),
-        preprocessUniq(kwargs(patternResult[5])),
+        preprocessVs(patternResult.slice(2, 5), true),
+        preprocessUniq(kwargs(patternResult[5]), true),
       ])
     }
 
@@ -107,7 +105,7 @@ export const process = function(
       const pickToken = processPick(
         preprocessAmount(patternResult[1]),
         preprocessPick(patternResult.slice(2, 8)),
-        preprocessUniq(kwargs(patternResult[8])),
+        preprocessUniq(kwargs(patternResult[8]), true),
       )
 
       return [[iterNameSub, setIndex, elemIndex, pickToken, mode]]
@@ -123,7 +121,7 @@ export const process = function(
         iterNameSub,
         setIndex,
         elemIndex,
-        preprocessVs(patternResult.slice(1, 4)),
+        preprocessVs(patternResult.slice(1, 4), true),
         patternResult[4] /* name */,
         preprocessNamepos(patternResult.slice(5, 9)),
         preprocessForce(kwargs(patternResult[9])),
@@ -135,7 +133,7 @@ export const process = function(
         iterNameSub,
         setIndex,
         elemIndex,
-        preprocessVs(patternResult.slice(1, 4)),
+        preprocessVs(patternResult.slice(1, 4), true),
         patternResult[4] /* name */,
         preprocessNamepos(patternResult.slice(5, 9)),
         preprocessForce(kwargs(patternResult[9])),
@@ -161,7 +159,7 @@ export const process = function(
         iterNameSub,
         setIndex,
         elemIndex,
-        preprocessVs(patternResult.slice(1, 4)),
+        preprocessVs(patternResult.slice(1, 4), true),
         patternResult[4] /* style name */,
         preprocessNamepos(patternResult.slice(5)),
       ])

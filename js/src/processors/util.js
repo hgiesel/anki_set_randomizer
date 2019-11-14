@@ -28,9 +28,9 @@ const allSetsPattern = `(\\*)`
 const absoluteYankPattern = `_(\\d+)`
 const allYanksPattern = `_(\\*)`
 
-export const valSetPos = `(\\d+|\\*)`
+export const valSetPos = `(\\d+|\\*|_)`
 
-export const valueSetName = `\\$(${namePatternRaw}|\\*)(?:(?::${valSetPos})?:${valSetPos})?`
+export const valueSetName = `\\$(${namePatternRaw}|\\*|_|\\$)(?:(?::${valSetPos})?:${valSetPos})?`
 export const valueSetPattern = new RegExp(`^\\$${namePattern}`
   + `(?!\\()` /* no opening parenthesis allowed */
   + `(\\W)` /* separator character */
@@ -54,23 +54,7 @@ export const keywordPattern = (
 )
 
 export const keywordRegex = new RegExp(keywordPattern, 'gmu')
-
 export const keywordArgPattern = '(.*)'
-
-const lt = `(?:<|&lt;)`
-const gt = `(?:>|&gt;)`
-
-const compareSymbols = `(?:${lt}|${lt}=|==|!=|${gt}=|${gt})`
-const compareSymbolsDiff = `(?:(${lt})|(${lt}=)|(==)|(!=)|(${gt}=)|(${gt}))`
-const hasPatternDiff = `(!?)(${namePatternRaw})\\[(?:${valueSetName}|(.*))\\]`
-
-export const uniqConstraintDiff = new RegExp(
-  `(?:(${namePatternRaw})\\s*${compareSymbolsDiff}\\s*(\\d+)|${hasPatternDiff}|((?:${namePatternRaw})?))`,
-  'u',
-)
-const uniqConstraintPattern = (
-  `(uniq)(?:=(${namePatternRaw}\\s*${compareSymbols}\\s*\\d+|!?${namePatternRaw}\\[.*\\]|(?:${namePatternRaw})?))?`
-)
 
 export const pickPattern = new RegExp(wrapName(['pick'], [
   wrapArg(amountPattern, left, true),
@@ -105,10 +89,6 @@ const posPattern = `(?:`
   + `${allYanksPattern}|`
   + `(${namePatternRaw}(?::[0-9a-zA-Z_\\-]+)*)`
   + `)`
-
-const forcePattern = (
-  `(?:(force)(?:=(yes|no|true|false)?)?)`
-)
 
 export const namedSetPattern = new RegExp(wrapName(['name'], [
   wrapArg(valueSetName, left, true),
