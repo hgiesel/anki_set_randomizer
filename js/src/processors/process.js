@@ -3,6 +3,8 @@ import {
   isSRToken,
 } from '../util.js'
 
+import styleSetter from './styleSetter.js'
+
 import {
   valueSetPattern,
   evalPattern,
@@ -32,19 +34,26 @@ import {
   preprocessPick,
   preprocessPickNumber,
   preprocessUniq,
+  preprocessForce,
 } from './preprocess.js'
 
 import {
   pregenManager,
 } from './pregen.js'
 
+import {
+  kwargs,
+} from './kwargs.js'
+
 export const process = function(
   elements,
   generatedValues,
   uniqConstraints,
+  defaultStyle,
   iterName,
 ) {
   const markedForDeletion = []
+  const ss = styleSetter(defaultStyle)
   const evaluators = []
   const valueSets = {}
   const yanks = []
@@ -52,7 +61,6 @@ export const process = function(
   const namedSetStatements = []
   const orderStatements = []
   const commandStatements = []
-  const styleStatements = []
   const applyStatements = []
 
   const processElem = function(
@@ -63,6 +71,8 @@ export const process = function(
     mode,
   ) {
     let patternResult = null
+
+    console.log('content', content)
 
     if (!content.startsWith('$')) {
       return [[iterNameSub, setIndex, elemIndex, content, mode]]
@@ -87,17 +97,17 @@ export const process = function(
 
     else if (patternResult = content.match(evalPattern)) {
       evaluators.unshift([
-        preprocessAmount(patternResult.slice(1, 2), 1),
+        preprocessAmount(patternResult[1], 1),
         preprocessVs(patternResult.slice(2, 5)),
-        preprocessUniq(patternResult.slice(5, 7)),
+        preprocessUniq(kwargs(patternResult[5])),
       ])
     }
 
     else if (patternResult = content.match(pickPattern)) {
       const pickToken = processPick(
-        preprocessAmount(patternResult.slice(1, 2)),
+        preprocessAmount(patternResult[1]),
         preprocessPick(patternResult.slice(2, 8)),
-        preprocessUniq(patternResult.slice(8, 10)),
+        preprocessUniq(kwargs(patternResult[8])),
       )
 
       return [[iterNameSub, setIndex, elemIndex, pickToken, mode]]
@@ -116,7 +126,7 @@ export const process = function(
         preprocessVs(patternResult.slice(1, 4)),
         patternResult[4] /* name */,
         preprocessNamepos(patternResult.slice(5, 9)),
-        patternResult.slice(9) /* keywords */,
+        preprocessForce(kwargs(patternResult[9])),
       ])
     }
 
@@ -128,7 +138,7 @@ export const process = function(
         preprocessVs(patternResult.slice(1, 4)),
         patternResult[4] /* name */,
         preprocessNamepos(patternResult.slice(5, 9)),
-        patternResult.slice(9) /* keywords */,
+        preprocessForce(kwargs(patternResult[9])),
       ])
     }
 
@@ -143,12 +153,7 @@ export const process = function(
 
     ////// STYLING
     else if (patternResult = content.match(stylePattern)) {
-      styleStatements.push([
-        iterNameSub,
-        setIndex,
-        elemIndex,
-        ...patternResult.slice(1),
-      ])
+      ss.setAttributes(patternResult[1], kwargs(patternResult[2]))
     }
 
     else if (patternResult = content.match(applyPattern)) {
@@ -192,17 +197,17 @@ export const process = function(
 
         case 'pick:number':
           result = pg.expandPickNumber(
-            preprocessAmount(tokens.slice(0, 1)),
+            preprocessAmount(tokens[0]),
             preprocessPickNumber(tokens.slice(1, 4)),
-            preprocessUniq([null, tokens[4]]),
+            preprocessUniq(kwargs(tokens[4]))
           )
           break
 
         case 'pick:vs':
           result = pg.expandPickValueSet(
-            preprocessAmount(tokens.slice(0, 1)),
+            preprocessAmount(tokens[0]),
             preprocessVs(tokens.slice(1, 4)),
-            preprocessUniq([null, tokens[4]]),
+            preprocessUniq(kwargs(tokens[4])),
             valueSets,
           )
           break
@@ -229,16 +234,16 @@ export const process = function(
     namedSetStatements,
     orderStatements,
     commandStatements,
-    styleStatements,
     applyStatements,
   ]
 
   return [
     elementsProcessed,
     yanks,
+    valueSets,
     pm.exportGeneratedValues(),
     pm.exportUniqConstraints(),
-    valueSets,
+    ss.exportStyleDefinitions(),
     forLateEvaluation,
   ]
 }

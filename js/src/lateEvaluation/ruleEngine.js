@@ -7,8 +7,6 @@ import {
 
 import {
   getCorrespondingSets,
-  evalKeywordArguments,
-  keywordProcess,
 } from './util.js'
 
 import {
@@ -25,10 +23,8 @@ import {
   processApplication as pa,
 } from './styleApplier.js'
 
-import styleSetter from './styleSetter.js'
-
 // Adapter for numbered.js evals
-export const ruleEngine = function(elements, yanks, defaultStyle, iterNameOuter) {
+export const ruleEngine = function(elements, yanks, iterNameOuter) {
   const elementsValues = elements
     .flat()
     .filter(elem => isSRToken(elem[3], 'value'))
@@ -37,7 +33,6 @@ export const ruleEngine = function(elements, yanks, defaultStyle, iterNameOuter)
   const orderConstraints = []
   const commands = []
 
-  const ss = styleSetter(defaultStyle)
   const styleApplications = {}
 
   const callthrough = function(f, ...argumentz) {
@@ -111,33 +106,25 @@ export const ruleEngine = function(elements, yanks, defaultStyle, iterNameOuter)
   }
 
   /////////////////////////////
-  const processStyle = function(
-    iterName, setIndex, posIndex,
-    styleName, kwArgs,
-  ) {
-    evalKeywordArguments(kwArgs)
-      .forEach(pair => ss.setStyleAttribute(styleName, pair[0], pair[1]))
-  }
-
   const processNamedSet = function(
     iterName, setIndex, posIndex,
 
-    vs, shuffleName, appliedName, kwargs,
+    vs, shuffleName, appliedName, options,
   ) {
     rulethrough(
       pns, iterName, setIndex, posIndex, appliedName, vs,
-      shuffleName, keywordProcess(kwargs), namedSets,
+      shuffleName, options, namedSets,
     )
   }
 
   const processOrder = function(
     iterName, setIndex, posIndex,
 
-    vs, orderName, appliedName, kwargs,
+    vs, orderName, appliedName, options,
   ) {
     rulethrough(
       po, iterName, setIndex, posIndex, appliedName, vs,
-      orderName, keywordProcess(kwargs), orderConstraints, namedSets,
+      orderName, options, orderConstraints, namedSets,
     )
   }
 
@@ -147,7 +134,6 @@ export const ruleEngine = function(elements, yanks, defaultStyle, iterNameOuter)
     // ...argumentz
   ) {
     // rulethrough(pc, iterName, setIndex, posIndex, 25, elements, namedSets, ...argumentz)
-    // toOptArg(evalKeywordArguments(argumentz[argumentz.length])), elements, namedSets,
   }
 
   const processApplication = function(
@@ -169,22 +155,18 @@ export const ruleEngine = function(elements, yanks, defaultStyle, iterNameOuter)
     ]
   }
 
-  const exportStyleData = function() {
-    return [
-      ss.exportStyleDefinitions(),
-      styleApplications,
-    ]
+  const exportStyleApplications = function() {
+    return styleApplications
   }
 
   return {
     processNamedSet: processNamedSet,
     processOrder: processOrder,
     processCommand: processCommand,
-    processStyle: processStyle,
     processApplication: processApplication,
 
     exportRandomizationData: exportRandomizationData,
-    exportStyleData: exportStyleData,
+    exportStyleApplications: exportStyleApplications,
   }
 }
 

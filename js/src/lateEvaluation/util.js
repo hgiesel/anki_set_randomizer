@@ -1,8 +1,4 @@
 import {
-  keywordRegex,
-} from '../processors/util.js'
-
-import {
   typeRel,
   typeAbs,
   typeAbsNeg,
@@ -12,30 +8,6 @@ import {
   typeAllYank,
   typeName,
 } from '../util.js'
-
-export const getBool = function(attributeValue) {
-  const bool = attributeValue === 'true' || attributeValue === 'yes'
-    ? true
-    : attributeValue === 'false' || attributeValue === 'no'
-    ? false
-    : null
-
-  return bool
-}
-
-export const partitionList = function(list, spacing = 1, drop = false) {
-  const output = []
-
-  for (let i = 0; i < list.length; i += spacing) {
-    const partition = list.slice(i, i + spacing)
-
-    if (!drop || partition.length === spacing) {
-      output[output.length] = partition
-    }
-  }
-
-  return output
-}
 
 const analyzeName = function(elements, yanks, namedSets, [name1, name2, name3, name4], allowYanks = true) {
   const foundSets = namedSets
@@ -142,33 +114,4 @@ export const getCorrespondingSets = function(
         ? analyzeName(elements, yanks, namedSets, name.values)
         : name.name
   }
-}
-
-export const evalKeywordArguments = function(keywordArguments) {
-  const result = []
-  let m = keywordRegex.exec(keywordArguments)
-
-  while (m) {
-    result.push([
-      m[1],
-      m[2] || m[3] || m[4] || m[5] || ''
-    ])
-
-    m = keywordRegex.exec(keywordArguments)
-  }
-
-  return result
-}
-
-const toOptArg = function(keywords) {
-  const result = {}
-
-  keywords
-    .forEach(kw => result[kw[0]] = kw[1])
-
-  return result
-}
-
-export const keywordProcess = function(kwArgs) {
-  return toOptArg(evalKeywordArguments(kwArgs))
 }

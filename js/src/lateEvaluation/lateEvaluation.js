@@ -5,7 +5,6 @@ export default function lateEvaluate(
   orderStatements,
   commandStatements,
 
-  styleStatements,
   applyStatements,
 ) {
   namedSetStatements
@@ -19,6 +18,5 @@ export default function lateEvaluate(
 
   orderStatements.forEach(stmt => re.processOrder(...stmt))
   commandStatements.forEach(stmt => re.processCommand(...stmt))
-  styleStatements.forEach(stmt => re.processStyle(...stmt))
   applyStatements.forEach(stmt => re.processApplication(...stmt))
 }

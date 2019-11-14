@@ -21,21 +21,17 @@ import {
 
   uniqSome,
   uniqCond,
-  uniqHas,
   uniqNone,
   uniqAnon,
-
-  uniqEq,
-  uniqNeq,
-  uniqLt,
-  uniqLe,
-  uniqGt,
-  uniqGe,
 } from '../util.js'
 
 import {
-  uniqConstraintDiff
+  namePatternRaw,
 } from './util.js'
+
+import {
+  getBool,
+} from './kwargs.js'
 
 export const preprocessYank = function([
   imageId,
@@ -106,6 +102,33 @@ export const preprocessNamepos = function([abs, absNeg, rel, all, absYank, allYa
   }
 }
 
+export const preprocessForce = function(options) {
+  if (options.hasOwnProperty('force')) {
+    switch (typeof options.force) {
+      case 'string':
+        const maybeBool = getBool(options.force)
+        if (maybeBool !== null) {
+          return {
+            force: maybeBool,
+          }
+        }
+        break
+
+      case 'bool':
+        return {
+          force: options.force
+        }
+
+      default:
+        // fallthrough
+    }
+  }
+
+  return {
+    force: false
+  }
+}
+
 export const preprocessVs = function([vsName, vsSubIndex, vsPosIndex]) {
   if (vsName) {
     const maybeVsSub = Number(vsSubIndex)
@@ -127,7 +150,7 @@ export const preprocessVs = function([vsName, vsSubIndex, vsPosIndex]) {
   }
 }
 
-export const preprocessAmount = function([amountText], defaultAmount = 1) {
+export const preprocessAmount = function(amountText, defaultAmount = 1) {
   if (amountText === '*' || (!amountText && defaultAmount === amountStar)) {
     return {
       'type': amountStar,
@@ -141,65 +164,42 @@ export const preprocessAmount = function([amountText], defaultAmount = 1) {
   }
 }
 
-const preprocessUniqCondAndHas = function([
-  nameCond, lt, le, eq, neq, ge, gt, compareNum, negation,
-  nameHas, vsName, vsSub, vsPos, elseValue,
-  nameSome
-]) {
-  if (nameSome) {
-    return {
-      'type': uniqSome,
-      'name': nameSome,
-    }
+const parseUniqConditions = function(cond, add, fail) {
+  return {
+    'type': uniqCond,
+    'cond': cond,
+    'add': add,
+    'fail': fail,
   }
-
-  else if (nameCond) {
-    const op = lt
-      ? uniqLt
-      : le
-      ? uniqLe
-      : eq
-      ? uniqEq
-      : neq
-      ? uniqNeq
-      : ge
-      ? uniqGe
-      : uniqGt /* default */
-
-    return {
-      'type': uniqCond,
-      'op': op,
-      'num': Number(compareNum),
-    }
-  }
-
-  else /* nameHas */ {
-    return {
-      'type': uniqHas,
-      'neg': Boolean(negation),
-      'value': elseValue || preprocessVs(vsName, vsSub, vsPos),
-    }
-  }
-  // should never happen
 }
 
-export const preprocessUniq = function([uniqKeyword, uniqName], shortcut = false) {
-  if (uniqName && shortcut) {
-    return {
-      'type': uniqSome,
-      'name': uniqName,
+export const preprocessUniq = function(options, shortcut = false) {
+  if (options.hasOwnProperty('cond')) {
+    if (shortcut) {
+      return 'foo'
+    }
+    else {
+      parseUniqConditions(options.cond, options.add, options.fail)
     }
   }
 
-  else if (uniqName) {
-    const patternMatch = uniqName.match(uniqConstraintDiff).slice(1)
-    return preprocessUniqCondAndHas(patternMatch)
-  }
+  else if (options.hasOwnProperty('uniq')) {
+    if (typeof options.uniq === 'string') {
+      const realName = options.uniq.match(namePatternRaw)
 
-  else if (uniqKeyword) {
-    return {
-      'type': uniqAnon,
-      'name': null,
+      if (realName) {
+        return {
+          'type': uniqSome,
+          'name': realName[0],
+        }
+      }
+    }
+
+    else {
+      return {
+        'type': uniqAnon,
+        'name': null,
+      }
     }
   }
 

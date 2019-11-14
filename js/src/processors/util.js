@@ -2,6 +2,9 @@ const left = Symbol('left')
 const right = Symbol('right')
 const center = Symbol('center')
 
+export const newLinePattern = /\\n/gu
+export const catchPattern = /\\./gu
+
 // wraps in non-capturing group
 const wrapName = (names, args) => (
   `^\\$(?:${names.join('|')})`
@@ -14,7 +17,7 @@ const wrapArg = function(val, alignment = center, optional = false) {
     + `${optional ? '?' : ''}`
 }
 
-const namePatternRaw = '_?[a-zA-Z][a-zA-Z0-9_\\-]*'
+export const namePatternRaw = '_?[a-zA-Z][a-zA-Z0-9_\\-]*'
 export const namePattern = `(${namePatternRaw})`
 
 const absoluteIdxPattern = `(\\d+)`
@@ -52,29 +55,7 @@ export const keywordPattern = (
 
 export const keywordRegex = new RegExp(keywordPattern, 'gmu')
 
-export const keywordArgPattern = (
-  `(`
-
-  + `(?:${namePatternRaw})=` /* the keyword */
-  + `(?:`
-  + `\\[(?:.*?)\\]|` /* list notation */
-  + `"(?:.*?)"|` /* double quote notation */
-  + `'(?:.*?)'|` /* single quote notation */
-  + `(?:[^,]+)` /* no-comma notation */
-  + `)?`
-
-  + `(?:\\s*,\\s*`
-  + `(?:${namePatternRaw})=` /* the keyword */
-  + `(?:`
-  + `\\[(?:.*?)\\]|` /* list notation */
-  + `"(?:.*?)"|` /* double quote notation */
-  + `'(?:.*?)'|` /* single quote notation */
-  + `(?:[^,]+)` /* no-comma notation */
-  + `)?`
-  + `)*`
-
-  + `)?`
-)
+export const keywordArgPattern = '(.*)'
 
 const lt = `(?:<|&lt;)`
 const gt = `(?:>|&gt;)`
@@ -87,7 +68,6 @@ export const uniqConstraintDiff = new RegExp(
   `(?:(${namePatternRaw})\\s*${compareSymbolsDiff}\\s*(\\d+)|${hasPatternDiff}|((?:${namePatternRaw})?))`,
   'u',
 )
-
 const uniqConstraintPattern = (
   `(uniq)(?:=(${namePatternRaw}\\s*${compareSymbols}\\s*\\d+|!?${namePatternRaw}\\[.*\\]|(?:${namePatternRaw})?))?`
 )
@@ -95,13 +75,13 @@ const uniqConstraintPattern = (
 export const pickPattern = new RegExp(wrapName(['pick'], [
   wrapArg(amountPattern, left, true),
   wrapArg(`(?:${numberGenerator}|${valueSetName})`),
-  wrapArg(uniqConstraintPattern, right, true),
+  wrapArg(keywordArgPattern, right, true),
 ]), 'u')
 
 export const evalPattern = new RegExp(wrapName(['evaluate', 'eval'], [
   wrapArg(amountPattern, left, true),
   wrapArg(valueSetName),
-  wrapArg(uniqConstraintPattern, right, true),
+  wrapArg(keywordArgPattern, right, true),
 ]), 'u')
 
 export const availableShapes = `(rect|ellipse|polygon|line|arrow|darrow)`
@@ -134,14 +114,14 @@ export const namedSetPattern = new RegExp(wrapName(['name'], [
   wrapArg(valueSetName, left, true),
   wrapArg(namePattern, center),
   wrapArg(posPattern, right, true),
-  wrapArg(forcePattern, right, true),
+  wrapArg(keywordArgPattern /* force */, right, true),
 ]), 'u')
 
 export const orderPattern = new RegExp(wrapName(['order'], [
   wrapArg(valueSetName, left, true),
   wrapArg(namePattern, center),
   wrapArg(posPattern, right, true),
-  wrapArg(forcePattern, right, true),
+  wrapArg(keywordArgPattern, right, true),
 ]), 'u')
 
 export const availableCommands = `(copy|del|move|swap|repl)`
@@ -152,6 +132,7 @@ export const commandPattern = new RegExp(wrapName(['cmd'], [
   wrapArg(amountPattern, center, true),
   wrapArg(posPattern /* fromPosition */, right, true),
   wrapArg(posPattern /* toPosition */, right, true),
+  wrapArg(keywordArgPattern /* whatever */, right, true),
 ]), 'u')
 
 //////// STYLING REGEXES

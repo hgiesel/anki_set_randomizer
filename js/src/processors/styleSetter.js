@@ -1,7 +1,7 @@
 import {
   partitionList,
   getBool,
-} from './util.js'
+} from './kwargs.js'
 
 import {
   vsSome,
@@ -9,11 +9,11 @@ import {
 
 import {
   valueSetName,
-} from '../processors/util.js'
+} from './util.js'
 
 import {
   preprocessVs,
-} from '../processors/preprocess.js'
+} from './preprocess.js'
 
 const initStyle = name => ({
   name: name,
@@ -78,6 +78,7 @@ export default function styleSetter(defaultStyle) {
 
       case 'colors':
         sd.stylings.colors.values = attributeValue
+          .slice(1, -1)
           .split(',')
           .map(v => v.trim())
           .filter(v => v.length > 0)
@@ -85,6 +86,7 @@ export default function styleSetter(defaultStyle) {
 
       case 'classes':
         sd.stylings.classes.values = attributeValue
+          .slice(1, -1)
           .split(',')
           .map(v => v.trim())
           .filter(v => v.length > 0)
@@ -92,6 +94,7 @@ export default function styleSetter(defaultStyle) {
 
       case 'colorRules':
         sd.stylings.colors.rules = partitionList(attributeValue
+          .slice(1, -1)
           .split(',')
           .map(w => w.trim()), 2, true)
           .map(([vsText, colorText]) => {
@@ -105,6 +108,7 @@ export default function styleSetter(defaultStyle) {
 
       case 'classRules':
         sd.stylings.classes.rules = partitionList(attributeValue
+          .slice(1, -1)
           .split(',')
           .map(w => w.trim()), 2, true)
           .map(([vsText, classText]) => {
@@ -189,10 +193,16 @@ export default function styleSetter(defaultStyle) {
     }
   }
 
+  const setAttributes = function(name, options) {
+    for (const attributeName in options) {
+      setStyleAttribute(name, attributeName, options[attributeName])
+    }
+  }
+
   const exportStyleDefinitions = () => styleDefinitions
 
   return {
-    setStyleAttribute: setStyleAttribute,
+    setAttributes: setAttributes,
     exportStyleDefinitions: exportStyleDefinitions,
   }
 }

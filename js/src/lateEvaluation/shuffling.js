@@ -1,7 +1,3 @@
-import {
-  getBool,
-} from './util.js'
-
 const getActual = function(name) {
   return name === '_'
     ? `_unnamed${Math.random().toString().slice(2)}`
@@ -11,7 +7,7 @@ const getActual = function(name) {
 export const processNamedSet = function(
   iterName, setIndex, posIndex, correspondingSets,
 
-  shuffleName, keywords, namedSets,
+  shuffleName, options, namedSets,
 ) {
   const actualName = getActual(shuffleName)
 
@@ -28,7 +24,7 @@ export const processNamedSet = function(
   ns.sets.push(...correspondingSets)
   ns.sets = [...new Set(ns.sets)].sort()
 
-  if (getBool(keywords.force)) {
+  if (options.force) {
     ns.force = true
   }
 
@@ -49,10 +45,7 @@ export const createDefaultNames = function(elements, iterName) {
 export const processOrder = function(
   iterName, setIndex, posIndex, correspondingSets,
 
-  orderName,
-  keywords,
-  orderConstraints,
-  namedSets,
+  orderName, options, orderConstraints, namedSets,
 ) {
   const actualOrderName = getActual(orderName)
 
@@ -61,7 +54,7 @@ export const processOrder = function(
     theNames = correspondingSets
       .map(set => processNamedSet(
         iterName, setIndex, posIndex, [set],
-        String(set), keywords, namedSets
+        String(set), options, namedSets
       ))
   }
 
@@ -81,9 +74,11 @@ export const processOrder = function(
     }) - 1]
 
   for (const stringName of theNames) {
-    oc.sets.push(stringName)
+    if (!oc.sets.includes(stringName)) {
+      oc.sets.push(stringName)
+    }
 
-    if (getBool(keywords.force)) {
+    if (options.force) {
       oc.force = true
     }
 

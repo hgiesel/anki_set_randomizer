@@ -39,21 +39,22 @@ const main2 = function(
     const [
       elementsShuffle,
       yanks,
+      valueSets,
       generatedValues,
       uniquenessConstraints,
-      valueSets,
+      styles,
       lateEvaluation,
     ] = process(
       elementsOriginal,
       sm.matchGeneratedValues(generatedValuesOld),
       uniquenessConstraintsOld,
+      defaultStyle,
       iterName,
     )
 
     const re = ruleEngine(
       elementsShuffle,
       yanks,
-      defaultStyle,
       iterName
     )
     lateEvaluate(re, ...lateEvaluation)
@@ -81,7 +82,8 @@ const main2 = function(
       sm.reorderForRendering(elementsForce),
       valueSets,
       yanks,
-      ...re.exportStyleData(),
+      styles,
+      re.exportStyleApplications(),
       randomIndicesOld,
       elementsShuffle,
     )

@@ -20,16 +20,8 @@ export const amountStar = Symbol('amountStar')
 
 export const uniqSome = Symbol('uniqSome')
 export const uniqCond = Symbol('uniqCond')
-export const uniqHas = Symbol('uniqHas')
 export const uniqAnon = Symbol('uniqAnon')
 export const uniqNone = Symbol('uniqNone')
-
-export const uniqEq = Symbol('uniqEq')
-export const uniqNeq = Symbol('uniqNeq')
-export const uniqLt = Symbol('uniqLt')
-export const uniqLe = Symbol('uniqLe')
-export const uniqGt = Symbol('uniqGt')
-export const uniqGe = Symbol('uniqGe')
 
 export const isSRToken = function(token, name = '') {
   return token.startsWith(`%%sr%%${name}`)
