@@ -1,13 +1,16 @@
 import {
-  expandPickNumber as epn,
-  expandPickValueSet as epvs,
-  expandValueSet as evs,
-} from './expand.js'
-
-import {
   amountStar,
   vsStar,
 } from '../util.js'
+
+import {
+  expandPickValueSet as epvs,
+  expandValueSet as evs,
+} from './expandVs.js'
+
+import {
+  expandPickNumber as epn,
+} from './expandNumber.js'
 
 const isPregenNecessaryFromVs = function(amount, vs) {
   return (amount.type !== amountStar
