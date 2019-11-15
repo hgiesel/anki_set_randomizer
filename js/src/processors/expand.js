@@ -24,21 +24,23 @@ const getUc = function(uniqConstraints, ucName) {
 }
 
 const getUniqProcessor = function(uniqConstraints) {
-  const commit = function(preUcs) {
-    for (const key in preUcs) {
-      for (const item in preUcs[key]) {
+  const commit = function(validator) {
+    for (const key in validator.preUcs) {
+      for (const item in validator.preUcs[key]) {
         getUc(uniqConstraints, key).values.push(item)
       }
     }
   }
 
   const init = function(uc) {
-    const processUniqSome = function(currentValue, preUcs) {
+    const preUcs = {}
+
+    const processUniqSome = function(currentValue) {
       const uniqSet = getUc(uniqConstraints, uc.name)
         .values
         .concat(preUcs[uc.name] || [])
 
-      if (!uniqSet.values.includes(currentValue)) {
+      if (!uniqSet.includes(currentValue)) {
         preUcs[uc.name]
           ? preUcs[uc.name].push(currentValue)
           : preUcs[uc.name] = [currentValue]
@@ -50,7 +52,7 @@ const getUniqProcessor = function(uniqConstraints) {
       }
     }
 
-    const processUniqCond = function(currentValue, preUcs) {
+    const processUniqCond = function(currentValue) {
       const processUniqCondRecursive = function(condition) {
         switch (condition[0]) {
           case '&': case '&amp;':
@@ -152,18 +154,40 @@ const getUniqProcessor = function(uniqConstraints) {
       return passes
     }
 
-    return uc.type === uniqCond
-      ? processUniqCond
-      : uc.type === uniqSome
-      ? processUniqSome
-      : /* uniqNone */ () => ({
-        passes: true,
-      })
+    return {
+      check: uc.type === uniqCond
+        ? processUniqCond
+        : uc.type === uniqSome
+        ? processUniqSome
+        : /* uniqNone */ () => true,
+      preUcs: () => preUcs,
+    }
   }
 
   return {
     init: init,
     commit: commit,
+  }
+}
+
+const generate = function(generator, validator, amount) {
+  const values = []
+
+  for (const value of generator) {
+    if (validator.check(value)) {
+      values.push(value)
+
+      const stop = amount.type !== amountStar && values.length === amount.value
+
+      if (stop) {
+        generator.return()
+      }
+    }
+  }
+
+  return {
+    values: values,
+    sufficient: /* for eval */ amount.type === amountStar || values.length === amount.value
   }
 }
 
@@ -209,33 +233,19 @@ const realGenerator = function*(min, max, extra) {
 
 export const expandPickNumber = function(
   uniqConstraints,
-
   amount, pick, uc,
 ) {
-  const resultValues = []
   const uniqProc = getUniqProcessor(uniqConstraints)
-  const validate = uniqProc.init(uc)
-
-  const preUcs = {}
 
   const generator = pick.type === pickInt
     ? intGenerator(pick.min, pick.max, pick.extra, uc.type === uniqSome)
     : realGenerator(pick.min, pick.max, pick.extra)
+  const validator = uniqProc.init(uc)
 
-  while ((amount.type === amountStar && pick.type !== pickReal) || resultValues.length < amount.value) {
-    const value = generator.next()
+  const values = generate(generator, validator, amount)
 
-    if (value.done) {
-      break
-    }
-
-    if (validate(value.value, preUcs)) {
-      uniqProc.commit(preUcs)
-      resultValues.push(value.value)
-    }
-  }
-
-  return resultValues
+  uniqProc.commit(validator)
+  return values.values
 }
 
 //////////////////////////////////////////////////
@@ -304,29 +314,19 @@ export const expandPickValueSet = function(
   amount, vs, uc,
   valueSets,
 ) {
-  const resultValues = []
-
-  const vsGen = valueGenerator(valueSets, vs, uc.type === uniqSome)
-
   const uniqProc = getUniqProcessor(uniqConstraints)
-  const validate = uniqProc.init(uc)
 
-  const preUcs = {}
+  const generator = valueGenerator(
+    valueSets,
+    vs,
+    uc.type === uniqSome,
+  )
+  const validator = uniqProc.init(uc)
 
-  while (amount.type === amountStar || resultValues.length < amount.value) {
-    const value = vsGen.next()
+  const values = generate(generator, validator, amount)
+  uniqProc.commit(validator)
 
-    if (value.done) {
-      break
-    }
-
-    if (validate(value.value, preUcs)) {
-      uniqProc.commit(preUcs)
-      resultValues.push(value.value)
-    }
-  }
-
-  return resultValues
+  return values.values
 }
 
 export const expandValueSet = function(
@@ -334,65 +334,45 @@ export const expandValueSet = function(
   vsName, vsSub,
   valueSets, evaluators,
 ) {
-  let resolvedValues = []
   let firstLookup = null
-
   const foundEvaluators = evaluators.filter(([/* amount */, evalVs /*, uc */]) => (
     (evalVs.name === vsStar || evalVs.name === vsName) && (evalVs.sub === vsStar || evalVs.sub === vsSub)
   ))
 
   const uniqProc = getUniqProcessor(uniqConstraints)
 
-  for (const evaluator of foundEvaluators) {
-    resolvedValues = [/* reset */]
+  for (const [amount, evalVs, uc] of foundEvaluators) {
+    const generator = valueGenerator(
+      valueSets, {
+        name: vsName,
+        sub: vsSub,
+        pos: evalVs.pos,
+      },
+      uc.type === uniqSome,
+    )
+    const validator = uniqProc.init(uc)
 
-    const [
-      amount,
-      evalVs,
-      uc,
-    ] = evaluator
+    const values = generate(generator, validator, amount)
 
-    const validate = uniqProc.init(uc)
-    const preUcs = {}
-
-    const vsGen = valueGenerator(valueSets, {
-      name: vsName,
-      sub: vsSub,
-      pos: evalVs.pos
-    }, uc.type === uniqSome)
-
-    while (amount.type === amountStar || resolvedValues.length < amount.value) {
-      const value = vsGen.next()
-
-      if (value.done) {
-        break
-      }
-
-      if (validate(value.value, preUcs)) {
-        resolvedValues.push(value.value)
-      }
-    }
-
-    if (amount.type === amountStar || resolvedValues.length === amount.value) {
+    if (values.sufficient) {
       // return with sufficient lookup
-      uniqProc.commit(preUcs)
-      return resolvedValues
+      uniqProc.commit(validator)
+      return values.values
     }
 
-    if (!firstLookup) {
+    else if (!firstLookup) {
       firstLookup = {
-        resolvedValues: resolvedValues,
-        preUcs: preUcs,
+        validator: validator,
+        values: values.values,
       }
     }
   }
 
-  // return with unsufficient lookup
   if (firstLookup) {
-    uniqProc.commit(firstLookup.preUcs)
-    return firstLookup.resolvedValues
+    // return with unsufficient lookup
+    uniqProc.commit(firstLookup.validator)
+    return firstLookup.values
   }
 
-  // return with no lookup
-  return resolvedValues
+  return [/* return with no lookup */]
 }

@@ -21,7 +21,6 @@ export const amountStar = Symbol('amountStar')
 
 export const uniqSome = Symbol('uniqSome')
 export const uniqCond = Symbol('uniqCond')
-export const uniqAnon = Symbol('uniqAnon')
 export const uniqNone = Symbol('uniqNone')
 
 export const vsSerialize = function(component) {

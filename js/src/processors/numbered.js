@@ -3,7 +3,7 @@
 
 import {
   pickInt, pickReal,
-  uniqAnon, uniqSome, uniqCond,
+  uniqSome, uniqCond,
   amountCount,
   toSRToken,
 
@@ -42,12 +42,10 @@ export const processValueSet = function(
 }
 
 export const processPick = function(amount, pick, uniq) {
-  const uniqString = uniq.type === uniqAnon
-    ? `uniq=_unnamed${String(Math.random()).slice(2)}`
-    : uniq.type === uniqSome
+  const uniqString = uniq.type === uniqSome
     ? `uniq=${uniq.name}`
     : uniq.type === uniqCond
-    ? `cond=${uniq.cond},add=${uniq.add},fail=${uniq.fail}`
+    ? `cond=${JSON.stringify(uniq.cond)},add=${JSON.stringify(uniq.add)},fail=${JSON.stringify(uniq.fail)}`
     : ''
 
   const amountText = amount.type === amountCount

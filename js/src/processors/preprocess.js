@@ -9,7 +9,7 @@ import {
 
   amountStar, amountCount,
 
-  uniqSome, uniqCond, uniqNone, uniqAnon,
+  uniqSome, uniqCond, uniqNone,
 } from '../util.js'
 
 import {
@@ -237,11 +237,9 @@ export const preprocessUniq = function(options, shortcut = false) {
       }
     }
 
-    else {
-      return {
-        'type': uniqAnon,
-        'name': null,
-      }
+    return {
+      'type': uniqSome,
+      'name': `_anonymous${String(Math.random()).slice(2)}`
     }
   }
 
