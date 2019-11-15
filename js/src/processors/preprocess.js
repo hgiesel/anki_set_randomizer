@@ -150,7 +150,7 @@ export const preprocessVs = function(
         : vsStar /* default */,
       'pos': !Number.isNaN(maybeVsPos)
         ? maybeVsPos
-        : vsSubIndex === '_'
+        : vsPosIndex === '_'
         ? vsSelf
         : vsStar /* default */,
     }
@@ -172,9 +172,10 @@ export const preprocessAmount = function(amountText, defaultAmount = 1) {
     }
   }
 
+  const amountNumber = Number(amountText)
   return {
     'type': amountCount,
-    'value': Number(amountText) || defaultAmount,
+    'value': Number.isNaN(amountNumber) ? defaultAmount : amountNumber,
   }
 }
 
