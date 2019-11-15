@@ -93,7 +93,7 @@ export const getCorrespondingSets = function(
       return [name.values]
 
     case typeAbsNeg:
-      return [elements.length + name.values - 1]
+      return [elements.length + name.values]
 
     case typeAll:
       return [...elements.keys()]
