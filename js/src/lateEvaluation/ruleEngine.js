@@ -1,9 +1,12 @@
 import {
-  vsNone, vsSome, vsStar,
-
+  vsNone, vsSome, vsStar, uniqSome,
   isSRToken,
   fromSRToken,
 } from '../util.js'
+
+import {
+  preprocessVs,
+} from '../processors/preprocess'
 
 import {
   getCorrespondingSets,
@@ -24,7 +27,7 @@ import {
 } from './styleApplier.js'
 
 // Adapter for numbered.js evals
-export const ruleEngine = function(elements, yanks, iterNameOuter) {
+export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterNameOuter) {
   const elementsValues = elements
     .flat()
     .filter(elem => isSRToken(elem[3], 'value'))
@@ -40,15 +43,14 @@ export const ruleEngine = function(elements, yanks, iterNameOuter) {
   }
 
   const rulethrough = function(
-    f, iterName, setIndex, elemIndex, appliedName, vs,
+    f, iterName, setIndex, elemIndex, appliedName, rule,
     ...argumentz
   ) {
-    const g = function([
+    const g = function(vs, [
       iterNameInner,
       setIndexInner,
       elemIndexInner,
-      content
-    ]) {
+      content]) {
       const [
         vsName,
         vsSub,
@@ -79,9 +81,22 @@ export const ruleEngine = function(elements, yanks, iterNameOuter) {
       }
     }
 
-    switch (vs.type) {
+    switch (rule.type) {
+      case uniqSome:
+        const uniqSet = uniquenessConstraints
+          .find(({name}) => name === rule.name)
+
+        if (uniqSet) {
+          for (const value of uniqSet.values
+            .filter(v => isSRToken(v, 'value'))
+          ) {
+            elementsValues.forEach(elem => g(preprocessVs(fromSRToken(value, true)), elem))
+          }
+        }
+        break
+
       case vsSome:
-        elementsValues.forEach(g)
+        elementsValues.forEach(elem => g(rule, elem))
         break
 
       case vsNone: default:
@@ -109,10 +124,10 @@ export const ruleEngine = function(elements, yanks, iterNameOuter) {
   const processNamedSet = function(
     iterName, setIndex, posIndex,
 
-    vs, shuffleName, appliedName, options,
+    rule, shuffleName, appliedName, options,
   ) {
     rulethrough(
-      pns, iterName, setIndex, posIndex, appliedName, vs,
+      pns, iterName, setIndex, posIndex, appliedName, rule,
       shuffleName, options, namedSets,
     )
   }
@@ -120,10 +135,10 @@ export const ruleEngine = function(elements, yanks, iterNameOuter) {
   const processOrder = function(
     iterName, setIndex, posIndex,
 
-    vs, orderName, appliedName, options,
+    rule, orderName, appliedName, options,
   ) {
     rulethrough(
-      po, iterName, setIndex, posIndex, appliedName, vs,
+      po, iterName, setIndex, posIndex, appliedName, rule,
       orderName, options, orderConstraints, namedSets,
     )
   }
@@ -139,10 +154,10 @@ export const ruleEngine = function(elements, yanks, iterNameOuter) {
   const processApplication = function(
     iterName, setIndex, posIndex,
 
-    vs, styleName, appliedName,
+    rule, styleName, appliedName,
   ) {
     rulethrough(
-      pa, iterName, setIndex, posIndex, appliedName, vs,
+      pa, iterName, setIndex, posIndex, appliedName, rule,
       styleName, styleApplications,
     )
   }
@@ -159,11 +174,28 @@ export const ruleEngine = function(elements, yanks, iterNameOuter) {
     return styleApplications
   }
 
+  const lateEvaluate = function(
+    namedSetStatements,
+    orderStatements,
+    commandStatements,
+    applyStatements,
+  ) {
+    namedSetStatements
+      .reduce((accu, elem) => {
+        elem[5] || elem[6] || elem[7] || elem[8] || elem[9]
+          ? accu.push(elem)
+          : accu.unshift(elem)
+        return accu
+      }, [])
+      .forEach(stmt => processNamedSet(...stmt))
+
+    orderStatements.forEach(stmt => processOrder(...stmt))
+    commandStatements.forEach(stmt => processCommand(...stmt))
+    applyStatements.forEach(stmt => processApplication(...stmt))
+  }
+
   return {
-    processNamedSet: processNamedSet,
-    processOrder: processOrder,
-    processCommand: processCommand,
-    processApplication: processApplication,
+    lateEvaluate: lateEvaluate,
 
     exportRandomizationData: exportRandomizationData,
     exportStyleApplications: exportStyleApplications,

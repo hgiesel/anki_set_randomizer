@@ -24,7 +24,7 @@ const getUc = function(uniqConstraints, ucName) {
 export const getUniqProcessor = function(uniqConstraints) {
   const commit = function(validator) {
     for (const key in validator.preUcs) {
-      for (const item in validator.preUcs[key]) {
+      for (const item of validator.preUcs[key]) {
         getUc(uniqConstraints, key).values.push(item)
       }
     }
@@ -158,7 +158,7 @@ export const getUniqProcessor = function(uniqConstraints) {
         : uc.type === uniqSome
         ? processUniqSome
         : /* uniqNone */ () => true,
-      preUcs: () => preUcs,
+      preUcs: preUcs,
     }
   }
 
@@ -172,14 +172,14 @@ export const generate = function(generator, validator, amount) {
   const values = []
 
   for (const value of generator) {
-    if (validator.check(value)) {
+    const stop = amount.type !== amountStar && values.length === amount.value
+
+    if (stop) {
+      generator.return()
+    }
+
+    else if (validator.check(value)) {
       values.push(value)
-
-      const stop = amount.type !== amountStar && values.length === amount.value
-
-      if (stop) {
-        generator.return()
-      }
     }
   }
 

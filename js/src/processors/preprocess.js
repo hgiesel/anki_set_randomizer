@@ -274,3 +274,16 @@ export const preprocessPick = function([minValue, maxValue, extraValue, ...vsArg
 
   return preprocessVs(vsArgs, true)
 }
+
+export const preprocessRule = function(
+  [vsName, vsSubIndex, vsPosIndex, ucName],
+) {
+  if (ucName) {
+    return preprocessUniq({
+      uniq: ucName,
+    })
+  }
+  else {
+    return preprocessVs([vsName, vsSubIndex, vsPosIndex], false)
+  }
+}

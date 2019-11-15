@@ -1,9 +1,7 @@
 import structureMatcher from './matching.js'
 import process from './processors/process.js'
 
-import lateEvaluate from './lateEvaluation/lateEvaluation.js'
 import ruleEngine from './lateEvaluation/ruleEngine'
-
 import randomize from './randomize/randomize.js'
 
 import render from './render/render.js'
@@ -54,10 +52,12 @@ const main2 = function(
 
     const re = ruleEngine(
       elementsShuffle,
+      uniquenessConstraints,
       yanks,
-      iterName
+      iterName,
     )
-    lateEvaluate(re, ...lateEvaluation)
+
+    re.lateEvaluate(...lateEvaluation)
 
     const reordersShuffle = randomize(
       elementsShuffle /* is modified */,

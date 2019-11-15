@@ -30,6 +30,7 @@ import {
   preprocessYank,
   preprocessNamepos,
   preprocessVs,
+  preprocessRule,
   preprocessAmount,
   preprocessPick,
   preprocessPickNumber,
@@ -115,16 +116,21 @@ export const process = function(
       yanks.push([yanks.length, ...preprocessYank(patternResult.slice(1))])
     }
 
-    ////// RANDOMIZATION
+    ////// STYLING
+    else if (patternResult = content.match(stylePattern)) {
+      ss.setAttributes(patternResult[1], kwargs(patternResult[2]))
+    }
+
+    ////// LATE EVALUATION
     else if (patternResult = content.match(namedSetPattern)) {
       namedSetStatements.push([
         iterNameSub,
         setIndex,
         elemIndex,
-        preprocessVs(patternResult.slice(1, 4), true),
-        patternResult[4] /* name */,
-        preprocessNamepos(patternResult.slice(5, 9)),
-        preprocessForce(kwargs(patternResult[9])),
+        preprocessRule(patternResult.slice(1, 5), true),
+        patternResult[5] /* name */,
+        preprocessNamepos(patternResult.slice(6, 10)),
+        preprocessForce(kwargs(patternResult[11])),
       ])
     }
 
@@ -133,10 +139,10 @@ export const process = function(
         iterNameSub,
         setIndex,
         elemIndex,
-        preprocessVs(patternResult.slice(1, 4), true),
-        patternResult[4] /* name */,
-        preprocessNamepos(patternResult.slice(5, 9)),
-        preprocessForce(kwargs(patternResult[9])),
+        preprocessRule(patternResult.slice(1, 5), true),
+        patternResult[5] /* name */,
+        preprocessNamepos(patternResult.slice(6, 10)),
+        preprocessForce(kwargs(patternResult[10])),
       ])
     }
 
@@ -149,19 +155,14 @@ export const process = function(
       ])
     }
 
-    ////// STYLING
-    else if (patternResult = content.match(stylePattern)) {
-      ss.setAttributes(patternResult[1], kwargs(patternResult[2]))
-    }
-
     else if (patternResult = content.match(applyPattern)) {
       applyStatements.push([
         iterNameSub,
         setIndex,
         elemIndex,
-        preprocessVs(patternResult.slice(1, 4), true),
-        patternResult[4] /* style name */,
-        preprocessNamepos(patternResult.slice(5)),
+        preprocessRule(patternResult.slice(1, 5), true),
+        patternResult[5] /* style name */,
+        preprocessNamepos(patternResult.slice(6)),
       ])
     }
 

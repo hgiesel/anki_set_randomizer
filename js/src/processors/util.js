@@ -31,6 +31,7 @@ const allYanksPattern = `_(\\*)`
 export const valSetPos = `(\\d+|\\*|_)`
 
 export const valueSetName = `\\$(${namePatternRaw}|\\*|_|\\$)(?:(?::${valSetPos})?:${valSetPos})?`
+const ruleName = `(?:${valueSetName}|uc:${namePattern})`
 
 export const vsRegex = new RegExp(`^\\$(${namePatternRaw}|\\*|_|\\$)(?:(?::${valSetPos})?:${valSetPos})?$`, 'u')
 
@@ -82,6 +83,12 @@ export const yankPattern = new RegExp(wrapName(['yank'], [
   wrapArg(keywordArgPattern /* text */, right, true),
 ]), 'u')
 
+//////// STYLING REGEXES
+export const stylePattern = new RegExp(wrapName(['style'], [
+  wrapArg(namePattern, center),
+  wrapArg(keywordArgPattern /* stylingDirectives */, right, true),
+]), 'u')
+
 ///// LATE EVALUATION REGEXES
 const posPattern = `(?:`
   + `${absoluteIdxPattern}|`
@@ -94,14 +101,14 @@ const posPattern = `(?:`
   + `)`
 
 export const namedSetPattern = new RegExp(wrapName(['name'], [
-  wrapArg(valueSetName, left, true),
+  wrapArg(ruleName, left, true),
   wrapArg(namePattern, center),
   wrapArg(posPattern, right, true),
   wrapArg(keywordArgPattern /* force */, right, true),
 ]), 'u')
 
 export const orderPattern = new RegExp(wrapName(['order'], [
-  wrapArg(valueSetName, left, true),
+  wrapArg(ruleName, left, true),
   wrapArg(namePattern, center),
   wrapArg(posPattern, right, true),
   wrapArg(keywordArgPattern, right, true),
@@ -110,22 +117,16 @@ export const orderPattern = new RegExp(wrapName(['order'], [
 export const availableCommands = `(copy|del|move|swap|repl)`
 
 export const commandPattern = new RegExp(wrapName(['cmd'], [
-  wrapArg(valueSetName, left, true),
-  wrapArg(availableShapes, right),
-  wrapArg(amountPattern, center, true),
+  wrapArg(ruleName, left, true),
+  wrapArg(amountPattern, left, true),
+  wrapArg(availableCommands, center),
   wrapArg(posPattern /* fromPosition */, right, true),
   wrapArg(posPattern /* toPosition */, right, true),
   wrapArg(keywordArgPattern /* whatever */, right, true),
 ]), 'u')
 
-//////// STYLING REGEXES
-export const stylePattern = new RegExp(wrapName(['style'], [
-  wrapArg(namePattern, center),
-  wrapArg(keywordArgPattern /* stylingDirectives */, right, true),
-]), 'u')
-
 export const applyPattern = new RegExp(wrapName(['apply'], [
-  wrapArg(valueSetName, left, true),
+  wrapArg(ruleName, left, true),
   wrapArg(namePattern, center),
   wrapArg(posPattern, right, true),
 ]), 'u')
