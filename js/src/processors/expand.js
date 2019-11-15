@@ -373,8 +373,8 @@ export const expandValueSet = function(
       }
     }
 
-    if (resolvedValues.length === amount.value /* sufficient lookup */) {
-      // return with no or sufficient lookup
+    if (amount.type === amountStar || resolvedValues.length === amount.value) {
+      // return with sufficient lookup
       uniqProc.commit(preUcs)
       return resolvedValues
     }
