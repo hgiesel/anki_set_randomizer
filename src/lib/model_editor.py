@@ -188,7 +188,7 @@ def update_model_template(model, settings):
         front_injections = []
         back_injections = []
 
-        for inj in settings['injections']:
+        for inj in [inj for inj in settings['injections'] if inj['enabled']]:
             needs_front_inject, simplified_conditions_front = front_injection_parser(inj['conditions'])
 
             if needs_front_inject:
