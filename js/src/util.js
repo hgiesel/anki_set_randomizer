@@ -1,29 +1,29 @@
-export const vsSome = Symbol('vsSome')
-export const vsNone = Symbol('vsNone')
-export const vsStar = Symbol('vsStar')
-export const vsSelf = Symbol('vsSelf')
+export const vsSome = 'vsSome'
+export const vsNone = 'vsNone'
+export const vsStar = 'vsStar'
+export const vsSelf = 'vsSelf'
 
-export const pickInt = Symbol('pickInt')
-export const pickReal = Symbol('pickReal')
+export const pickInt = 'pickInt'
+export const pickReal = 'pickReal'
 
-export const typeRel = Symbol('typeRel')
+export const typeRel = 'typeReal'
 
-export const typeAbs = Symbol('typeAbs')
-export const typeAbsYank = Symbol('typeAbsYank')
-export const typeAbsNeg = Symbol('typeAbsNeg')
+export const typeAbs = 'typeAbs'
+export const typeAbsYank = 'typeAbsYank'
+export const typeAbsNeg = 'typeAbsNeg'
 
-export const typeAll = Symbol('typeAll')
-export const typeAllYank = Symbol('typeAllYank')
-export const typeName = Symbol('typeName')
+export const typeAll = 'typeAll'
+export const typeAllYank = 'typeAllYank'
+export const typeName = 'typeName'
 
-export const amountCount = Symbol('amountCount')
-export const amountStar = Symbol('amountStar')
-export const amountPlus = Symbol('amountPlus')
-export const amountQuestion = Symbol('amountQuestion')
+export const amountCount = 'amountCount'
+export const amountStar = 'amountStar'
+export const amountPlus = 'amountPlus'
+export const amountQuestion = 'amountQuestion'
 
-export const uniqSome = Symbol('uniqSome')
-export const uniqCond = Symbol('uniqCond')
-export const uniqNone = Symbol('uniqNone')
+export const uniqSome = 'uniqSome'
+export const uniqCond = 'uniqCond'
+export const uniqNone = 'uniqNone'
 
 export const vsSerialize = function(component) {
   return component === vsSelf

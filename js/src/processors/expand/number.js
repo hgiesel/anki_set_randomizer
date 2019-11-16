@@ -60,5 +60,8 @@ export const expandPickNumber = function(
   const values = generate(generator, validator, amount)
 
   uniqProc.commit(validator)
-  return values.values
+  return [
+    values.values,
+    true,
+  ]
 }

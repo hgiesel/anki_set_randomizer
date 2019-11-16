@@ -1,9 +1,4 @@
 import {
-  amountStar,
-  vsStar,
-} from '../../util.js'
-
-import {
   expandPickValueSet as expandPickValueSetOrig,
   expandValueSet as expandValueSetOrig,
 } from './vs.js'
@@ -12,15 +7,6 @@ import {
   expandPickNumber as expandPickNumberOrig,
 } from './number.js'
 
-const isPregenNecessaryFromVs = function(amount, vs) {
-  return (amount.type !== amountStar
-    && (vs.name === vsStar || vs.sub === vsStar || vs.pos === vsStar))
-}
-
-const isPregenNecessaryFromPickNumber = function(amount) {
-  return (amount.type !== amountStar)
-}
-
 // Adapter for expanders
 export const pregenManager = function(generatedValues, uniqConstraints, valueSets, evaluators) {
   const evs = args => expandValueSetOrig(uniqConstraints, valueSets, evaluators, ...args)
@@ -28,6 +14,9 @@ export const pregenManager = function(generatedValues, uniqConstraints, valueSet
   const epn = args => expandPickNumberOrig(uniqConstraints, ...args)
 
   const pregenChecker = function(iterName, setIndex, elemIndex) {
+    const pregenResult = 'pregenResult'
+    const pregenFail = 'pregenFail'
+
     const checkForPregen = function() {
       let pregen = null
 
@@ -38,43 +27,78 @@ export const pregenManager = function(generatedValues, uniqConstraints, valueSet
           && elemid === elemIndex
         ))
       ) {
-        return pregen[3]
+        return {
+          type: pregenResult,
+          value: pregen[3],
+        }
       }
 
-      return null
+      return {
+        type: pregenFail,
+        value: null,
+      }
     }
 
-    const callthrough = function(f, args, trulyRandom = false) {
+    const callthroughPick = function(f, args) {
+      const pregen = checkForPregen()
       let resultValues = null
 
-      if (trulyRandom) {
-        resultValues = checkForPregen()
+      switch (pregen.type) {
+        case pregenResult:
+          resultValues = pregen.value
+          break
 
-        if (!resultValues) {
-          resultValues = f(args)
-        }
+        case pregenFail: default:
+          let trulyRandom = null
+          ;[resultValues, trulyRandom] = f(args)
 
-        generatedValues.push([iterName, setIndex, elemIndex, resultValues])
-      }
-
-      else {
-        resultValues = f(args)
+          if (trulyRandom) {
+            generatedValues.push([iterName, setIndex, elemIndex, resultValues])
+          }
+          break
       }
 
       return resultValues.map(v => [iterName, setIndex, elemIndex, v, 'n'])
     }
 
-    const expandPickNumber = (...args) => callthrough(
-      epn, args, isPregenNecessaryFromPickNumber(args[0]),
-    )
+    const callthroughVs = function(f, args) {
+      let resultValues = null
+      const [
+        values,
+        evaluator,
+        trulyRandom,
+      ] = f(args)
 
-    const expandPickValueSet = (...args) => callthrough(
-      epvs, args, isPregenNecessaryFromVs(args[0], args[1]),
-    )
+      const maybePregen = checkForPregen()
+      const evaluatorKey = JSON.stringify(evaluator)
 
-    const expandValueSet = (...args) => callthrough(
-      evs, args, isPregenNecessaryFromVs(args[0], args[1]),
-    )
+      switch (maybePregen.type) {
+        case pregenResult:
+          if (maybePregen.value.hasOwnProperty(evaluatorKey)) {
+            resultValues = maybePregen.value[evaluatorKey]
+          }
+          else {
+            if (trulyRandom) {
+              maybePregen.value[evaluatorKey] = values
+            }
+            resultValues = values
+          }
+          break
+
+        case pregenFail: default:
+          if (trulyRandom) {
+            generatedValues.push([iterName, setIndex, elemIndex, {[evaluatorKey]: values}])
+          }
+          resultValues = values
+          break
+      }
+
+      return resultValues.map(v => [iterName, setIndex, elemIndex, v, 'n'])
+    }
+
+    const expandPickNumber = (...args) => callthroughPick(epn, args)
+    const expandPickValueSet = (...args) => callthroughPick(epvs, args)
+    const expandValueSet = (...args) => callthroughVs(evs, args)
 
     return {
       expandPickNumber: expandPickNumber,

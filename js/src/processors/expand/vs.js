@@ -84,7 +84,10 @@ export const expandPickValueSet = function(
   const values = generate(generator, validator, amount)
   uniqProc.commit(validator)
 
-  return values.values
+  return [
+    values.values,
+    vs.name === vsStar || vs.sub === vsStar || vs.pos === vsStar,
+  ]
 }
 
 export const expandValueSet = function(
@@ -114,13 +117,19 @@ export const expandValueSet = function(
     if (values.sufficient) {
       // return with sufficient lookup
       uniqProc.commit(validator)
-      return values.values
+      return [
+        values.values,
+        [amount, evalVs, uc],
+        evalVs.pos === vsStar,
+      ]
     }
 
     else if (!firstLookup) {
       firstLookup = {
         validator: validator,
         values: values.values,
+        evaluator: [amount, evalVs, uc],
+        trulyRandom: evalVs.pos === vsStar,
       }
     }
   }
@@ -128,8 +137,16 @@ export const expandValueSet = function(
   if (firstLookup) {
     // return with unsufficient lookup
     uniqProc.commit(firstLookup.validator)
-    return firstLookup.values
+    return [
+      firstLookup.values,
+      firstLookup.evaluator,
+      firstLookup.trulyRandom,
+    ]
   }
 
-  return [/* return with no lookup */]
+  return [
+    [/* return with no lookup */],
+    null,
+    false,
+  ]
 }
