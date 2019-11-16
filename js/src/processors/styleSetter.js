@@ -30,6 +30,9 @@ noneStyle.stylings.display = 'none'
 const metaStyle = initStyle('meta')
 metaStyle.stylings.display = 'meta'
 
+const emptyStyle = initStyle('empty')
+emptyStyle.stylings.display = 'empty'
+
 const blockStyle = initStyle('block')
 blockStyle.stylings.openDelim = ''
 blockStyle.stylings.closeDelim = ''
@@ -39,6 +42,7 @@ blockStyle.stylings.display = 'block'
 const defaultStyleDefinitions = [
   noneStyle,
   metaStyle,
+  emptyStyle,
   blockStyle,
 ]
 
