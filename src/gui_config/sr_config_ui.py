@@ -52,7 +52,7 @@ class Ui_SRConfig(object):
         SRConfig.setWindowTitle(_translate("SRConfig", "Set Randomizer Settings"))
         self.cancelButton.setText(_translate("SRConfig", "Cancel"))
         self.saveButton.setText(_translate("SRConfig", "Save"))
-        self.importButton.setText(_translate("SRConfig", "Import / Export Setting"))
+        self.importButton.setText(_translate("SRConfig", "⎈ Import / Export Setting"))
         self.helpButton.setText(_translate("SRConfig", "Help"))
         self.aboutButton.setText(_translate("SRConfig", "About"))
 from anki_set_randomizer.src.gui_config.custom.sr_config_modelchooser import SRConfigModelchooser

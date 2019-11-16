@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_SRIterationTab(object):
     def setupUi(self, SRIterationTab):
         SRIterationTab.setObjectName("SRIterationTab")
-        SRIterationTab.resize(776, 425)
+        SRIterationTab.resize(1089, 420)
         self.gridLayout = QtWidgets.QGridLayout(SRIterationTab)
         self.gridLayout.setObjectName("gridLayout")
         self.upPushButton = QtWidgets.QPushButton(SRIterationTab)
