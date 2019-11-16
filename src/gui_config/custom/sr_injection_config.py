@@ -3,6 +3,7 @@ import json
 import jsonschema
 
 from aqt.qt import QDialog, QWidget, Qt
+from aqt.utils import showInfo # actually needed!
 
 from ..sr_injection_config_ui import Ui_SRInjectionConfig
 from ...lib.config import deserialize_injection

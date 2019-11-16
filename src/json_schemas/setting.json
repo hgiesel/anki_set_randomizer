@@ -32,7 +32,7 @@
   },
 
   "type": "object",
-  "items": {
+  "properties": {
     "modelName": {
       "type": "string"
     },
@@ -53,10 +53,21 @@
       "$ref": "iterations.json#/definitions/iterations"
     },
     "injections": {
-      "$ref": "iterations.json#/definitions/injections"
+      "$ref": "injections.json#/definitions/injections"
     },
     "sourceMode": {
       "$ref": "#/definitions/sourceMode"
     }
-  }
+  },
+  "additionalProperties": false,
+  "required": [
+    "modelName",
+    "description",
+    "enabled",
+    "insertAnkiPersistence",
+    "pasteIntoTemplate",
+    "iterations",
+    "injections",
+    "sourceMode"
+  ]
 }

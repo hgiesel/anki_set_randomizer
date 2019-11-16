@@ -1,10 +1,10 @@
-from aqt.qt import QWidget
+from aqt.qt import QDialog
 
-from ..sr_setting_add_replace import Ui_SRSettingAddReplace
+from ..sr_setting_add_replace_ui import Ui_SRSettingAddReplace
 
-class SRSettingAddReplace(QWidget):
-    def __init__(self):
-        super().__init__()
+class SRSettingAddReplace(QDialog):
+    def __init__(self, parent):
+        super().__init__(parent=parent)
 
         self.ui = Ui_SRSettingAddReplace()
         self.ui.setupUi(self)
@@ -16,4 +16,13 @@ class SRSettingAddReplace(QWidget):
         self.ui.validateButton.clicked.connect(self.validate)
 
     def setupUi(self):
+        pass
+
+    def add(self):
+        pass
+
+    def replace(self):
+        pass
+
+    def validate(self):
         pass

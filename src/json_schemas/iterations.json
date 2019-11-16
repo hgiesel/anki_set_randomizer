@@ -1,7 +1,13 @@
 {
-  "type": "array",
-  "items": {
-    "$ref": "iter.json#/definitions/iter"
+  "definitions": {
+    "iterations": {
+      "type": "array",
+      "items": {
+        "$ref": "iter.json#/definitions/iter"
+      },
+      "minItems": 2
+    }
   },
-  "minItems": 2
+
+  "$ref": "#/definitions/iterations"
 }

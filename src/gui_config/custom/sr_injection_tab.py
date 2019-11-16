@@ -1,18 +1,15 @@
 import json
 
-from aqt.utils import showInfo
-from aqt.qt import QDialog, QWidget, QAction, QLabel, Qt
 from aqt import mw
-
-from ..sr_injection_tab_ui import Ui_SRInjectionTab
+from aqt.qt import QWidget, QLabel, Qt
 
 from ...lib.config import deserialize_injection
+from ..sr_injection_tab_ui import Ui_SRInjectionTab
 
 from .sr_injection_config import SRInjectionConfig
 from .util import mapTruthValueToIcon
 
 class SRInjectionTab(QWidget):
-
     def __init__(self):
         super().__init__()
 
@@ -62,7 +59,6 @@ class SRInjectionTab(QWidget):
             self.ui.injectionsTable.setCellWidget(row, i, label)
 
     def editInjection(self, row, column):
-
         def saveInjection(newInjection):
             self.inj[row] = newInjection
             self.drawInjections()

@@ -1,6 +1,12 @@
 {
-  "type": "array",
-  "items": {
-    "$ref": "inj.json#/definitions/inj"
-  }
+  "definitions": {
+    "injections": {
+      "type": "array",
+      "items": {
+        "$ref": "inj.json#/definitions/inj"
+      }
+    }
+  },
+
+  "$ref": "#/definitions/injections"
 }
