@@ -60,6 +60,7 @@ const main2 = function(
     const re = ruleEngine(
       elementsShuffle,
       uniquenessConstraints,
+      setToShuffles,
       yanks,
       iterName,
     )

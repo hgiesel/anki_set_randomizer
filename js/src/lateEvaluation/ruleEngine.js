@@ -27,7 +27,7 @@ import {
 } from './styleApplier.js'
 
 // Adapter for numbered.js evals
-export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterNameOuter) {
+export const ruleEngine = function(elements, uniquenessConstraints, setToShuffles, yanks, iterNameOuter) {
   const elementsValues = elements
     .map(set => set
       .filter(elem => isSRToken(elem[3], 'value'))
@@ -124,7 +124,7 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
           namedSets,
           yanks,
           appliedName,
-          setIndex,
+          setToShuffles[setIndex],
           evalNames,
           allowYanks,
         )
