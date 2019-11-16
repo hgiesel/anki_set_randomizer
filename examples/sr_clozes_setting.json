@@ -1,5 +1,5 @@
 {
-    "description": "SR Cloze v1.0",
+    "description": "SR Cloze v1.1",
     "enabled": true,
     "injections": [
         {
@@ -674,11 +674,11 @@
             "description": "",
             "enabled": true,
             "inputSyntax": {
-                "closeDelim": "#]",
+                "closeDelim": "#\\]",
                 "cssSelector": "#main-question > .extras, #main-question > .content",
                 "fieldSeparator": "::",
-                "isRegex": false,
-                "openDelim": "[#"
+                "isRegex": true,
+                "openDelim": "\\[[fq]?#"
             },
             "name": "-question_post"
         },
@@ -714,11 +714,11 @@
             "description": "",
             "enabled": true,
             "inputSyntax": {
-                "closeDelim": "#]",
+                "closeDelim": "#\\]",
                 "cssSelector": "#main-question > .extras, #main-question > .content",
                 "fieldSeparator": "::",
-                "isRegex": false,
-                "openDelim": "[#"
+                "isRegex": true,
+                "openDelim": "\\[[fq]?#"
             },
             "name": "+question_post"
         },
@@ -754,11 +754,11 @@
             "description": "",
             "enabled": false,
             "inputSyntax": {
-                "closeDelim": "#]",
+                "closeDelim": "#\\]",
                 "cssSelector": "#main-answer > .extras, #main-answer > .content",
                 "fieldSeparator": "::",
-                "isRegex": false,
-                "openDelim": "[#"
+                "isRegex": true,
+                "openDelim": "\\[[fa]?#"
             },
             "name": "-answer_post"
         },
@@ -794,11 +794,11 @@
             "description": "",
             "enabled": true,
             "inputSyntax": {
-                "closeDelim": "#]",
+                "closeDelim": "#\\]",
                 "cssSelector": "#main-answer > .extras, #main-answer > .content",
                 "fieldSeparator": "::",
-                "isRegex": false,
-                "openDelim": "[#"
+                "isRegex": true,
+                "openDelim": "\\[[fa]?#"
             },
             "name": "+answer_post"
         },
@@ -834,11 +834,11 @@
             "description": "",
             "enabled": false,
             "inputSyntax": {
-                "closeDelim": "#]",
+                "closeDelim": "#\\]",
                 "cssSelector": "#main-reveal > .extras, #main-reveal > .content",
                 "fieldSeparator": "::",
-                "isRegex": false,
-                "openDelim": "[#"
+                "isRegex": true,
+                "openDelim": "\\[r?#"
             },
             "name": "-reveal_post"
         },
@@ -874,16 +874,16 @@
             "description": "",
             "enabled": true,
             "inputSyntax": {
-                "closeDelim": "#]",
+                "closeDelim": "#\\]",
                 "cssSelector": "#main-reveal > .extras, #main-reveal > .content",
                 "fieldSeparator": "::",
-                "isRegex": false,
-                "openDelim": "[#"
+                "isRegex": true,
+                "openDelim": "\\[r?#"
             },
             "name": "+reveal_post"
         }
     ],
-    "modelName": "Source",
+    "modelName": "SR Cloze",
     "pasteIntoTemplate": true,
     "sourceMode": {
         "clozeOptions": {
