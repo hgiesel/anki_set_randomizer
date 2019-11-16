@@ -31,8 +31,11 @@ with open(path.join(SCRIPTNAME, '../../config.json'), encoding='utf-8') as confi
     safenav_input_syntax = safenav_preset([model_default['iterations'][0]['inputSyntax']])
     safenav_default_style = safenav_preset([model_default['iterations'][0]['defaultStyle']])
     safenav_values = safenav_preset([model_default['iterations'][0]['defaultStyle']['colors']])
+    safenav_source_mode = safenav_preset([model_default['sourceMode']])
+    safenav_cloze_options = safenav_preset([model_default['sourceMode']['clozeOptions']])
+    safenav_occlusion_options = safenav_preset([model_default['sourceMode']['occlusionOptions']])
 
-def serialize_setting(setting):
+def serialize_setting(setting) -> dict:
     return {
         'modelName': setting.model_name,
         'description': setting.description,
@@ -95,8 +98,8 @@ def serialize_setting(setting):
         }
     }
 
-def deserialize_input_syntax(input_syntax_data, access_func = safenav_input_syntax):
-    return SRInputSyntax(
+def deserialize_input_syntax(input_syntax_data, access_func = safenav_input_syntax) -> SRInputSyntax:
+    return input_syntax_data if type(input_syntax_data) == SRInputSyntax else SRInputSyntax(
         access_func([input_syntax_data], ['cssSelector']),
         access_func([input_syntax_data], ['openDelim']),
         access_func([input_syntax_data], ['closeDelim']),
@@ -104,16 +107,16 @@ def deserialize_input_syntax(input_syntax_data, access_func = safenav_input_synt
         access_func([input_syntax_data], ['isRegex']),
     )
 
-def deserialize_values(values_data, access_func = safenav_values):
-    return SRValues(
+def deserialize_values(values_data, access_func = safenav_values) -> SRValues:
+    return values_data if type(values_data) == SRValues else SRValues(
         access_func([values_data], ['values']),
         access_func([values_data], ['delim']),
         access_func([values_data], ['randomStartIndex']),
         access_func([values_data], ['collectiveIndexing']),
     )
 
-def deserialize_default_style(default_style_data, access_func = safenav_default_style):
-    return SRDefaultStyle(
+def deserialize_default_style(default_style_data, access_func = safenav_default_style) -> SRDefaultStyle:
+    return default_style_data if type(default_style_data) == SRDefaultStyle else SRDefaultStyle(
         deserialize_values(access_func([default_style_data], ['colors'])),
         deserialize_values(access_func([default_style_data], ['classes'])),
         access_func([default_style_data], ['fieldPadding']),
@@ -129,8 +132,8 @@ def deserialize_default_style(default_style_data, access_func = safenav_default_
         access_func([default_style_data], ['fillOpacity']),
     )
 
-def deserialize_iteration(iteration_data, access_func = safenav_iteration):
-    return SRIteration(
+def deserialize_iteration(iteration_data, access_func = safenav_iteration) -> SRIteration:
+    return iteration_data if type(iteration_data) == SRIteration else SRIteration(
         access_func([iteration_data], ['name']),
         access_func([iteration_data], ['description']),
         access_func([iteration_data], ['enabled']),
@@ -138,8 +141,8 @@ def deserialize_iteration(iteration_data, access_func = safenav_iteration):
         deserialize_default_style(access_func([iteration_data], ['defaultStyle'])),
     )
 
-def deserialize_injection(injection_data, access_func = safenav_injection):
-    return SRInjection(
+def deserialize_injection(injection_data, access_func = safenav_injection) -> SRInjection:
+    return injection_data if type(injection_data) == SRInjection else SRInjection(
         access_func([injection_data], ['name']),
         access_func([injection_data], ['description']),
         access_func([injection_data], ['enabled']),
@@ -147,24 +150,33 @@ def deserialize_injection(injection_data, access_func = safenav_injection):
         access_func([injection_data], ['statements']),
     )
 
-def deserialize_setting(model_name, model_setting, access_func = safenav_setting):
-    return SRSetting(
+def deserialize_occlusion_options(occlusion_data, access_func = safenav_occlusion_options) -> SROcclusionOptions:
+    return occlusion_data if type(occlusion_data) == SROcclusionOptions else SROcclusionOptions()
+
+def deserialize_cloze_options(cloze_data, access_func = safenav_cloze_options) -> SRClozeOptions:
+    return cloze_data if type(cloze_data) == SRClozeOptions else SRClozeOptions(
+        access_func([cloze_data], ['shortcutsEnabled']),
+        access_func([cloze_data], ['vsPrefix']),
+        access_func([cloze_data], ['openDelim']),
+        access_func([cloze_data], ['closeDelim']),
+    )
+
+def deserialize_source_mode(source_mode_data, access_func = safenav_source_mode) -> SRSourceMode:
+    return source_mode_data if type(source_mode_data) == SRSourceMode else SRSourceMode(
+        deserialize_cloze_options(access_func([source_mode_data], ['clozeOptions'])),
+        deserialize_occlusion_options(access_func([source_mode_data], ['occlusionOptions'])),
+    )
+
+def deserialize_setting(model_name, model_setting, access_func = safenav_setting) -> SRSetting:
+    return model_setting if type(model_setting) == SRSetting else SRSetting(
         model_name,
         access_func([model_setting], ['description']),
         access_func([model_setting], ['enabled']),
         access_func([model_setting], ['insertAnkiPersistence']),
         access_func([model_setting], ['pasteIntoTemplate']),
-        [deserialize_iteration(iteration) for iteration in access_func([model_setting], ['iterations'])],
-        [deserialize_injection(injection) for injection in access_func([model_setting], ['injections'])],
-        SRSourceMode(
-            SRClozeOptions(
-                access_func([model_setting], ['sourceMode', 'clozeOptions', 'shortcutsEnabled']),
-                access_func([model_setting], ['sourceMode', 'clozeOptions', 'vsPrefix']),
-                access_func([model_setting], ['sourceMode', 'clozeOptions', 'openDelim']),
-                access_func([model_setting], ['sourceMode', 'clozeOptions', 'closeDelim']),
-            ),
-            SROcclusionOptions(),
-        )
+        [deserialize_iteration(iter) for iter in access_func([model_setting], ['iterations'])],
+        [deserialize_injection(inj) for inj in access_func([model_setting], ['injections'])],
+        deserialize_source_mode(access_func([model_setting], ['sourceMode'])),
     )
 
 def deserialize_setting_with_default(model_name, settings):

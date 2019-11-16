@@ -2,7 +2,6 @@ import os
 import json
 import jsonschema
 
-from aqt.utils import showInfo
 from aqt.qt import QDialog, QWidget, Qt
 
 from ..sr_injection_config_ui import Ui_SRInjectionConfig
@@ -114,10 +113,11 @@ class SRInjectionConfig(QDialog):
             self.ui.statementsList.takeItem(idx)
 
     def exportData(self):
-        return deserialize_injection({
+        result = deserialize_injection({
             'name': self.ui.nameLineEdit.text(),
             'description': self.ui.descriptionTextEdit.toPlainText(),
             'enabled': self.ui.enableInjectionCheckBox.isChecked(),
             'conditions': self.getConditions(),
             'statements': [self.ui.statementsList.item(i).text() for i in range(self.ui.statementsList.count())],
         })
+        return result

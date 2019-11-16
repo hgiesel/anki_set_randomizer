@@ -3,13 +3,12 @@ from copy import deepcopy
 
 from aqt import mw
 from aqt.qt import QWidget, QLabel, Qt
+from aqt.utils import showInfo
 
 from .util import mapTruthValueToIcon
 
 from .sr_iteration_frontback import SRIterationFrontback
 from ..sr_iteration_tab_ui import Ui_SRIterationTab
-
-from ...lib.config_types import SRIteration
 
 def mapSyntaxToExample(openDelim, closeDelim, fieldSeparator, enabled):
     return (f'{openDelim} item1 {fieldSeparator} item2 {closeDelim}' if enabled else '---')

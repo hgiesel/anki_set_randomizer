@@ -37,7 +37,7 @@ class SRConfigTabwidget(QTabWidget):
     def exportData(self):
         modelName, description, enabled, insertAnkiPersistence, pasteIntoTemplate = self.ui.generalTab.exportData()
 
-        return deserialize_setting(modelName, {
+        result = deserialize_setting(modelName, {
             'description': description,
             'enabled': enabled,
             'insertAnkiPersistence': insertAnkiPersistence,
@@ -46,3 +46,5 @@ class SRConfigTabwidget(QTabWidget):
             'injections': self.ui.injectionTab.exportData(),
             'sourceMode': self.ui.sourceModeTab.exportData(),
         })
+
+        return result

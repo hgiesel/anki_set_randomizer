@@ -78,11 +78,15 @@ class SRIterationConfig(QWidget):
         # default style
         self.ui.cssColorsLineEdit.setReadOnly(not state)
         self.ui.cssColorsLineEdit.setEnabled(state)
+        self.ui.cssColorsDelimLineEdit.setReadOnly(not state)
+        self.ui.cssColorsDelimLineEdit.setEnabled(state)
         self.ui.cssColorsRandomStartIndexCheckBox.setEnabled(state)
         self.ui.cssColorsCollectiveIndexingCheckBox.setEnabled(state)
 
         self.ui.htmlClassesLineEdit.setReadOnly(not state)
         self.ui.htmlClassesLineEdit.setEnabled(state)
+        self.ui.htmlClassesDelimLineEdit.setReadOnly(not state)
+        self.ui.htmlClassesDelimLineEdit.setEnabled(state)
         self.ui.htmlClassesRandomStartIndexCheckBox.setEnabled(state)
         self.ui.htmlClassesCollectiveIndexingCheckBox.setEnabled(state)
 
@@ -95,6 +99,15 @@ class SRIterationConfig(QWidget):
         self.ui.fieldPaddingSpinBox.setEnabled(state)
         self.ui.emptySetLineEdit.setReadOnly(not state)
         self.ui.emptySetLineEdit.setEnabled(state)
+
+        self.ui.strokeLineEdit.setReadOnly(not state)
+        self.ui.strokeLineEdit.setEnabled(state)
+        self.ui.strokeOpacitySpinBox.setEnabled(state)
+        self.ui.strokeWidthSpinBox.setEnabled(state)
+
+        self.ui.fillLineEdit.setReadOnly(not state)
+        self.ui.fillLineEdit.setEnabled(state)
+        self.ui.fillOpacitySpinBox.setEnabled(state)
 
     def updateName(self, newName):
         self.name = newName

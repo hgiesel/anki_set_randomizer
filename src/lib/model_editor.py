@@ -54,8 +54,8 @@ def get_injection_condition_parser(card, iterations):
     is_true = lambda v: type(v) == bool and v == True
     is_false = lambda v: type(v) == bool and v == False
 
-    # returns [needsInjection, simplifiedCondition]
-    def parse_injection(inj):
+    # [needsInjection, newInjection]
+    def parse_injection(inj: list) -> [bool, list]:
         if len(inj) == 0:
             # empty conditions
             return True, inj
@@ -105,7 +105,7 @@ def get_injection_condition_parser(card, iterations):
             parsed_cond = parse_injection(inj[1])
 
             if type(parsed_cond[1]) == bool:
-                return not parsed_cond[0], parsed_cond[1]
+                return not parsed_cond[0], not parsed_cond[1]
             else:
                 return not parsed_cond[0], [inj[0], parsed_cond[1]]
 
