@@ -9,22 +9,20 @@ from string import Template
 from anki import media
 from aqt import mw
 
-from aqt.utils import showInfo
-
-from .config import serialize_settings
+from .config import serialize_setting
 from .utils import version_string
 
 class BetterTemplate(Template):
     delimiter = '$$'
 
 def setup_models(settings):
-    for settings in serialize_settings(settings):
-        model = mw.col.models.byName(settings['modelName'])
+    for st in [serialize_setting(setting) for setting in settings]:
+        model = mw.col.models.byName(st['modelName'])
 
         remove_model_template(model)
 
-        if settings['enabled']:
-            update_model_template(model, settings)
+        if st['enabled']:
+            update_model_template(model, st)
 
 def gen_data_attributes(side):
     return f'data-name="Set Randomizer {side} Template" data-version="{version_string}"'

@@ -1,0 +1,144 @@
+{
+  "definitions": {
+    "values": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "randomStartIndex": {
+          "type": "boolean"
+        },
+        "collectiveIndexing": {
+          "type": "boolean"
+        },
+        "delim": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "values",
+        "randomStartIndex",
+        "collectiveIndexing",
+        "delim"
+      ]
+    },
+
+    "inputSyntax": {
+      "type": "object",
+      "properties": {
+        "cssSelector": {
+          "type": "string"
+        },
+        "openDelim": {
+          "type": "string"
+        },
+        "closeDelim": {
+          "type": "string"
+        },
+        "fieldSeparator": {
+          "type": "string"
+        },
+        "isRegex": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "cssSelector",
+        "openDelim",
+        "closeDelim",
+        "fieldSeparator",
+        "isRegex"
+      ]
+    },
+
+    "defaultStyle": {
+      "type": "object",
+      "properties": {
+        "colors" : {
+          "$ref": "#/definitions/values"
+        },
+        "classes": {
+          "$ref": "#/definitions/values"
+        },
+        "fieldPadding": {
+          "type": "number"
+        },
+        "fieldSeparator": {
+          "type": "string"
+        },
+        "openDelim": {
+          "type": "string"
+        },
+        "closeDelim": {
+          "type": "string"
+        },
+        "emptySet": {
+          "type": "string"
+        },
+        "stroke": {
+          "type": "string"
+        },
+        "strokeOpacity": {
+          "type": "number"
+        },
+        "strokeWidth": {
+          "type": "number"
+        },
+        "fill": {
+          "type": "string"
+        },
+        "fillOpacity": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "colors",
+        "classes",
+        "fieldPadding",
+        "fieldSeparator",
+        "openDelim",
+        "closeDelim",
+        "emptySet",
+        "stroke",
+        "strokeOpacity",
+        "strokeWidth",
+        "fill",
+        "fillOpacity"
+      ]
+    },
+
+    "iter": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "inputSyntax": {
+          "$ref": "#/definitions/inputSyntax"
+        },
+        "defaultStyle": {
+          "$ref": "#/definitions/defaultStyle"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "enabled",
+        "inputSyntax",
+        "defaultStyle"
+      ]
+    }
+  },
+
+  "$ref": "#/definitions/iter"
+}

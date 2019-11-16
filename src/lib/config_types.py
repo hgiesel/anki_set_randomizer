@@ -1,7 +1,8 @@
 from collections import namedtuple
 
 SRSetting = namedtuple('SRSetting', [
-    'model_name',
+    'model_name',              # string
+    'description',             # string
     'enabled',                 # bool
     'insert_anki_persistence', # bool
     'paste_into_template',     # bool
@@ -11,17 +12,19 @@ SRSetting = namedtuple('SRSetting', [
 ])
 
 SRInjection = namedtuple('SRInjection', [
-    'name',
-    'enabled', # bool
-    'conditions', # condition structure
-    'statements', # array of strings
+    'name',        # string
+    'description', # string
+    'enabled',     # bool
+    'conditions',  # condition structure
+    'statements',  # array of strings
 ])
 
 SRIteration = namedtuple('SRIteration', [
-    'name',
+    'name',          # string
+    'description',   # string
     'enabled',       # bool
-    'input_syntax',
-    'default_style',
+    'input_syntax',  # SRInputSyntax
+    'default_style', # SRDefaultStyle
 ])
 
 SRInputSyntax = namedtuple('SRInputSyntax', [
@@ -65,6 +68,7 @@ SROcclusionOptions = namedtuple('SROcclusionOptions', [
 
 SRValues = namedtuple('SRValues', [
     'values',              # list
+    'delim',               # string
     'random_start_index',  # boolean
     'collective_indexing', # boolean
 ])

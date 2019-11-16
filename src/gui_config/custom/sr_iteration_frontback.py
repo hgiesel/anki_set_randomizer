@@ -1,5 +1,3 @@
-from aqt.utils import showInfo
-
 from aqt.qt import QDialog, QWidget, QAction, Qt
 from anki.hooks import addHook
 
@@ -24,6 +22,7 @@ class SRIterationFrontback(QDialog):
         self.ui.saveButton.setDefault(True)
 
         self.ui.cancelButton.clicked.connect(self.reject)
+        self.ui.importButton.clicked.connect(self.importDialog)
 
     def setupUi(self, iterations, callback):
         self.callback = callback
@@ -83,3 +82,8 @@ class SRIterationFrontback(QDialog):
             self.getFrontData(),
             self.getBackData(),
         ]
+
+    #########
+
+    def importDialog(self):
+        pass

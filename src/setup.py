@@ -6,7 +6,7 @@ from aqt.editor import Editor
 from anki.hooks import wrap, addHook
 
 from .lib.config import get_settings
-from .gui.custom.sr_config import SRConfigDialog
+from .gui_config.custom.sr_config import SRConfigDialog
 
 from aqt.utils import showInfo
 

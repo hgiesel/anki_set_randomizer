@@ -128,13 +128,6 @@
       <string>General</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="nameLineEdit">
-        <property name="text">
-         <string>meh name</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="nameLabel">
         <property name="text">
@@ -142,13 +135,27 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0" colspan="2">
+      <item row="3" column="0" colspan="2">
        <widget class="QCheckBox" name="enableInjectionCheckBox">
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Advanced feature. Check this if you want to treat the content of the &amp;quot;Open Delimiter&amp;quot;, &amp;quot;Close Delimiter&amp;quot;, and &amp;quot;Field separator&amp;quot; as regular expressions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Enable injection</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="nameLineEdit">
+        <property name="text">
+         <string>meh name</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="QPlainTextEdit" name="descriptionTextEdit">
+        <property name="placeholderText">
+         <string>Description</string>
         </property>
        </widget>
       </item>

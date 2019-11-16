@@ -41,25 +41,25 @@
   <customwidget>
    <class>SRGeneralTab</class>
    <extends>QWidget</extends>
-   <header>anki_set_randomizer/src/gui/custom/sr_general_tab</header>
+   <header>anki_set_randomizer/src/gui_config/custom/sr_general_tab</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SRIterationTab</class>
    <extends>QWidget</extends>
-   <header>anki_set_randomizer/src/gui/custom/sr_iteration_tab</header>
+   <header>anki_set_randomizer/src/gui_config/custom/sr_iteration_tab</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SRInjectionTab</class>
    <extends>QWidget</extends>
-   <header>anki_set_randomizer/src/gui/custom/sr_injection_tab</header>
+   <header>anki_set_randomizer/src/gui_config/custom/sr_injection_tab</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SRSourceModeTab</class>
    <extends>QWidget</extends>
-   <header>anki_set_randomizer/src/gui/custom/sr_source_mode_tab</header>
+   <header>anki_set_randomizer/src/gui_config/custom/sr_source_mode_tab</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

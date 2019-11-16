@@ -7,37 +7,55 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1038</width>
-    <height>365</height>
+    <width>1089</width>
+    <height>446</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Set Randomizer Settings</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="2" column="2">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="0" column="2">
-    <widget class="SRConfigModelchooser" name="modelChooser"/>
-   </item>
-   <item row="2" column="4">
+   <item row="2" column="7">
     <widget class="QPushButton" name="cancelButton">
      <property name="text">
       <string>Cancel</string>
      </property>
      <property name="autoDefault">
       <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="8">
+    <widget class="QPushButton" name="saveButton">
+     <property name="text">
+      <string>Save</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="6">
+    <widget class="QPushButton" name="pushButton">
+     <property name="text">
+      <string>Import / Export Setting</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2" colspan="4">
+    <widget class="SRConfigModelchooser" name="modelChooser"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QPushButton" name="helpButton">
+     <property name="text">
+      <string>Help</string>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="9">
+    <widget class="SRConfigTabwidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>-1</number>
      </property>
     </widget>
    </item>
@@ -51,29 +69,18 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QPushButton" name="helpButton">
-     <property name="text">
-      <string>Help</string>
+   <item row="2" column="2" colspan="5">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
-     <property name="autoDefault">
-      <bool>false</bool>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
      </property>
-    </widget>
-   </item>
-   <item row="2" column="5">
-    <widget class="QPushButton" name="saveButton">
-     <property name="text">
-      <string>Save</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0" colspan="6">
-    <widget class="SRConfigTabwidget" name="tabWidget">
-     <property name="currentIndex">
-      <number>-1</number>
-     </property>
-    </widget>
+    </spacer>
    </item>
   </layout>
  </widget>
@@ -81,13 +88,13 @@
   <customwidget>
    <class>SRConfigTabwidget</class>
    <extends>QTabWidget</extends>
-   <header>anki_set_randomizer/src/gui/custom/sr_config_tabwidget</header>
+   <header>anki_set_randomizer/src/gui_config/custom/sr_config_tabwidget</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SRConfigModelchooser</class>
    <extends>QComboBox</extends>
-   <header>anki_set_randomizer/src/gui/custom/sr_config_modelchooser</header>
+   <header>anki_set_randomizer/src/gui_config/custom/sr_config_modelchooser</header>
   </customwidget>
  </customwidgets>
  <resources/>

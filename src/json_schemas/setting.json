@@ -1,0 +1,62 @@
+{
+ "definitions": {
+    "sourceMode": {
+      "type": "object",
+      "items": {
+        "clozeOptions": {
+          "$ref": "#/definitions/clozeOptions"
+        },
+        "occlusionOptions": {
+          "$ref": "#/definitions/occlusionOptions"
+        }
+      }
+    },
+
+    "clozeOptions": {
+      "shortcutsEnabled": {
+        "type": "boolean"
+      },
+      "vsPrefix": {
+        "type": "string"
+      },
+      "openDelim": {
+        "type": "string"
+      },
+      "closeDelim": {
+        "type": "string"
+      }
+    },
+
+    "occlusionOptions": {
+    }
+  },
+
+  "type": "object",
+  "items": {
+    "modelName": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "insertAnkiPersistence": {
+      "type": "boolean"
+    },
+    "pasteIntoTemplate": {
+      "type": "boolean"
+    },
+
+    "iterations": {
+      "$ref": "iterations.json#/definitions/iterations"
+    },
+    "injections": {
+      "$ref": "iterations.json#/definitions/injections"
+    },
+    "sourceMode": {
+      "$ref": "#/definitions/sourceMode"
+    }
+  }
+}

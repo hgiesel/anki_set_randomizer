@@ -6,15 +6,35 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>601</width>
-    <height>236</height>
+    <width>645</width>
+    <height>224</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <item row="2" column="0" colspan="2">
+   <item row="0" column="2" rowspan="8">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QCheckBox" name="insertAnkiPersistenceCheckBox">
+     <property name="text">
+      <string>Insert Anki Persistence</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="2">
     <widget class="QCheckBox" name="enableCheckBox">
      <property name="toolTip">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Advanced feature. Check this if you want to treat the content of the &amp;quot;Open Delimiter&amp;quot;, &amp;quot;Close Delimiter&amp;quot;, and &amp;quot;Field separator&amp;quot; as regular expressions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -24,7 +44,7 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="0" colspan="2">
+   <item row="7" column="0" colspan="2">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -44,6 +64,13 @@
      </property>
     </widget>
    </item>
+   <item row="5" column="0" colspan="2">
+    <widget class="QCheckBox" name="pasteIntoCardTemplateCheckBox">
+     <property name="text">
+      <string>Paste into Card Template</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="1">
     <widget class="QLineEdit" name="nameLineEdit">
      <property name="text">
@@ -54,30 +81,10 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="2" rowspan="7">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="4" column="0" colspan="2">
-    <widget class="QCheckBox" name="pasteIntoCardTemplateCheckBox">
-     <property name="text">
-      <string>Paste into Card Template</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0" colspan="2">
-    <widget class="QCheckBox" name="insertAnkiPersistenceCheckBox">
-     <property name="text">
-      <string>Insert Anki Persistence</string>
+   <item row="1" column="0" colspan="2">
+    <widget class="QPlainTextEdit" name="descriptionTextEdit">
+     <property name="placeholderText">
+      <string>Description</string>
      </property>
     </widget>
    </item>

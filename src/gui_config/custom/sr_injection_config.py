@@ -6,8 +6,7 @@ from aqt.utils import showInfo
 from aqt.qt import QDialog, QWidget, Qt
 
 from ..sr_injection_config_ui import Ui_SRInjectionConfig
-
-from ...lib.config_types import SRInjection
+from ...lib.config import deserialize_injection
 
 class SRInjectionConfig(QDialog):
     def __init__(self, parent):
@@ -34,16 +33,17 @@ class SRInjectionConfig(QDialog):
         self.callback = callback
 
         self.ui.nameLineEdit.setText(injection.name)
+        self.ui.descriptionTextEdit.setPlainText(injection.description)
 
         self.ui.enableInjectionCheckBox.setChecked(injection.enabled)
-        self.enableChangeGui()
 
         self.ui.conditionsTextEdit.setPlainText(json.dumps(injection.conditions))
-
         self.ui.statementsList.clear()
         for statement in injection.statements:
             self.ui.statementsList.addItem(statement)
             self.makeItemEditable(self.ui.statementsList.count() - 1)
+
+        self.enableChangeGui()
 
     def tryAccept(self):
         try:
@@ -74,7 +74,7 @@ class SRInjectionConfig(QDialog):
         return json.loads(self.ui.conditionsTextEdit.toPlainText())
 
     def validateConditionsRaw(self):
-        schema_path = f'{os.path.dirname(os.path.realpath(__file__))}/../../json/injection_cond.json'
+        schema_path = f'{os.path.dirname(os.path.realpath(__file__))}/../../json_schemas/injection_cond.json'
 
         with open(schema_path, 'r') as jsonfile:
 
@@ -82,8 +82,8 @@ class SRInjectionConfig(QDialog):
             instance = self.getConditions()
 
             jsonschema.validate(instance, schema)
-    def validateConditions(self):
 
+    def validateConditions(self):
         try:
             self.validateConditionsRaw()
         except json.decoder.JSONDecodeError as e:
@@ -114,9 +114,10 @@ class SRInjectionConfig(QDialog):
             self.ui.statementsList.takeItem(idx)
 
     def exportData(self):
-        return SRInjection(
-            self.ui.nameLineEdit.text(),
-            self.ui.enableInjectionCheckBox.isChecked(),
-            self.getConditions(),
-            [self.ui.statementsList.item(i).text() for i in range(self.ui.statementsList.count())],
-        )
+        return deserialize_injection({
+            'name': self.ui.nameLineEdit.text(),
+            'description': self.ui.descriptionTextEdit.toPlainText(),
+            'enabled': self.ui.enableInjectionCheckBox.isChecked(),
+            'conditions': self.getConditions(),
+            'statements': [self.ui.statementsList.item(i).text() for i in range(self.ui.statementsList.count())],
+        })

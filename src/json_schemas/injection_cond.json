@@ -3,6 +3,7 @@
     "truthValue": {
       "type": "boolean"
     },
+
     "condition": {
       "type": "array",
       "minItems": 3,
@@ -89,22 +90,25 @@
           }
         ]
       }
-    }
+    },
 
+    "injection_condition": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/truthValue"
+        },
+        {
+          "$ref": "#/definitions/condition"
+        },
+        {
+          "$ref": "#/definitions/negation"
+        },
+        {
+          "$ref": "#/definitions/conjunctionDisjunction"
+        }
+      ]
+    }
   },
 
-  "oneOf": [
-    {
-      "$ref": "#/definitions/truthValue"
-    },
-    {
-      "$ref": "#/definitions/condition"
-    },
-    {
-      "$ref": "#/definitions/negation"
-    },
-    {
-      "$ref": "#/definitions/conjunctionDisjunction"
-    }
-  ]
+  "$ref": "#/definitions/injection_condition"
 }

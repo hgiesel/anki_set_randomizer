@@ -16,115 +16,146 @@ from .config_types import (
     SRSourceMode, SRClozeOptions, SROcclusionOptions,
 )
 
-def serialize_settings(settings):
-    settings_serialized = []
+SCRIPTNAME = path.dirname(path.realpath(__file__))
 
-    for s in settings:
-        settings_serialized.append({
-            'modelName': s.model_name,
-            'enabled': s.enabled,
-            'insertAnkiPersistence': s.insert_anki_persistence,
-            'pasteIntoTemplate': s.paste_into_template,
-            'iterations': [{
-                'name': it.name,
-                'enabled': it.enabled,
-                'inputSyntax': {
-                    'cssSelector': it.input_syntax.css_selector,
-                    'openDelim': it.input_syntax.open_delim,
-                    'closeDelim': it.input_syntax.close_delim,
-                    'fieldSeparator': it.input_syntax.field_separator,
-                    'isRegex': it.input_syntax.is_regex,
-                },
-                'defaultStyle': {
-                    'colors': {
-                        'values': it.default_style.colors.values,
-                        'randomStartIndex': it.default_style.colors.random_start_index,
-                        'collectiveIndexing': it.default_style.colors.collective_indexing,
-                    },
-                    'classes': {
-                        'values': it.default_style.classes.values,
-                        'randomStartIndex': it.default_style.classes.random_start_index,
-                        'collectiveIndexing': it.default_style.classes.collective_indexing,
-                    },
-                    'fieldPadding': it.default_style.field_padding,
-                    'fieldSeparator': it.default_style.field_separator,
-                    'openDelim': it.default_style.open_delim,
-                    'closeDelim': it.default_style.close_delim,
-                    'emptySet': it.default_style.empty_set,
+# initialize default type
+with open(path.join(SCRIPTNAME, '../../config.json'), encoding='utf-8') as config:
+    config_default = json.load(config)
 
-                    'stroke': it.default_style.stroke,
-                    'strokeOpacity': it.default_style.stroke_opacity,
-                    'strokeWidth': it.default_style.stroke_width,
-                    'fill': it.default_style.fill,
-                    'fillOpacity': it.default_style.fill_opacity,
-                }
-            } for it in s.iterations],
-            'injections': [{
-                'name': inj.name,
-                'enabled': inj.enabled,
-                'conditions': inj.conditions,
-                'statements': inj.statements,
-            } for inj in s.injections],
-            'sourceMode': {
-                'clozeOptions': {
-                    'shortcutsEnabled': s.source_mode.cloze_options.shortcuts_enabled,
-                    'vsPrefix': s.source_mode.cloze_options.vs_prefix,
-                    'openDelim': s.source_mode.cloze_options.open_delim,
-                    'closeDelim': s.source_mode.cloze_options.close_delim,
+    SETTINGS_DEFAULT = config_default['settings'][0]
+    model_default = SETTINGS_DEFAULT
+
+    safenav_setting = safenav_preset([model_default])
+    safenav_iteration = safenav_preset([model_default['iterations'][0]])
+    safenav_injection = safenav_preset([model_default['injections'][0]])
+    safenav_input_syntax = safenav_preset([model_default['iterations'][0]['inputSyntax']])
+    safenav_default_style = safenav_preset([model_default['iterations'][0]['defaultStyle']])
+    safenav_values = safenav_preset([model_default['iterations'][0]['defaultStyle']['colors']])
+
+def serialize_setting(setting):
+    return {
+        'modelName': setting.model_name,
+        'description': setting.description,
+        'enabled': setting.enabled,
+        'insertAnkiPersistence': setting.insert_anki_persistence,
+        'pasteIntoTemplate': setting.paste_into_template,
+        'iterations': [{
+            'name': it.name,
+            'description': it.description,
+            'enabled': it.enabled,
+            'inputSyntax': {
+                'cssSelector': it.input_syntax.css_selector,
+                'openDelim': it.input_syntax.open_delim,
+                'closeDelim': it.input_syntax.close_delim,
+                'fieldSeparator': it.input_syntax.field_separator,
+                'isRegex': it.input_syntax.is_regex,
+            },
+            'defaultStyle': {
+                'colors': {
+                    'values': it.default_style.colors.values,
+                    'delim': it.default_style.colors.delim,
+                    'randomStartIndex': it.default_style.colors.random_start_index,
+                    'collectiveIndexing': it.default_style.colors.collective_indexing,
                 },
-                'occlusionOptions': {
-                }
+                'classes': {
+                    'values': it.default_style.classes.values,
+                    'delim': it.default_style.classes.delim,
+                    'randomStartIndex': it.default_style.classes.random_start_index,
+                    'collectiveIndexing': it.default_style.classes.collective_indexing,
+                },
+                'fieldPadding': it.default_style.field_padding,
+                'fieldSeparator': it.default_style.field_separator,
+                'openDelim': it.default_style.open_delim,
+                'closeDelim': it.default_style.close_delim,
+                'emptySet': it.default_style.empty_set,
+
+                'stroke': it.default_style.stroke,
+                'strokeOpacity': it.default_style.stroke_opacity,
+                'strokeWidth': it.default_style.stroke_width,
+                'fill': it.default_style.fill,
+                'fillOpacity': it.default_style.fill_opacity,
             }
-        })
+        } for it in setting.iterations],
+        'injections': [{
+            'name': inj.name,
+            'description': inj.description,
+            'enabled': inj.enabled,
+            'conditions': inj.conditions,
+            'statements': inj.statements,
+        } for inj in setting.injections],
+        'sourceMode': {
+            'clozeOptions': {
+                'shortcutsEnabled': setting.source_mode.cloze_options.shortcuts_enabled,
+                'vsPrefix': setting.source_mode.cloze_options.vs_prefix,
+                'openDelim': setting.source_mode.cloze_options.open_delim,
+                'closeDelim': setting.source_mode.cloze_options.close_delim,
+            },
+            'occlusionOptions': {
+            }
+        }
+    }
 
-    return settings_serialized
+def deserialize_input_syntax(input_syntax_data, access_func = safenav_input_syntax):
+    return SRInputSyntax(
+        access_func([input_syntax_data], ['cssSelector']),
+        access_func([input_syntax_data], ['openDelim']),
+        access_func([input_syntax_data], ['closeDelim']),
+        access_func([input_syntax_data], ['fieldSeparator']),
+        access_func([input_syntax_data], ['isRegex']),
+    )
 
-def deserialize_setting(model_name, model_setting, access_func):
+def deserialize_values(values_data, access_func = safenav_values):
+    return SRValues(
+        access_func([values_data], ['values']),
+        access_func([values_data], ['delim']),
+        access_func([values_data], ['randomStartIndex']),
+        access_func([values_data], ['collectiveIndexing']),
+    )
+
+def deserialize_default_style(default_style_data, access_func = safenav_default_style):
+    return SRDefaultStyle(
+        deserialize_values(access_func([default_style_data], ['colors'])),
+        deserialize_values(access_func([default_style_data], ['classes'])),
+        access_func([default_style_data], ['fieldPadding']),
+        access_func([default_style_data], ['fieldSeparator']),
+        access_func([default_style_data], ['openDelim']),
+        access_func([default_style_data], ['closeDelim']),
+        access_func([default_style_data], ['emptySet']),
+
+        access_func([default_style_data], ['stroke']),
+        access_func([default_style_data], ['strokeOpacity']),
+        access_func([default_style_data], ['strokeWidth']),
+        access_func([default_style_data], ['fill']),
+        access_func([default_style_data], ['fillOpacity']),
+    )
+
+def deserialize_iteration(iteration_data, access_func = safenav_iteration):
+    return SRIteration(
+        access_func([iteration_data], ['name']),
+        access_func([iteration_data], ['description']),
+        access_func([iteration_data], ['enabled']),
+        deserialize_input_syntax(access_func([iteration_data], ['inputSyntax'])),
+        deserialize_default_style(access_func([iteration_data], ['defaultStyle'])),
+    )
+
+def deserialize_injection(injection_data, access_func = safenav_injection):
+    return SRInjection(
+        access_func([injection_data], ['name']),
+        access_func([injection_data], ['description']),
+        access_func([injection_data], ['enabled']),
+        access_func([injection_data], ['conditions']),
+        access_func([injection_data], ['statements']),
+    )
+
+def deserialize_setting(model_name, model_setting, access_func = safenav_setting):
     return SRSetting(
         model_name,
+        access_func([model_setting], ['description']),
         access_func([model_setting], ['enabled']),
         access_func([model_setting], ['insertAnkiPersistence']),
         access_func([model_setting], ['pasteIntoTemplate']),
-        [SRIteration(
-            access_func([iteration], ['name']),
-            access_func([iteration], ['enabled']),
-            SRInputSyntax(
-                access_func([iteration], ['inputSyntax', 'cssSelector']),
-                access_func([iteration], ['inputSyntax', 'openDelim']),
-                access_func([iteration], ['inputSyntax', 'closeDelim']),
-                access_func([iteration], ['inputSyntax', 'fieldSeparator']),
-                access_func([iteration], ['inputSyntax', 'isRegex']),
-            ),
-            SRDefaultStyle(
-                SRValues(
-                    access_func([iteration], ['defaultStyle', 'colors', 'values']),
-                    access_func([iteration], ['defaultStyle', 'colors', 'randomStartIndex']),
-                    access_func([iteration], ['defaultStyle', 'colors', 'collectiveIndexing']),
-                ),
-                SRValues(
-                    access_func([iteration], ['defaultStyle', 'classes', 'values']),
-                    access_func([iteration], ['defaultStyle', 'classes', 'randomStartIndex']),
-                    access_func([iteration], ['defaultStyle', 'classes', 'collectiveIndexing']),
-                ),
-                access_func([iteration], ['defaultStyle', 'fieldPadding']),
-                access_func([iteration], ['defaultStyle', 'fieldSeparator']),
-                access_func([iteration], ['defaultStyle', 'openDelim']),
-                access_func([iteration], ['defaultStyle', 'closeDelim']),
-                access_func([iteration], ['defaultStyle', 'emptySet']),
-
-                access_func([iteration], ['defaultStyle', 'stroke']),
-                access_func([iteration], ['defaultStyle', 'strokeOpacity']),
-                access_func([iteration], ['defaultStyle', 'strokeWidth']),
-                access_func([iteration], ['defaultStyle', 'fill']),
-                access_func([iteration], ['defaultStyle', 'fillOpacity']),
-            ),
-        ) for iteration in access_func([model_setting], ['iterations'])],
-        [SRInjection(
-            access_func([injection], ['name']),
-            access_func([injection], ['enabled']),
-            access_func([injection], ['conditions']),
-            access_func([injection], ['statements']),
-        ) for injection in access_func([model_setting], ['injections'])],
+        [deserialize_iteration(iteration) for iteration in access_func([model_setting], ['iterations'])],
+        [deserialize_injection(injection) for injection in access_func([model_setting], ['injections'])],
         SRSourceMode(
             SRClozeOptions(
                 access_func([model_setting], ['sourceMode', 'clozeOptions', 'shortcutsEnabled']),
@@ -137,17 +168,10 @@ def deserialize_setting(model_name, model_setting, access_func):
     )
 
 def deserialize_setting_with_default(model_name, settings):
-    model_default = SETTINGS_DEFAULT
-
     found = filter(lambda v: v['modelName'] == model_name, settings)
 
     try:
-        safe_get = safenav_preset([
-            model_default,
-            model_default['iterations'][0],
-            model_default['injections'][0],
-        ])
-        model_deserialized = deserialize_setting(model_name, next(found), safe_get)
+        model_deserialized = deserialize_setting(model_name, next(found))
 
     except StopIteration as e:
         model_deserialized = SRSetting(
@@ -158,7 +182,6 @@ def deserialize_setting_with_default(model_name, settings):
             model_default.iterations,
             model_default.injections,
         )
-
 
     return model_deserialized
 
@@ -181,14 +204,5 @@ def get_settings(model_name=None):
 # write config data to config.json
 def write_settings(settings):
     mw.addonManager.writeConfig(__name__, {
-        "settings": serialize_settings(settings)
+        "settings": [serialize_setting(setting) for setting in settings],
     })
-
-SCRIPTNAME = path.dirname(path.realpath(__file__))
-
-# initialize default type
-with open(path.join(SCRIPTNAME, '../../config.json'), encoding='utf-8') as config:
-    config_default = json.load(config)
-
-    SETTINGS_DEFAULT = config_default['settings'][0]
-    SETTINGS_DEFAULT_DESERIALIZED = deserialize_setting('Default', SETTINGS_DEFAULT, safenav)

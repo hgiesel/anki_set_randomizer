@@ -2,12 +2,14 @@
   "settings": [
     {
       "modelName": "Default",
+      "description": "",
       "enabled": false,
       "insertAnkiPersistence": true,
       "pasteIntoTemplate": true,
       "iterations": [
         {
           "name": "-Preset",
+          "description": "",
           "enabled": true,
           "inputSyntax": {
             "cssSelector": "div#qa",
@@ -25,11 +27,13 @@
                 "aqua",
                 "fuchsia"
               ],
+              "delim": "aqua",
               "randomStartIndex": false,
               "collectiveIndexing": true
             },
             "classes": {
               "values": [],
+              "delim": "",
               "randomStartIndex": false,
               "collectiveIndexing": true
             },
@@ -47,6 +51,7 @@
         },
         {
           "name": "+Preset",
+          "description": "",
           "enabled": true,
           "inputSyntax": {
             "cssSelector": "div#qa",
@@ -88,12 +93,12 @@
       "injections": [
         {
           "name": "Example Injection",
+          "description": "This is an example injection",
           "enabled": false,
-          "conditions": ["&", ["|",
+          "conditions": ["&",
               ["tag", "=", "allred"],
               ["card", "endsWith", "allred"],
               ["iter", "includes", "allred"]
-            ]
           ],
           "statements": ["$style(default, clrs=[red])"]
         }

@@ -1,7 +1,7 @@
 from aqt.qt import QTabWidget
 
 from ..sr_config_tabwidget_ui import Ui_SRConfigTabwidget
-from ...lib.config_types import SRSetting
+from ...lib.config import deserialize_setting
 
 class SRConfigTabwidget(QTabWidget):
 
@@ -16,6 +16,7 @@ class SRConfigTabwidget(QTabWidget):
     def setupUi(self, setting):
         self.ui.generalTab.setupUi(
             setting.model_name,
+            setting.description,
             setting.enabled,
             setting.insert_anki_persistence,
             setting.paste_into_template,
@@ -34,14 +35,14 @@ class SRConfigTabwidget(QTabWidget):
         )
 
     def exportData(self):
-        modelName, enabled, insertAnkiPersistence, pasteIntoTemplate = self.ui.generalTab.exportData()
+        modelName, description, enabled, insertAnkiPersistence, pasteIntoTemplate = self.ui.generalTab.exportData()
 
-        return SRSetting(
-            modelName,
-            enabled,
-            insertAnkiPersistence,
-            pasteIntoTemplate,
-            self.ui.iterationTab.exportData(),
-            self.ui.injectionTab.exportData(),
-            self.ui.sourceModeTab.exportData(),
-        )
+        return deserialize_setting(modelName, {
+            'description': description,
+            'enabled': enabled,
+            'insertAnkiPersistence': insertAnkiPersistence,
+            'parseIntoTemplate': pasteIntoTemplate,
+            'iterations': self.ui.iterationTab.exportData(),
+            'injections': self.ui.injectionTab.exportData(),
+            'sourceMode': self.ui.sourceModeTab.exportData(),
+        })

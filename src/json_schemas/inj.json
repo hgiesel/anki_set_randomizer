@@ -1,0 +1,41 @@
+{
+  "definitions": {
+    "inj": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+
+        "description": {
+          "type": "string"
+        },
+
+        "enabled": {
+          "type": "boolean"
+        },
+
+        "conditions": {
+          "$ref": "injection_cond.json#/definitions/injection_condition"
+        },
+
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "description",
+        "enabled",
+        "conditions",
+        "statements"
+      ]
+    }
+  },
+
+  "$ref": "#/definitions/inj"
+}

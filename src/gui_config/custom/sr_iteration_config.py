@@ -1,16 +1,13 @@
-from aqt.qt import QDialog, QWidget, QAction
-from aqt.utils import showInfo
-
 from itertools import groupby
 
-from ...lib.config_types import SRValues, SRDefaultStyle, SRInputSyntax, SRIteration
+from aqt.qt import QDialog, QWidget, QAction
 
 from ..sr_iteration_config_ui import Ui_SRIterationConfig
 
+from ...lib.config import deserialize_default_style, deserialize_input_syntax, deserialize_iteration
 from .util import mapTruthValueToIcon
 
 class SRIterationConfig(QWidget):
-
     def __init__(self):
         super().__init__()
 
@@ -21,6 +18,7 @@ class SRIterationConfig(QWidget):
 
     def setupUi(self, iteration):
         self.name = iteration.name
+        self.ui.descriptionTextEdit.setPlainText(iteration.description)
         self.ui.enableIterationCheckBox.setChecked(iteration.enabled)
 
         ins = iteration.input_syntax
@@ -28,6 +26,8 @@ class SRIterationConfig(QWidget):
 
         ds = iteration.default_style
         self.setupDs(ds)
+
+        self.enableChangeGui()
 
     def setupIs(self, ins):
         self.ui.cssSelectorLineEdit.setText(ins.css_selector)
@@ -40,10 +40,12 @@ class SRIterationConfig(QWidget):
         self.ui.cssColorsLineEdit.setText(', '.join(ds.colors.values))
         self.ui.cssColorsRandomStartIndexCheckBox.setChecked(ds.colors.random_start_index)
         self.ui.cssColorsCollectiveIndexingCheckBox.setChecked(ds.colors.collective_indexing)
+        self.ui.cssColorsDelimLineEdit.setText(ds.colors.delim)
 
         self.ui.htmlClassesLineEdit.setText(', '.join(ds.classes.values))
         self.ui.htmlClassesRandomStartIndexCheckBox.setChecked(ds.classes.random_start_index)
         self.ui.htmlClassesCollectiveIndexingCheckBox.setChecked(ds.classes.collective_indexing)
+        self.ui.htmlClassesDelimLineEdit.setText(ds.classes.delim)
 
         self.ui.dsOpenDelimLineEdit.setText(ds.open_delim)
         self.ui.dsCloseDelimLineEdit.setText(ds.close_delim)
@@ -98,46 +100,54 @@ class SRIterationConfig(QWidget):
         self.name = newName
 
     def exportIs(self):
-        return SRInputSyntax(
-            self.ui.cssSelectorLineEdit.text(),
-            self.ui.isOpenDelimLineEdit.text(),
-            self.ui.isCloseDelimLineEdit.text(),
-            self.ui.isFieldSeparatorLineEdit.text(),
-            self.ui.isRegexCheckBox.isChecked(),
-        )
+        return deserialize_input_syntax({
+            'cssSelector': self.ui.cssSelectorLineEdit.text(),
+            'openDelim': self.ui.isOpenDelimLineEdit.text(),
+            'closeDelim': self.ui.isCloseDelimLineEdit.text(),
+            'fieldSeparator': self.ui.isFieldSeparatorLineEdit.text(),
+            'isRegex': self.ui.isRegexCheckBox.isChecked(),
+        })
+
+    def exportColors(self):
+            return {
+                'values': [v.strip() for v in self.ui.cssColorsLineEdit.text().split(',')],
+                'delim': self.ui.cssColorsDelimLineEdit.text(),
+                'randomStartIndex': self.ui.cssColorsRandomStartIndexCheckBox.isChecked(),
+                'collectiveIndexing': self.ui.cssColorsCollectiveIndexingCheckBox.isChecked(),
+            }
+
+    def exportClasses(self):
+            return {
+                'values': [v.strip() for v in self.ui.htmlClassesLineEdit.text().split(',')],
+                'delim': self.ui.htmlClassesDelimLineEdit.text(),
+                'randomStartIndex': self.ui.htmlClassesRandomStartIndexCheckBox.isChecked(),
+                'collectiveIndexing': self.ui.htmlClassesCollectiveIndexingCheckBox.isChecked(),
+            }
 
     def exportDs(self):
-        return SRDefaultStyle(
-            SRValues(
-                [v.strip() for v in self.ui.cssColorsLineEdit.text().split(',')],
-                self.ui.cssColorsRandomStartIndexCheckBox.isChecked(),
-                self.ui.cssColorsCollectiveIndexingCheckBox.isChecked(),
-            ),
+        return deserialize_default_style({
+            'colors': self.exportColors(),
+            'classes': self.exportClasses(),
 
-            SRValues(
-                [v.strip() for v in self.ui.htmlClassesLineEdit.text().split(',')],
-                self.ui.htmlClassesRandomStartIndexCheckBox.isChecked(),
-                self.ui.htmlClassesCollectiveIndexingCheckBox.isChecked(),
-            ),
+            'fieldPadding': self.ui.fieldPaddingSpinBox.value(),
+            'fieldSeparator': self.ui.dsFieldSeparatorLineEdit.text(),
+            'openDelim': self.ui.dsOpenDelimLineEdit.text(),
+            'closeDelim': self.ui.dsCloseDelimLineEdit.text(),
+            'emptySet': self.ui.emptySetLineEdit.text(),
 
-            self.ui.fieldPaddingSpinBox.value(),
-            self.ui.dsFieldSeparatorLineEdit.text(),
-            self.ui.dsOpenDelimLineEdit.text(),
-            self.ui.dsCloseDelimLineEdit.text(),
-            self.ui.emptySetLineEdit.text(),
+            'stroke': self.ui.strokeLineEdit.text(),
+            'strokeOpacity': self.ui.strokeOpacitySpinBox.value(),
+            'strokeWidth': self.ui.strokeWidthSpinBox.value(),
 
-            self.ui.strokeLineEdit.text(),
-            self.ui.strokeOpacitySpinBox.value(),
-            self.ui.strokeWidthSpinBox.value(),
-
-            self.ui.fillLineEdit.text(),
-            self.ui.fillOpacitySpinBox.value(),
-        )
+            'fill': self.ui.fillLineEdit.text(),
+            'fillOpacity': self.ui.fillOpacitySpinBox.value(),
+        })
 
     def exportData(self):
-        return SRIteration(
-            self.name,
-            self.ui.enableIterationCheckBox.isChecked(),
-            self.exportIs(),
-            self.exportDs(),
-        )
+        return deserialize_iteration({
+            'name': self.name,
+            'description': self.ui.descriptionTextEdit.toPlainText(),
+            'enabled': self.ui.enableIterationCheckBox.isChecked(),
+            'inputSyntax': self.exportIs(),
+            'defaultStyle': self.exportDs(),
+        })

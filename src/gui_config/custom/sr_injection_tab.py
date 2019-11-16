@@ -4,9 +4,9 @@ from aqt.utils import showInfo
 from aqt.qt import QDialog, QWidget, QAction, QLabel, Qt
 from aqt import mw
 
-from ...lib.config_types import SRInjection
-
 from ..sr_injection_tab_ui import Ui_SRInjectionTab
+
+from ...lib.config import deserialize_injection
 
 from .sr_injection_config import SRInjectionConfig
 from .util import mapTruthValueToIcon
@@ -23,6 +23,7 @@ class SRInjectionTab(QWidget):
         self.ui.deletePushButton.clicked.connect(self.deleteInjection)
         self.ui.downPushButton.clicked.connect(self.moveDown)
         self.ui.upPushButton.clicked.connect(self.moveUp)
+        self.ui.importButton.clicked.connect(self.importDialog)
 
         self.ui.injectionsTable.currentCellChanged.connect(self.updateButtonsForCurrentCell)
         self.ui.injectionsTable.cellDoubleClicked.connect(self.editInjection)
@@ -81,12 +82,13 @@ class SRInjectionTab(QWidget):
         self.ui.upPushButton.setEnabled(state)
 
     def addInjection(self):
-        newInjection = SRInjection(
-            "New Injection",
-            True,
-            [],
-            [],
-        )
+        newInjection = deserialize_injection({
+            'name': 'New Injection',
+            'description': '',
+            'enabled': True,
+            'conditions': [],
+            'statements': [],
+        })
 
         self.inj.append(newInjection)
         self.drawInjections()
@@ -115,3 +117,8 @@ class SRInjectionTab(QWidget):
 
     def exportData(self):
         return self.inj
+
+    ###########
+
+    def importDialog(self):
+        pass

@@ -13,10 +13,11 @@ class SRGeneralTab(QWidget):
         self.ui = Ui_SRGeneralTab()
         self.ui.setupUi(self)
 
-    def setupUi(self, modelName, enabled,
+    def setupUi(self, modelName, description, enabled,
                 insertAnkiPersistence, pasteIntoTemplate):
 
         self.ui.nameLineEdit.setText(modelName)
+        self.ui.descriptionTextEdit.setPlainText(description)
         self.ui.enableCheckBox.setChecked(enabled)
         self.ui.insertAnkiPersistenceCheckBox.setChecked(insertAnkiPersistence)
         self.ui.pasteIntoCardTemplateCheckBox.setChecked(pasteIntoTemplate)
@@ -24,6 +25,7 @@ class SRGeneralTab(QWidget):
     def exportData(self):
         return [
             self.ui.nameLineEdit.text(),
+            self.ui.descriptionTextEdit.toPlainText(),
             self.ui.enableCheckBox.isChecked(),
             self.ui.insertAnkiPersistenceCheckBox.isChecked(),
             self.ui.pasteIntoCardTemplateCheckBox.isChecked(),

@@ -1,0 +1,7 @@
+{
+  "type": "array",
+  "items": {
+    "$ref": "iter.json#/definitions/iter"
+  },
+  "minItems": 2
+}

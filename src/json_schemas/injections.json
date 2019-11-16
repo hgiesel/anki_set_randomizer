@@ -1,0 +1,6 @@
+{
+  "type": "array",
+  "items": {
+    "$ref": "inj.json#/definitions/inj"
+  }
+}

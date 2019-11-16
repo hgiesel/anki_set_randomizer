@@ -11,8 +11,8 @@ from ..sr_iteration_tab_ui import Ui_SRIterationTab
 
 from ...lib.config_types import SRIteration
 
-def mapSyntaxToExample(openDelim, closeDelim, fieldSeparator):
-    return f'{openDelim} item1 {fieldSeparator} item2 {closeDelim}'
+def mapSyntaxToExample(openDelim, closeDelim, fieldSeparator, enabled):
+    return (f'{openDelim} item1 {fieldSeparator} item2 {closeDelim}' if enabled else '---')
 
 def toMatrix(lst, n):
     return [lst[i:i+n] for i in range(0, len(lst), n)]
@@ -32,11 +32,12 @@ class SRIterationTab(QWidget):
         self.ui.deletePushButton.clicked.connect(self.deleteIteration)
         self.ui.downPushButton.clicked.connect(self.moveDown)
         self.ui.upPushButton.clicked.connect(self.moveUp)
+        self.ui.importButton.clicked.connect(self.importDialog)
 
         self.ui.iterationsTable.currentCellChanged.connect(self.updateButtonsForCurrentCell)
         self.ui.iterationsTable.cellDoubleClicked.connect(self.editIteration)
-        self.ui.iterationsTable.setColumnWidth(0, 80)
-        self.ui.iterationsTable.setColumnWidth(2, 80)
+        self.ui.iterationsTable.setColumnWidth(1, 80)
+        self.ui.iterationsTable.setColumnWidth(3, 80)
 
     def setupUi(self, iterations):
         self.ic = iterationCouples = list(filter(lambda v: len(v) == 2, groupIterations(iterations)))
@@ -55,16 +56,23 @@ class SRIterationTab(QWidget):
 
             self.setRowMod(
                 idx,
+                iter[0].name[1:],
                 mapTruthValueToIcon(iter[0].enabled),
-                mapSyntaxToExample(iter[0].input_syntax.open_delim, iter[0].input_syntax.close_delim, iter[0].input_syntax.field_separator),
+                mapSyntaxToExample(iter[0].input_syntax.open_delim,
+                                   iter[0].input_syntax.close_delim,
+                                   iter[0].input_syntax.field_separator,
+                                   iter[0].enabled),
                 mapTruthValueToIcon(iter[1].enabled),
-                mapSyntaxToExample(iter[1].input_syntax.open_delim, iter[1].input_syntax.close_delim, iter[1].input_syntax.field_separator),
+                mapSyntaxToExample(iter[1].input_syntax.open_delim,
+                                   iter[1].input_syntax.close_delim,
+                                   iter[1].input_syntax.field_separator,
+                                   iter[1].enabled),
             )
 
         self.ui.iterationsTable.setVerticalHeaderLabels(headerLabels)
 
-    def setRowMod(self, row, frontEnabled, frontText, backEnabled, backText):
-        for i, text in enumerate([frontEnabled, frontText, backEnabled, backText]):
+    def setRowMod(self, row, name, frontEnabled, frontText, backEnabled, backText):
+        for i, text in enumerate([name, frontEnabled, frontText, backEnabled, backText]):
             label = QLabel()
             label.setText(text)
             label.setAlignment(Qt.AlignCenter)
@@ -72,7 +80,6 @@ class SRIterationTab(QWidget):
             self.ui.iterationsTable.setCellWidget(row, i, label)
 
     def editIteration(self, row, column):
-
         def saveIterations(newIterations):
             self.ic[row] = newIterations
             self.drawIterations()
@@ -82,6 +89,7 @@ class SRIterationTab(QWidget):
         a.exec_()
 
     #################
+
     def updateButtonsForCurrentCell(self, currentRow, currentColumn, previousRow, previousColumn):
         self.updateButtons(currentRow != -1)
 
@@ -90,6 +98,7 @@ class SRIterationTab(QWidget):
         self.ui.deletePushButton.setEnabled(state)
         self.ui.downPushButton.setEnabled(state)
         self.ui.upPushButton.setEnabled(state)
+        self.ui.importButton.setEnabled(state)
 
     def duplicateIteration(self):
         newIteration = deepcopy(self.ic[self.ui.iterationsTable.currentRow()])
@@ -130,3 +139,8 @@ class SRIterationTab(QWidget):
             result.append(sublist[1])
 
         return result
+
+    ###########
+
+    def importDialog(self):
+        pass
