@@ -1,6 +1,7 @@
 import os
 import json
 
+from pathlib import Path
 from jsonschema import validate, RefResolver, Draft7Validator
 from itertools import groupby
 
@@ -178,10 +179,10 @@ class SRIterationConfig(QWidget):
         def updateAfterImport(new_iteration):
             self.setupUi(deserialize_iteration(new_iteration))
 
-        dirpath = f'{os.path.dirname(os.path.realpath(__file__))}/../../json_schemas/iter.json'
-        schema_path = f'file:{dirpath}'
+        dirpath = Path(f'{os.path.dirname(os.path.realpath(__file__))}', '../../json_schemas/iter.json')
+        schema_path = dirpath.absolute().as_uri()
 
-        with open(dirpath, 'r') as jsonfile:
+        with dirpath.open('r') as jsonfile:
             schema = json.load(jsonfile)
             resolver = RefResolver(
                 schema_path,

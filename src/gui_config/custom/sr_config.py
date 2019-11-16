@@ -1,6 +1,7 @@
 import os
 import json
 
+from pathlib import Path
 from itertools import groupby
 from jsonschema import validate, RefResolver, Draft7Validator
 
@@ -84,10 +85,10 @@ class SRConfigDialog(QDialog):
             self.settings[old_sid] = deserialize_setting(setting_data.model_name, new_data)
             self.updateTabWidget(self.settings[old_sid])
 
-        dirpath = f'{os.path.dirname(os.path.realpath(__file__))}/../../json_schemas/setting.json'
-        schema_path = f'file:{dirpath}'
+        dirpath = Path(f'{os.path.dirname(os.path.realpath(__file__))}', '../../json_schemas/setting.json')
+        schema_path = dirpath.absolute().as_uri()
 
-        with open(dirpath, 'r') as jsonfile:
+        with dirpath.open('r') as jsonfile:
             schema = json.load(jsonfile)
             resolver = RefResolver(
                 schema_path,

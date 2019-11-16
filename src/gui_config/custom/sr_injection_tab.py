@@ -1,6 +1,7 @@
 import json
 import os
 
+from pathlib import Path
 from jsonschema import RefResolver, Draft7Validator
 
 from aqt import mw
@@ -128,10 +129,10 @@ class SRInjectionTab(QWidget):
         def replaceAfterImport(injections_new):
             self.setupUi([deserialize_injection(inj) for inj in injections_new])
 
-        dirpath = f'{os.path.dirname(os.path.realpath(__file__))}/../../json_schemas/injections.json'
-        schema_path = f'file:{dirpath}'
+        dirpath = Path(f'{os.path.dirname(os.path.realpath(__file__))}', '../../json_schemas/injections.json')
+        schema_path = dirpath.absolute().as_uri()
 
-        with open(dirpath, 'r') as jsonfile:
+        with dirpath.open('r') as jsonfile:
             schema = json.load(jsonfile)
             resolver = RefResolver(
                 schema_path,

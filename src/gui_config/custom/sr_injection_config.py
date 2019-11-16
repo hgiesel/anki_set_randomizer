@@ -3,6 +3,7 @@ import json
 
 import jsonschema
 from jsonschema import validate, RefResolver, Draft7Validator
+from pathlib import Path
 
 from aqt import mw
 from aqt.qt import QDialog, QWidget, Qt
@@ -82,14 +83,21 @@ class SRInjectionConfig(QDialog):
         return json.loads(self.ui.conditionsTextEdit.toPlainText())
 
     def validateConditionsRaw(self):
-        schema_path = f'{os.path.dirname(os.path.realpath(__file__))}/../../json_schemas/injection_cond.json'
+        dirpath  = Path(f'{os.path.dirname(os.path.realpath(__file__))}', '../../json_schemas/injection_cond.json')
+        schema_path = dirpath.absolute().as_uri()
 
-        with open(schema_path, 'r') as jsonfile:
+        with dirpath.open('r') as jsonfile:
 
             schema = json.load(jsonfile)
+            resolver = RefResolver(
+                schema_path,
+                schema,
+            )
+
+            validator = Draft7Validator(schema, resolver=resolver, format_checker=None)
             instance = self.getConditions()
 
-            validate(instance, schema)
+            validator.validate(instance)
 
     def validateConditions(self):
         try:
@@ -135,10 +143,10 @@ class SRInjectionConfig(QDialog):
         def updateAfterImport(new_injection):
             self.setupUi(deserialize_injection(new_injection))
 
-        dirpath = f'{os.path.dirname(os.path.realpath(__file__))}/../../json_schemas/inj.json'
-        schema_path = f'file:{dirpath}'
+        dirpath = Path(f'{os.path.dirname(os.path.realpath(__file__))}', '../../json_schemas/inj.json')
+        schema_path = dirpath.absolute().as_uri()
 
-        with open(dirpath, 'r') as jsonfile:
+        with dirpath.open('r') as jsonfile:
             schema = json.load(jsonfile)
             resolver = RefResolver(
                 schema_path,
