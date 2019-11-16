@@ -1,5 +1,5 @@
 import {
-  uniqSome,
+  uniqSome, uniqCond,
   pickInt,
 } from '../../util.js'
 
@@ -53,7 +53,7 @@ export const expandPickNumber = function(
   const uniqProc = getUniqProcessor(uniqConstraints)
 
   const generator = pick.type === pickInt
-    ? intGenerator(pick.min, pick.max, pick.extra, uc.type === uniqSome)
+    ? intGenerator(pick.min, pick.max, pick.extra, uc.type === uniqSome || (uc.type === uniqCond && Boolean(uc.name)))
     : realGenerator(pick.min, pick.max, pick.extra)
   const validator = uniqProc.init(uc)
 

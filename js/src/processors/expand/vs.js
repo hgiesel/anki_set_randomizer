@@ -1,6 +1,6 @@
 import {
   vsStar,
-  uniqSome,
+  uniqSome, uniqCond,
   toSRToken,
 } from '../../util.js'
 
@@ -77,7 +77,7 @@ export const expandPickValueSet = function(
   const generator = valueGenerator(
     valueSets,
     vs,
-    uc.type === uniqSome,
+    uc.type === uniqSome || (uc.type === uniqCond && uc.name),
   )
   const validator = uniqProc.init(uc)
 
@@ -105,7 +105,7 @@ export const expandValueSet = function(
         sub: vsSub,
         pos: evalVs.pos,
       },
-      uc.type === uniqSome,
+      uc.type === uniqSome || (uc.type === uniqCond && Boolean(uc.name)),
     )
     const validator = uniqProc.init(uc)
 

@@ -135,6 +135,10 @@ export const getUniqProcessor = function(uniqConstraints) {
 
       let passes = null
 
+      if (uc.name) {
+        uc.cond = ['&', [uc.name, '!includes', '$$'], uc.cond]
+      }
+
       try {
         passes = processUniqCondRecursive(uc.cond)
       }

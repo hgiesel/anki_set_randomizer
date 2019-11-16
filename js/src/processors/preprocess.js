@@ -188,16 +188,21 @@ export const preprocessAmount = function(amountText, defaultAmount = 1) {
   }
 }
 
-const parseUniqConditions = function(cond, add, fail) {
-  let condJsonParsed = null
-  try {
-    condJsonParsed = JSON.parse(cond)
-  }
-  catch (e) {
-    return {
-      'type': uniqNone,
-      'name': null,
+const parseUniqConditions = function(cond, add, fail, uniq) {
+  let condResult = null
+  if (cond) {
+    try {
+      condResult = JSON.parse(cond)
     }
+    catch (e) {
+      return {
+        'type': uniqNone,
+        'name': null,
+      }
+    }
+  }
+  else {
+    condResult = []
   }
 
   const addResult = add
@@ -210,10 +215,17 @@ const parseUniqConditions = function(cond, add, fail) {
 
   return {
     'type': uniqCond,
-    'cond': condJsonParsed,
+    'cond': condResult,
     'add': addResult,
     'fail': failResult,
+    'name': uniq ? uniq : null,
   }
+}
+
+const parseUniqName = function(name) {
+  return typeof name === 'string'
+    ? name.match(namePatternRaw)[0]
+    : `_anonymous${String(Math.random()).slice(2)}`
 }
 
 export const preprocessUniq = function(options, shortcut = false) {
@@ -222,39 +234,41 @@ export const preprocessUniq = function(options, shortcut = false) {
     || options.hasOwnProperty('fail')
   ) {
     if (shortcut) {
-      return {
+      const result = {
         'type': uniqCond,
         'cond': options.cond || [],
         'add': options.add || [],
         'fail': options.fail || [],
       }
+
+      if (options.hasOwnProperty('uniq')) {
+        result.name = parseUniqName(options.uniq)
+      }
+
+      return result
     }
     else {
-      return parseUniqConditions(options.cond, options.add, options.fail)
+      return parseUniqConditions(
+        options.cond,
+        options.add,
+        options.fail,
+        options.uniq,
+      )
     }
   }
 
   else if (options.hasOwnProperty('uniq')) {
-    if (typeof options.uniq === 'string') {
-      const realName = options.uniq.match(namePatternRaw)
-
-      if (realName) {
-        return {
-          'type': uniqSome,
-          'name': realName[0],
-        }
-      }
-    }
-
     return {
       'type': uniqSome,
-      'name': `_anonymous${String(Math.random()).slice(2)}`
+      'name': parseUniqName(options.uniq),
     }
   }
 
-  return {
-    'type': uniqNone,
-    'name': null,
+  else {
+    return {
+      'type': uniqNone,
+      'name': null,
+    }
   }
 }
 

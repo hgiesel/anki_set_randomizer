@@ -45,7 +45,7 @@ export const processPick = function(amount, pick, uniq) {
   const uniqString = uniq.type === uniqSome
     ? `uniq=${uniq.name}`
     : uniq.type === uniqCond
-    ? `cond=${JSON.stringify(uniq.cond)},add=${JSON.stringify(uniq.add)},fail=${JSON.stringify(uniq.fail)}`
+    ? `cond=${JSON.stringify(uniq.cond)},add=${JSON.stringify(uniq.add)},fail=${JSON.stringify(uniq.fail)}${uniq.name ? `,uniq=${uniq.name}` : ''}`
     : ''
 
   const amountText = amount.type === amountCount
