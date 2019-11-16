@@ -43,19 +43,12 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
 
   // the found sets in the text
   const _foundStructure = {}
-  const _associations = {}
-
-  const getAssociations = function(theSelector = inputSyntax.cssSelector) {
-    return _associations[theSelector]
-  }
-
   const getFoundStructure = function(theSelector = inputSyntax.cssSelector) {
     if (_foundStructure[theSelector]) {
       return _foundStructure[theSelector]
     }
 
     const theFoundStructure = []
-    const theAssociations = []
 
     let exprRegex = null
     try {
@@ -71,14 +64,18 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
       let re = exprRegex.exec(theText)
 
       while (re) {
-        theAssociations.push([idx, theText.length, re.index, re[0].length])
-        theFoundStructure.push(re[1])
+        theFoundStructure.push({
+          tagId: idx,
+          startIndex: re.index,
+          originalLength: theText.length,
+          contentWithDelimiterLength: re[0].length,
+          content: re[1],
+        })
 
         re = exprRegex.exec(theText)
       }
     }
 
-    _associations[theSelector] = theAssociations
     _foundStructure[theSelector] = theFoundStructure
 
     return theFoundStructure
@@ -87,12 +84,10 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
   const deleteFromFoundStructure = function(theSelector = inputSyntax.cssSelector, markedForDeletion) {
     for (const idx of markedForDeletion) {
       delete _foundStructure[theSelector][idx]
-      delete _associations[theSelector][idx]
     }
 
     // filtered out elements made empty
     _foundStructure[theSelector] = _foundStructure[theSelector].filter(() => true)
-    _associations[theSelector] = _associations[theSelector].filter(() => true)
   }
 
   // 2d list of elements in the form of [[i, j, element]]
@@ -113,6 +108,7 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
     const markedForDeletion = []
 
     const elementsRaw = theFoundStructure
+      .map(found => found.content)
       .map(group => group.split(inputSyntax.isRegex
         ? new RegExp(inputSyntax.fieldSeparator, 'u')
         : inputSyntax.fieldSeparator))
@@ -133,19 +129,27 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
 
   const outputSets = function(stylizedResults, theSelector = inputSyntax.cssSelector) {
     const theHtml = getHtml(theSelector)
-    const theAssociations = getAssociations(theSelector)
+    const theFoundStructure = getFoundStructure(theSelector)
+
+    const currentHtmls = theHtml.map(html => html.innerHTML)
 
     for (const [idx, value] of stylizedResults.entries()) {
       if (stylizedResults[idx] /* when display:meta */) {
-        const currentHtml = theHtml[theAssociations[idx][0]].innerHTML
-        const associations = theAssociations[idx]
+        const associations = theFoundStructure[idx]
+        const currentHtml = currentHtmls[associations.tagId]
 
-        theHtml[associations[0]].innerHTML = (
-          currentHtml.substring(0, associations[2] - (associations[1] - currentHtml.length))
-          + value
-          + currentHtml.substring(associations[2] + associations[3] - (associations[1] - currentHtml.length), currentHtml.length)
+        const offset = currentHtml.length - associations.originalLength
+        const startPoint = associations.startIndex + offset
+        const endPoint = associations.startIndex + associations.contentWithDelimiterLength + offset
+
+        currentHtmls[associations.tagId] = (
+          `${currentHtml.substring(0, startPoint)}${value}${currentHtml.substring(endPoint, currentHtml.length)}`
         )
       }
+    }
+
+    for (let step = 0; step < theHtml.length; step++) {
+      theHtml[step].innerHTML = currentHtmls[step]
     }
   }
 
