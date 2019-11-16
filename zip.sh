@@ -1,5 +1,5 @@
 declare DIR=${BASH_SOURCE%/*}
-rm "${DIR}/set_randomizer.ankiaddon"
+rm -f "${DIR}/set_randomizer.ankiaddon"
 
 if [[ "$1" == '-a' ]]; then
   # for uploading to AnkiWeb
