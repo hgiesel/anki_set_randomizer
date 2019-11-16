@@ -128,9 +128,13 @@ const toSvgShape = function(
   return [defs, svgShape]
 }
 
-const getOccluder = function(shapeData, sa) {
+const getOccluder = function(shapeData, sa, rawHtml, idx) {
   const manipulate = function(event) {
-    const theImg = event.target
+    // TODO for some reason, the images seems to be exchanged sometimes
+    // I think this is something Anki does for some reason
+    const theImg = document.body.contains(event.target)
+      ? event.target
+      : rawHtml.flatMap(section => Array.from(section.querySelectorAll('img')))[idx]
 
     const theSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     theSvg.setAttribute('viewBox', `0 0 ${event.target.width} ${event.target.height}`)
@@ -154,6 +158,7 @@ const getOccluder = function(shapeData, sa) {
     wrapperRecord.setAttribute('class', occlusionClassName)
 
     theImg.parentNode.insertBefore(wrapperRecord, theImg)
+
     wrapperRecord.appendChild(theImg)
     wrapperRecord.appendChild(theSvg)
   }
@@ -182,7 +187,7 @@ export const renderOcclusion = function(rawHtml /* from formatter */, rawData, s
       ))
       .forEach((data, idx) => {
         if (data.length > 0) {
-          images[idx].addEventListener('load', getOccluder(data, styleAccessor))
+          images[idx].addEventListener('load', getOccluder(data, styleAccessor, rawHtml, idx))
         }
       })
   }
