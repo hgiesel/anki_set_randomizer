@@ -108,8 +108,8 @@ export const elementMatcher = function(styleSetter) {
         elemIndex,
         preprocessRule(patternResult.slice(1, 5), true),
         patternResult[5] /* name */,
-        preprocessNamepos(patternResult.slice(6, 10)),
-        preprocessForce(kwargs(patternResult[11])),
+        preprocessNamepos(patternResult.slice(6, 13)),
+        preprocessForce(kwargs(patternResult[13])),
       ])
     }
 
@@ -120,8 +120,8 @@ export const elementMatcher = function(styleSetter) {
         elemIndex,
         preprocessRule(patternResult.slice(1, 5), true),
         patternResult[5] /* name */,
-        preprocessNamepos(patternResult.slice(6, 10)),
-        preprocessForce(kwargs(patternResult[10])),
+        preprocessNamepos(patternResult.slice(6, 13)),
+        preprocessForce(kwargs(patternResult[13])),
       ])
     }
 
@@ -141,7 +141,7 @@ export const elementMatcher = function(styleSetter) {
         elemIndex,
         preprocessRule(patternResult.slice(1, 5), true),
         patternResult[5] /* style name */,
-        preprocessNamepos(patternResult.slice(6)),
+        preprocessNamepos(patternResult.slice(6, 13)),
       ])
     }
 

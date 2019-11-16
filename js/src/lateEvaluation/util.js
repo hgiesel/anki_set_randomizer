@@ -112,6 +112,6 @@ export const getCorrespondingSets = function(
     case typeName: default:
       return evalNames
         ? analyzeName(elements, yanks, namedSets, name.values)
-        : name.name
+        : name.values
   }
 }

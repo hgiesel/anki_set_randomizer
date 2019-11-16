@@ -154,9 +154,19 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
 
     rule, orderName, appliedName, options,
   ) {
+    const noEvalNames = getCorrespondingSets(
+      elements,
+      namedSets,
+      yanks,
+      appliedName,
+      setIndex,
+      false,
+      false,
+    )
+
     rulethrough(
       po, iterName, setIndex, posIndex, appliedName, rule,
-      orderName, options, orderConstraints, orderApplications, namedSets,
+      orderName, noEvalNames, options, orderConstraints, orderApplications, namedSets,
     )
   }
 
