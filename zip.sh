@@ -1,5 +1,6 @@
 declare DIR=${BASH_SOURCE%/*}
-rm -f "${DIR}/set_randomizer.ankiaddon"
+
+npm run --prefix "${DIR}/js" build
 
 if [[ "$1" == '-a' ]]; then
   # for uploading to AnkiWeb
@@ -9,9 +10,10 @@ else
   declare addon_id='set_randomizer'
 fi
 
-sed -i "s/anki_set_randomizer/${addon_id}/" "${DIR}/src/gui_config/"*".py"
+rm -f "${DIR}/${addon_id}.ankiaddon"
+sed -i "s/anki_set_randomizer.src.gui_config//" "${DIR}/src/gui_config/"*".py"
 
-zip -r "${DIR}/set_randomizer.ankiaddon" \
+zip -r "${DIR}/${addon_id}.ankiaddon" \
   "${DIR}/__init__.py" \
   "${DIR}/src/"*".py" \
   "${DIR}/src/lib/"*".py" \
@@ -22,4 +24,4 @@ zip -r "${DIR}/set_randomizer.ankiaddon" \
   "${DIR}/js/dist/"{front,back,anki-persistence}".js" \
   "${DIR}/config."{json,md} "${DIR}/manifest.json"
 
-sed -i "s/${addon_id}/anki_set_randomizer/" "${DIR}/src/gui_config/"*".py"
+sed -i "s/.custom/anki_set_randomizer.src.gui_config.custom/" "${DIR}/src/gui_config/"*".py"
