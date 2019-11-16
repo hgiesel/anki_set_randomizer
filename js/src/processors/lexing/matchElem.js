@@ -32,28 +32,35 @@ import {
   preprocessUniq,
 } from './preprocess.js'
 
+import {
+  elemText,
+} from '../types.js'
+
 export const elementMatcher = function(styleSetter) {
   const valueSets = {}
   const evaluators = []
   const yanks = []
   const markedForDeletion = []
 
-  const namedSetStatements = []
-  const orderStatements = []
-  const applyStatements = []
-  const commandStatements = []
+  const nameTokens = []
+  const orderTokens = []
+  const applyTokens = []
+  const commandTokens = []
 
-  const match = function(
+  const match = function([
     iterName,
     setIndex,
     elemIndex,
     content,
     mode,
-  ) {
+  ]) {
     let patternResult = null
 
     if (!content.startsWith('$')) {
-      return [[iterName, setIndex, elemIndex, content, mode]]
+      return [[iterName, setIndex, elemIndex, {
+        type: elemText,
+        content: content,
+      }, mode]]
     }
 
     else if (content === '$meta()' || content === '$inject()') {
@@ -62,7 +69,7 @@ export const elementMatcher = function(styleSetter) {
 
     ////// GENERATION
     else if (patternResult = content.match(valueSetPattern)) {
-      const vsToken = processValueSet(
+      const elemVs = processValueSet(
         valueSets,
         iterName,
         setIndex,
@@ -70,7 +77,7 @@ export const elementMatcher = function(styleSetter) {
         ...patternResult.slice(1),
       )
 
-      return [[iterName, setIndex, elemIndex, vsToken, mode]]
+      return [[iterName, setIndex, elemIndex, elemVs, mode]]
     }
 
     else if (patternResult = content.match(evalPattern)) {
@@ -82,13 +89,13 @@ export const elementMatcher = function(styleSetter) {
     }
 
     else if (patternResult = content.match(pickPattern)) {
-      const pickToken = processPick(
+      const elemPick = processPick(
         preprocessAmount(patternResult[1]),
         preprocessPick(patternResult.slice(2, 8)),
         preprocessUniq(kwargs(patternResult[8]), true),
       )
 
-      return [[iterName, setIndex, elemIndex, pickToken, mode]]
+      return [[iterName, setIndex, elemIndex, elemPick, mode]]
     }
 
     else if (patternResult = content.match(yankPattern)) {
@@ -102,7 +109,7 @@ export const elementMatcher = function(styleSetter) {
 
     ////// LATE EVALUATION
     else if (patternResult = content.match(namedSetPattern)) {
-      namedSetStatements.push([
+      nameTokens.push([
         iterName,
         setIndex,
         elemIndex,
@@ -114,7 +121,7 @@ export const elementMatcher = function(styleSetter) {
     }
 
     else if (patternResult = content.match(orderPattern)) {
-      orderStatements.push([
+      orderTokens.push([
         iterName,
         setIndex,
         elemIndex,
@@ -126,7 +133,7 @@ export const elementMatcher = function(styleSetter) {
     }
 
     else if (patternResult = content.match(commandPattern)) {
-      commandStatements.push([
+      commandTokens.push([
         iterName,
         setIndex,
         elemIndex,
@@ -135,7 +142,7 @@ export const elementMatcher = function(styleSetter) {
     }
 
     else if (patternResult = content.match(applyPattern)) {
-      applyStatements.push([
+      applyTokens.push([
         iterName,
         setIndex,
         elemIndex,
@@ -151,11 +158,11 @@ export const elementMatcher = function(styleSetter) {
 
   const exportValueSets = () => valueSets
   const exportEvaluators = () => evaluators
-  const exportStatements = () => [
-    namedSetStatements,
-    orderStatements,
-    commandStatements,
-    applyStatements
+  const exportTokens = () => [
+    nameTokens,
+    orderTokens,
+    commandTokens,
+    applyTokens
   ]
   const exportMarkedForDeletion = () => markedForDeletion
   const exportYanks = () => yanks
@@ -165,7 +172,7 @@ export const elementMatcher = function(styleSetter) {
 
     exportValueSets: exportValueSets,
     exportEvaluators: exportEvaluators,
-    exportStatements: exportStatements,
+    exportTokens: exportTokens,
     exportMarkedForDeletion: exportMarkedForDeletion,
     exportYanks: exportYanks,
   }

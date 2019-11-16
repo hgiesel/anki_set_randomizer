@@ -1,9 +1,8 @@
 import styleSetter from './styleSetter.js'
-
 import elementMatcher from './matchElem.js'
 
-import pregenManager from './expand/pregen.js'
-import expand from './expand/expand.js'
+import pregenManager from './expansion/pregen.js'
+import expander from './expansion/expander.js'
 
 const filterElements = function(elements, markedForDeletion) {
   const setToShuffles = {}
@@ -36,18 +35,20 @@ export const process = function(
   const elemMatcher = elementMatcher(ss)
 
   const elementsMatched = elements
-    .map(set => set.flatMap(elem => elemMatcher.match(...elem)))
+    .map(set => set.flatMap(elemMatcher.match))
 
+  const markedForDeletion = elemMatcher
+    .exportMarkedForDeletion()
   const pregenMngr = pregenManager(
     generatedValues,
     uniqConstraints,
     elemMatcher.exportValueSets(),
     elemMatcher.exportEvaluators()
   )
+  const exp = expander(pregenMngr)
 
-  const markedForDeletion = elemMatcher.exportMarkedForDeletion()
   const elementsExpanded = elementsMatched
-    .map(set => set.flatMap(elem => expand(pregenMngr, ...elem)))
+    .map(set => set.flatMap(exp.expand))
 
   const [
     elementsFiltered,

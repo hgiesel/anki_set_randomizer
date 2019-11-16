@@ -1,12 +1,6 @@
 import {
   vsNone, vsSome, vsStar, uniqSome,
-  isSRToken,
-  fromSRToken,
 } from '../util.js'
-
-import {
-  preprocessVs,
-} from '../processors/preprocess'
 
 import {
   getCorrespondingSets,

@@ -1,8 +1,8 @@
 import {
   vsNone, vsSome, vsStar, vsSelf,
   pickInt, pickReal,
-  typeRel, typeAbs, typeAbsNeg, typeAll,
-  typeAbsYank, typeAllYank, typeName,
+  posRel, posAbs, posAbsNeg, posAll,
+  posAbsYank, posAllYank, posName,
   amountCount, amountStar, amountPlus, amountQuestion,
   uniqSome, uniqCond, uniqNone,
 } from '../util.js'
@@ -37,49 +37,49 @@ export const preprocessYank = function([
 export const preprocessNamepos = function([abs, absNeg, rel, all, absYank, allYank, name]) {
   if (abs) {
     return {
-      'type': typeAbs,
+      'type': posAbs,
       'values': Number(abs),
     }
   }
 
   else if (absNeg) {
     return {
-      'type': typeAbsNeg,
+      'type': posAbsNeg,
       'values': Number(absNeg),
     }
   }
 
   else if (all) {
     return {
-      'type': typeAll,
+      'type': posAll,
       'values': null,
     }
   }
 
   else if (absYank) {
     return {
-      'type': typeAbsYank,
+      'type': posAbsYank,
       'values': Number(absYank),
     }
   }
 
   else if (allYank) {
     return {
-      'type': typeAllYank,
+      'type': posAllYank,
       'values': null,
     }
   }
 
   else if (name) {
     return {
-      'type': typeName,
+      'type': posName,
       'values': name.split(':'),
     }
   }
 
   else /* rel */ {
     return {
-      'type': typeRel,
+      'type': posRel,
       'values': Number(rel) || 0,
     }
   }
@@ -292,8 +292,8 @@ export const preprocessPickReal = function([minValue, maxValue, extraValue]) {
 
 export const preprocessPickNumber = function([minValue, maxValue, extraValue]) {
   return minValue.includes('.') || maxValue.includes('.')
-    ? preprocessPickReal([minValue, maxValue, extraValue])
-    : preprocessPickInt([minValue, maxValue, extraValue])
+    ? preprocessPickReal([minValue, maxValue, extraValue || 2])
+    : preprocessPickInt([minValue, maxValue, extraValue || 1])
 }
 
 export const preprocessPick = function([minValue, maxValue, extraValue, ...vsArgs]) {

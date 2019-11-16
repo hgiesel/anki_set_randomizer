@@ -1,6 +1,5 @@
 import {
   uniqSome, uniqCond,
-  pickInt,
 } from '../../util.js'
 
 import {
@@ -58,32 +57,45 @@ const realGenerator = function*(min, max, extra, presetValues) {
   }
 }
 
-export const expandPickNumber = function(
+const expandPickNumber = function(
   uniqConstraints,
-  valueMemory, amount, pick, uc,
+  valueMemory, amount, generator, uc,
 ) {
   const uniqProc = getUniqProcessor(uniqConstraints)
-
-  const generator = pick.type === pickInt
-    ? intGenerator(
-      pick.min,
-      pick.max,
-      pick.extra,
-      valueMemory.get(),
-      uc.type === uniqSome || (uc.type === uniqCond && Boolean(uc.name)),
-    )
-    : realGenerator(
-      pick.min,
-      pick.max,
-      pick.extra,
-      valueMemory.get(),
-    )
   const validator = uniqProc.init(uc, valueMemory.exists())
-
   const values = generate(generator, validator, amount)
 
   uniqProc.commit(validator)
   valueMemory.set(values.values)
 
   return values.values
+}
+
+export const expandPickInt = function(
+  uniqConstraints,
+  valueMemory, amount, pick, uc,
+) {
+  const generator = intGenerator(
+    pick.min,
+    pick.max,
+    pick.extra,
+    valueMemory.get(),
+    uc.type === uniqSome || (uc.type === uniqCond && Boolean(uc.name)),
+  )
+
+  return expandPickNumber(uniqConstraints, valueMemory, amount, generator, uc)
+}
+
+export const expandPickReal = function(
+  uniqConstraints,
+  valueMemory, amount, pick, uc,
+) {
+  const generator = realGenerator(
+    pick.min,
+    pick.max,
+    pick.extra,
+    valueMemory.get(),
+  )
+
+  return expandPickNumber(uniqConstraints, valueMemory, amount, generator, uc)
 }

@@ -4,14 +4,16 @@ import {
 } from './vs.js'
 
 import {
-  expandPickNumber as expandPickNumberOrig,
+  expandPickInt as expandPickIntOrig,
+  expandPickReal as expandPickRealOrig,
 } from './number.js'
 
 // Adapter for expanders
 export const pregenManager = function(generatedValues, uniqConstraints, valueSets, evaluators) {
   const evs = (vm, args) => expandValueSetOrig(uniqConstraints, valueSets, evaluators, vm, ...args)
   const epvs = (vm, args) => expandPickValueSetOrig(uniqConstraints, valueSets, vm, ...args)
-  const epn = (vm, args) => expandPickNumberOrig(uniqConstraints, vm, ...args)
+  const epi = (vm, args) => expandPickIntOrig(uniqConstraints, vm, ...args)
+  const epr = (vm, args) => expandPickRealOrig(uniqConstraints, vm, ...args)
 
   const pregenChecker = function(iterName, setIndex, elemIndex) {
     const valueMemory = function() {
@@ -85,14 +87,17 @@ export const pregenManager = function(generatedValues, uniqConstraints, valueSet
       return resultValues.map(v => [iterName, setIndex, elemIndex, v, 'n'])
     }
 
-    const expandPickNumber = (...args) => callthrough(epn, args)
-    const expandPickValueSet = (...args) => callthrough(epvs, args)
     const expandValueSet = (...args) => callthrough(evs, args)
 
+    const expandPickValueSet = (...args) => callthrough(epvs, args)
+    const expandPickInt = (...args) => callthrough(epi, args)
+    const expandPickReal = (...args) => callthrough(epr, args)
+
     return {
-      expandPickNumber: expandPickNumber,
-      expandPickValueSet: expandPickValueSet,
       expandValueSet: expandValueSet,
+      expandPickValueSet: expandPickValueSet,
+      expandPickInt: expandPickInt,
+      expandPickReal: expandPickReal,
     }
   }
 

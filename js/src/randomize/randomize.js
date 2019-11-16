@@ -10,7 +10,6 @@ export const randomize = function(
   namedSets,
   orderConstraints,
   orderApplications,
-  // commands,
 ) {
   const orders = processOrderConstraints(
     orderConstraints,
@@ -26,11 +25,6 @@ export const randomize = function(
     getShuffler(reorderMatcher, orders, orderApplications),
     orders,
   )
-
-  // applyCommands(
-  //   commands,
-  //   elements,
-  // )
 
   return [
     shuffles,

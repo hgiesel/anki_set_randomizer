@@ -1,9 +1,12 @@
 import structureMatcher from './matching.js'
-import process from './processors/process.js'
-import postprocess from './processors/postprocess.js'
 
-import ruleEngine from './lateEvaluation/ruleEngine'
+import process from './processors/process.js'
+
+import ruleEngine from './ruleEngine/ruleEngine.js'
 import randomize from './randomize/randomize.js'
+
+import applyCommands from './commands/commands.js'
+import postprocess from './commands/postprocess.js'
 
 import render from './render/render.js'
 import formatter from './render/formatter.js'
@@ -25,8 +28,6 @@ const main2 = function(
   setToShufflesMap,
   shufflesOld,
   ordersOld,
-  shufflesForcedOld,
-  ordersForcedOld,
 
   randomIndicesOld,
 
@@ -77,28 +78,22 @@ const main2 = function(
     )
 
     //////////////////////////////////////////////////////////////////////////////
-    // FILTER DELETED + FORCING
-    const elementsForce = postprocess(elementsShuffle)
-
-    const [
-      shufflesForced,
-      ordersForced,
-    ] = randomize(
-      elementsForce /* is modified */,
-      sm.matchShuffles(shufflesForcedOld, setToShufflesMap),
-      ordersForcedOld,
-      ...re.exportRandomizationData(true),
-    )
+    // COMMANDS
+    // applyCommands(
+    //   re.getCommands(elementsShuffle),
+    //   elementsShuffle),
+    // )
+    const elementsCmds = postprocess(elementsShuffle)
 
     //////////////////////////////////////////////////////////////////////////////
     // RENDERING
     const randomIndices = render(
       form,
-      sm.reorderForRendering(elementsForce),
+      sm.reorderForRendering(elementsCmds),
       valueSets,
       yanks,
       styles,
-      re.getStyleApplications(elementsForce),
+      re.getStyleApplications(elementsCmds),
       randomIndicesOld,
       elementsShuffle,
     )
@@ -112,8 +107,6 @@ const main2 = function(
       setToShufflesMap,
       sm.mergeShuffles(setToShufflesMap, shuffles, shufflesOld),
       orders,
-      sm.mergeShuffles(setToShufflesMap, shufflesForced, shufflesForcedOld),
-      ordersForced,
 
       randomIndices,
     ], true]
@@ -128,8 +121,6 @@ const main2 = function(
       setToShufflesMap,
       shufflesOld,
       ordersOld,
-      shufflesForcedOld,
-      ordersForcedOld,
 
       randomIndicesOld,
     ], false]

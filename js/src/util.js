@@ -1,30 +1,4 @@
-export const vsSome = 'vsSome'
-export const vsNone = 'vsNone'
-export const vsStar = 'vsStar'
-export const vsSelf = 'vsSelf'
-
-export const pickInt = 'pickInt'
-export const pickReal = 'pickReal'
-
-export const typeRel = 'typeReal'
-
-export const typeAbs = 'typeAbs'
-export const typeAbsYank = 'typeAbsYank'
-export const typeAbsNeg = 'typeAbsNeg'
-
-export const typeAll = 'typeAll'
-export const typeAllYank = 'typeAllYank'
-export const typeName = 'typeName'
-
-export const amountCount = 'amountCount'
-export const amountStar = 'amountStar'
-export const amountPlus = 'amountPlus'
-export const amountQuestion = 'amountQuestion'
-
-export const uniqSome = 'uniqSome'
-export const uniqCond = 'uniqCond'
-export const uniqNone = 'uniqNone'
-
+///////////////// TODO remove:
 export const vsSerialize = function(component) {
   return component === vsSelf
     ? '_'
@@ -46,6 +20,7 @@ export const fromSRToken = function(token, dropFirst = true) {
 export const toSRToken = function(components) {
   return `%%sr%%${components.join('%%')}%%`
 }
+///////////////////
 
 const getWarningDiv = function(warningMessage) {
   const warningDiv = document.createElement('div')

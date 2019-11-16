@@ -9,8 +9,6 @@ export const getNullData = function() {
     {/* setToShuffleMap */},
     [/* shuffles */],
     [/* orders */],
-    [/* shufflesForced */],
-    [/* ordersForced */],
 
     {/* randomIndices */},
   ]

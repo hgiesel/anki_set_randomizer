@@ -2,17 +2,11 @@ import {
   vsStar, vsSelf,
   uniqSome, uniqCond,
   amountCount, amountStar, amountPlus, amountQuestion,
-
-  fromSRToken,
-} from '../../util.js'
+} from '../../types.js'
 
 import {
   vsRegex,
 } from '../util.js'
-
-import {
-  preprocessVs,
-} from '../preprocess.js'
 
 //////////////////////////////////////////////////
 // UNIQUENESS SETS AND CONSTRAINTS
