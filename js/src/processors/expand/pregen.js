@@ -9,96 +9,85 @@ import {
 
 // Adapter for expanders
 export const pregenManager = function(generatedValues, uniqConstraints, valueSets, evaluators) {
-  const evs = args => expandValueSetOrig(uniqConstraints, valueSets, evaluators, ...args)
-  const epvs = args => expandPickValueSetOrig(uniqConstraints, valueSets, ...args)
-  const epn = args => expandPickNumberOrig(uniqConstraints, ...args)
+  const evs = (vm, args) => expandValueSetOrig(uniqConstraints, valueSets, evaluators, vm, ...args)
+  const epvs = (vm, args) => expandPickValueSetOrig(uniqConstraints, valueSets, vm, ...args)
+  const epn = (vm, args) => expandPickNumberOrig(uniqConstraints, vm, ...args)
 
   const pregenChecker = function(iterName, setIndex, elemIndex) {
-    const pregenResult = 'pregenResult'
-    const pregenFail = 'pregenFail'
-
-    const checkForPregen = function() {
-      let pregen = null
-
-      if (pregen = generatedValues
+    const valueMemory = function() {
+      const pregen = generatedValues
         .find(([iter, setid, elemid]) => (
           iter === iterName
           && setid === setIndex
           && elemid === elemIndex
         ))
-      ) {
-        return {
-          type: pregenResult,
-          value: pregen[3],
+
+      const exists = function(evaluation = null) {
+        if (evaluation) {
+          return Boolean(pregen) && pregen[3].hasOwnProperty(JSON.stringify(evaluation))
+        }
+
+        else {
+          return Boolean(pregen)
+        }
+      }
+
+      const get = function(evaluation = null) {
+        if (evaluation) /* for evals */ {
+          const evaluationKey = JSON.stringify(evaluation)
+
+          if (exists(evaluation)) {
+            return pregen[3][evaluationKey]
+          }
+          else {
+            return null
+          }
+        }
+
+        if (exists()) /* for picks */ {
+          return pregen[3]
+        }
+        else {
+          return null
+        }
+      }
+
+
+      const set = function(values, evaluation = null) {
+        const evaluationKey = evaluation
+          ? JSON.stringify(evaluation)
+          : null
+
+        if (!pregen) {
+          if (evaluation) {
+            generatedValues.push([iterName, setIndex, elemIndex, {[evaluationKey]: values}])
+          }
+
+          else {
+            generatedValues.push([iterName, setIndex, elemIndex, values])
+          }
+        }
+
+        else if (evaluation && !pregen[3].hasOwnProperty(evaluationKey)) {
+          pregen[3][evaluationKey] = values
         }
       }
 
       return {
-        type: pregenFail,
-        value: null,
+        exists: exists,
+        get: get,
+        set: set,
       }
     }
 
-    const callthroughPick = function(f, args) {
-      const pregen = checkForPregen()
-      let resultValues = null
-
-      switch (pregen.type) {
-        case pregenResult:
-          resultValues = pregen.value
-          break
-
-        case pregenFail: default:
-          let trulyRandom = null
-          ;[resultValues, trulyRandom] = f(args)
-
-          if (trulyRandom) {
-            generatedValues.push([iterName, setIndex, elemIndex, resultValues])
-          }
-          break
-      }
-
+    const callthrough = function(f, args) {
+      const resultValues = f(valueMemory(), args)
       return resultValues.map(v => [iterName, setIndex, elemIndex, v, 'n'])
     }
 
-    const callthroughVs = function(f, args) {
-      let resultValues = null
-      const [
-        values,
-        evaluator,
-        trulyRandom,
-      ] = f(args)
-
-      const maybePregen = checkForPregen()
-      const evaluatorKey = JSON.stringify(evaluator)
-
-      switch (maybePregen.type) {
-        case pregenResult:
-          if (maybePregen.value.hasOwnProperty(evaluatorKey)) {
-            resultValues = maybePregen.value[evaluatorKey]
-          }
-          else {
-            if (trulyRandom) {
-              maybePregen.value[evaluatorKey] = values
-            }
-            resultValues = values
-          }
-          break
-
-        case pregenFail: default:
-          if (trulyRandom) {
-            generatedValues.push([iterName, setIndex, elemIndex, {[evaluatorKey]: values}])
-          }
-          resultValues = values
-          break
-      }
-
-      return resultValues.map(v => [iterName, setIndex, elemIndex, v, 'n'])
-    }
-
-    const expandPickNumber = (...args) => callthroughPick(epn, args)
-    const expandPickValueSet = (...args) => callthroughPick(epvs, args)
-    const expandValueSet = (...args) => callthroughVs(evs, args)
+    const expandPickNumber = (...args) => callthrough(epn, args)
+    const expandPickValueSet = (...args) => callthrough(epvs, args)
+    const expandValueSet = (...args) => callthrough(evs, args)
 
     return {
       expandPickNumber: expandPickNumber,

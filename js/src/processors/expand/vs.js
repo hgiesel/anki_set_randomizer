@@ -47,21 +47,29 @@ const getAllVsValues = function(valueSets, vs) {
   return result
 }
 
-const valueGenerator = function*(valueSets, vs, filter = false) {
-  const searchDomain = getAllVsValues(valueSets, vs)
+const valueGenerator = function*(valueSets, vs, presetValues, filter = false) {
+  const searchDomain = presetValues
+    ? [...presetValues]
+    : getAllVsValues(valueSets, vs)
+
+  if (presetValues) {
+    filter = true
+  }
 
   const maxTries = 100
   let tries = 0
 
   while (searchDomain.length > 0 && tries < maxTries) {
-    const randomIndex = Math.floor(Math.random() * searchDomain.length)
+    const index = presetValues
+      ? 0
+      : /* random */ Math.floor(Math.random() * searchDomain.length)
 
     if (filter) {
       // removes value from search domain
-      yield searchDomain.splice(randomIndex, 1)[0]
+      yield searchDomain.splice(index, 1)[0]
     }
     else {
-      yield searchDomain[randomIndex]
+      yield searchDomain[index]
     }
 
     tries++
@@ -70,29 +78,28 @@ const valueGenerator = function*(valueSets, vs, filter = false) {
 
 export const expandPickValueSet = function(
   uniqConstraints, valueSets,
-  amount, vs, uc,
+  valueMemory, amount, vs, uc,
 ) {
   const uniqProc = getUniqProcessor(uniqConstraints)
 
   const generator = valueGenerator(
     valueSets,
     vs,
+    valueMemory.get(),
     uc.type === uniqSome || (uc.type === uniqCond && uc.name),
   )
-  const validator = uniqProc.init(uc)
+  const validator = uniqProc.init(uc, valueMemory.exists())
 
   const values = generate(generator, validator, amount)
   uniqProc.commit(validator)
+  valueMemory.set(values.values)
 
-  return [
-    values.values,
-    vs.name === vsStar || vs.sub === vsStar || vs.pos === vsStar,
-  ]
+  return values.values
 }
 
 export const expandValueSet = function(
   uniqConstraints, valueSets, evaluators,
-  vsName, vsSub,
+  valueMemory, vsName, vsSub,
 ) {
   let firstLookup = null
   const foundEvaluators = evaluators.filter(([/* amount */, evalVs /*, uc */]) => (
@@ -102,34 +109,32 @@ export const expandValueSet = function(
   const uniqProc = getUniqProcessor(uniqConstraints)
 
   for (const [amount, evalVs, uc] of foundEvaluators) {
+    const foundEval = [amount, evalVs, uc]
     const generator = valueGenerator(
       valueSets, {
         name: vsName,
         sub: vsSub,
         pos: evalVs.pos,
       },
+      valueMemory.get(foundEval),
       uc.type === uniqSome || (uc.type === uniqCond && Boolean(uc.name)),
     )
-    const validator = uniqProc.init(uc)
+    const validator = uniqProc.init(uc, valueMemory.exists(foundEval))
 
     const values = generate(generator, validator, amount)
 
     if (values.sufficient) {
       // return with sufficient lookup
+      valueMemory.set(values.values, foundEval)
       uniqProc.commit(validator)
-      return [
-        values.values,
-        [amount, evalVs, uc],
-        evalVs.pos === vsStar,
-      ]
+      return values.values
     }
 
     else if (!firstLookup) {
       firstLookup = {
         validator: validator,
         values: values.values,
-        evaluator: [amount, evalVs, uc],
-        trulyRandom: evalVs.pos === vsStar,
+        evaluator: foundEval,
       }
     }
   }
@@ -137,16 +142,9 @@ export const expandValueSet = function(
   if (firstLookup) {
     // return with unsufficient lookup
     uniqProc.commit(firstLookup.validator)
-    return [
-      firstLookup.values,
-      firstLookup.evaluator,
-      firstLookup.trulyRandom,
-    ]
+    valueMemory.set(firstLookup.values, firstLookup.evaluator)
+    return firstLookup.values
   }
 
-  return [
-    [/* return with no lookup */],
-    null,
-    false,
-  ]
+  return [/* return with no lookup */]
 }

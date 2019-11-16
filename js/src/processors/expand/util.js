@@ -30,7 +30,7 @@ export const getUniqProcessor = function(uniqConstraints) {
     }
   }
 
-  const init = function(uc) {
+  const init = function(uc, valueMemory) {
     const preUcs = {}
 
     const processUniqSome = function(currentValue) {
@@ -135,12 +135,11 @@ export const getUniqProcessor = function(uniqConstraints) {
 
       let passes = null
 
-      if (uc.name) {
-        uc.cond = ['&', [uc.name, '!includes', '$$'], uc.cond]
-      }
-
       try {
-        passes = processUniqCondRecursive(uc.cond)
+        passes = processUniqCondRecursive(uc.name
+          ? ['&', [uc.name, '!includes', '$$'], uc.cond]
+          : uc.cond
+        )
       }
       catch (e) {
         console.error('Invalid Uniqueness Condition', e)
@@ -157,7 +156,9 @@ export const getUniqProcessor = function(uniqConstraints) {
     }
 
     return {
-      check: uc.type === uniqCond
+      check: valueMemory
+        ? /* no validating necessary */ () => true
+        : uc.type === uniqCond
         ? processUniqCond
         : uc.type === uniqSome
         ? processUniqSome

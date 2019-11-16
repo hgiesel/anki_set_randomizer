@@ -6,7 +6,8 @@ import {
 import {
   preprocessVs,
   preprocessAmount,
-  preprocessPickNumber,
+  preprocessPickInt,
+  preprocessPickReal,
   preprocessUniq,
 } from '../preprocess.js'
 
@@ -37,10 +38,18 @@ export const expand = function(
         // don't need anymore evaluation
         break
 
-      case 'pick:number':
+      case 'pick:int':
         result = pg.expandPickNumber(
           preprocessAmount(tokens[0]),
-          preprocessPickNumber(tokens.slice(1, 4)),
+          preprocessPickInt(tokens.slice(1, 4)),
+          preprocessUniq(kwargs(tokens[4]))
+        )
+        break
+
+      case 'pick:real':
+        result = pg.expandPickNumber(
+          preprocessAmount(tokens[0]),
+          preprocessPickReal(tokens.slice(1, 4)),
           preprocessUniq(kwargs(tokens[4]))
         )
         break

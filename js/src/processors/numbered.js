@@ -61,7 +61,7 @@ export const processPick = function(amount, pick, uniq) {
   switch (pick.type) {
     case pickInt:
       return toSRToken([
-        'pick:number',
+        'pick:int',
         amountText,
         pick.min,
         pick.max,
@@ -71,7 +71,7 @@ export const processPick = function(amount, pick, uniq) {
 
     case pickReal:
       return toSRToken([
-        'pick:number',
+        'pick:real',
         amountText,
         pick.min,
         pick.max,

@@ -272,22 +272,28 @@ export const preprocessUniq = function(options, shortcut = false) {
   }
 }
 
-export const preprocessPickNumber = function([minValue, maxValue, extraValue]) {
-  if (minValue.includes('.') || maxValue.includes('.')) {
-    return {
-      'type': pickReal,
-      'min': Number(minValue),
-      'max': Number(maxValue),
-      'extra': Number(extraValue) || 2,
-    }
-  }
-
+export const preprocessPickInt = function([minValue, maxValue, extraValue]) {
   return {
     'type': pickInt,
     'min': Number(minValue),
     'max': Number(maxValue),
     'extra': Number(extraValue) || 1,
   }
+}
+
+export const preprocessPickReal = function([minValue, maxValue, extraValue]) {
+  return {
+    'type': pickReal,
+    'min': Number(minValue),
+    'max': Number(maxValue),
+    'extra': Number(extraValue) || 2,
+  }
+}
+
+export const preprocessPickNumber = function([minValue, maxValue, extraValue]) {
+  return minValue.includes('.') || maxValue.includes('.')
+    ? preprocessPickReal([minValue, maxValue, extraValue])
+    : preprocessPickInt([minValue, maxValue, extraValue])
 }
 
 export const preprocessPick = function([minValue, maxValue, extraValue, ...vsArgs]) {
