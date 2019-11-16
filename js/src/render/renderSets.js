@@ -53,6 +53,10 @@ const valuePicker = function(valueSets) {
   }
 }
 
+const wrapWithRecordTag = function(delimColor, delimClass, text) {
+  return `<record${delimColor ? ` style="color: ${delimColor}"` : ''}${delimClass ? ` class="${delimClass}"` : ''}>${text}</record>`
+}
+
 export const renderSets = function(
   reordering,
   valueSets,
@@ -121,7 +125,7 @@ export const renderSets = function(
       stylizedResults[set.order] = ''
     }
     else if (actualValues.length === 0 || pa.getProp(['display']) === 'empty') {
-      stylizedResults[set.order] = (
+      stylizedResults[set.order] = wrapWithRecordTag(pa.getProp(['colors', 'delim']), pa.getProp(['classes', 'delim']),
         `${pa.getProp(['openDelim'])}`
         + `${pa.getProp(['emptySet'])}`
         + `${pa.getProp(['closeDelim'])}`
@@ -131,7 +135,7 @@ export const renderSets = function(
       stylizedResults[set.order] = null
     }
     else {
-      stylizedResults[set.order] = (
+      stylizedResults[set.order] = wrapWithRecordTag(pa.getProp(['colors', 'delim']), pa.getProp(['classes', 'delim']),
         `${pa.getProp(['openDelim'])}`
         + `${actualValues.join(pa.getProp(['fieldSeparator']))}`
         + `${pa.getProp(['closeDelim'])}`

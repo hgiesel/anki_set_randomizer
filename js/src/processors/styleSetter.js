@@ -135,6 +135,14 @@ export default function styleSetter(defaultStyle) {
         }
         break
 
+      case 'colorDelim':
+        sd.stylings.colors.delim = attributeValue
+        break
+
+      case 'classDelim':
+        sd.stylings.classes.delim = attributeValue
+        break
+
       case 'block':
         if (typeof (value = getBool(attributeValue)) === 'boolean') {
           sd.stylings.block = value
