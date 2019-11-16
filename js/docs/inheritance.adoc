@@ -1,0 +1,12 @@
+= Inheritance
+
+* inherit as little as possible,
+
+`.shuffles` and `generatedValues`
+* are inherited relatively
+** if there is a structure match, the newer version should be inherited, the older version omitted
+
+.`uniqueConstraints` and `orders`
+* are inherited absolutely
+** no `iter`, or `name` required
+** modified during main2()

@@ -6,12 +6,12 @@ const getContent = function([/* iterName */, /* setIndex */, /* posIndex */, con
   return content
 }
 
-const adaptForReorders = function(structureMatch) {
-  return [structureMatch[0], String(structureMatch[1])]
+const adaptForShuffles = function([iterName, setId]) {
+  return [iterName, String(setId)]
 }
 
 export const structureMatcher = function(
-  elementsOriginal,
+  elements,
   elementsOld,
   iterName,
 ) {
@@ -19,7 +19,7 @@ export const structureMatcher = function(
 
   for (const setInherited of elementsOld) {
     let match = null
-    if (match = elementsOriginal
+    if (match = elements
       .find(set => (
         compareArrays(set.map(getContent), setInherited.map(getContent))
         // Don't make n-to-m mappings, only 1-to-1:
@@ -44,46 +44,62 @@ export const structureMatcher = function(
     }
   }
 
-  const mergeElements = function() {
-    return elementsOld
-      .concat(elementsOriginal
-        .filter(v => !structureMatches
-          .find(w => w.to[0] === v[0][0] && w.to[1] === v[0][1])
-        )
-      )
+  const exportElements = function() {
+    return elements.concat(elementsOld
+      .filter(elem => !structureMatches
+        .find(sm => compareArrays(sm.from, elem[0].slice(0, 2)))
+      ))
+  }
+
+  const mergeShuffles = function(shuffles, shufflesOld) {
+    const result = shuffles.concat(shufflesOld
+      .filter(({iter, name}) => !structureMatches
+        .find(sm => compareArrays(adaptForShuffles(sm.from), [iter, name]))
+      ))
+
+    return result
   }
 
   // modifies generatedValues by pushing rematches
-  const matchGeneratedValues = function(generatedValuesInherited) {
-    const result = []
-
-    for (const value of generatedValuesInherited) {
+  const matchGeneratedValues = function(generatedValuesOld) {
+    const result = generatedValuesOld.map((value) => {
       const match = structureMatches
         .find(v => compareArrays(v.from, value.slice(0, 2)))
 
-      if (match) {
-        result.push([...match.to, value[2], value[3]])
-      }
-    }
+      return match
+        ? [...match.to, value[2], value[3]]
+        : value
+    })
 
-    return generatedValuesInherited.concat(result)
+    return result
   }
 
-  const reorderMatcher = function(reordersOld) {
-    const matchReorder = function(reorder) {
-      const match = structureMatches
-        .find(({to}) => compareArrays([reorder.iter, reorder.name], adaptForReorders(to)))
+  const matchShuffles = function(shufflesOld, setToShuffleMap) {
+    const matchReorder = function(shuffle) {
+      const match /*
+      a structure match that maps to the new shuffle location
+      */ = structureMatches
+        .find(({to}) => {
+          const [toIter, toSet] = to
+          return compareArrays([shuffle.iter, shuffle.name], adaptForShuffles([toIter, setToShuffleMap[toSet]]))
+        })
 
-      const reorderOld = match
+
+      const shuffleOld /*
+      an old shuffle that is mapped to by the found structure match
+      */ = match
         // search if inherited numbered set
-        ? reordersOld.find(({iter, name}) => compareArrays([iter, name], adaptForReorders(match.from)))
-        : Number.isNaN(Number(reorder.name))
+        ? shufflesOld.find(({iter, name}) => {
+          const [matchIter, matchSet] = match.from
+          return compareArrays([iter, name], adaptForShuffles([matchIter, setToShuffleMap[matchSet]]))
+        })
+        : Number.isNaN(Number(shuffle.name))
         // search if inherited named set
-        ? reordersOld.find(({name}) => reorder.name === name)
+        ? shufflesOld.find(({name}) => shuffle.name === name)
         : null
 
-      return reorderOld
-        ? reorderOld.shuffle
+      return shuffleOld
+        ? shuffleOld.shuffle
         : null
     }
 
@@ -117,9 +133,10 @@ export const structureMatcher = function(
 
   return {
     matchGeneratedValues: matchGeneratedValues,
-    reorderMatcher: reorderMatcher,
+    matchShuffles: matchShuffles,
     reorderForRendering: reorderForRendering,
-    mergeElements: mergeElements,
+    exportElements: exportElements,
+    mergeShuffles: mergeShuffles,
   }
 }
 

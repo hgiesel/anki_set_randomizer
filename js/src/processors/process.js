@@ -5,6 +5,27 @@ import elementMatcher from './matchElem.js'
 import pregenManager from './expand/pregen.js'
 import expand from './expand/expand.js'
 
+const filterElements = function(elements, markedForDeletion) {
+  const setToShuffleMap = {}
+  const elementsFiltered = []
+
+  for (const [setId, set] of elements.entries()) {
+    if (markedForDeletion.includes(setId)) {
+      setToShuffleMap[setId] = null
+    }
+
+    else {
+      const newId = elementsFiltered.push(set) - 1
+      setToShuffleMap[setId] = newId
+    }
+  }
+
+  return [
+    elementsFiltered,
+    setToShuffleMap,
+  ]
+}
+
 export const process = function(
   elements,
   generatedValues,
@@ -27,16 +48,21 @@ export const process = function(
   const markedForDeletion = elemMatcher.exportMarkedForDeletion()
   const elementsExpanded = elementsMatched
     .map(set => set.flatMap(elem => expand(pregenMngr, ...elem)))
-    .filter((_, idx) => !markedForDeletion.includes(idx))
+
+  const [
+    elementsFiltered,
+    setToShuffleMap,
+  ] = filterElements(elementsExpanded, markedForDeletion)
 
   return [
-    elementsExpanded,
+    elementsFiltered,
     pregenMngr.exportGeneratedValues(),
     pregenMngr.exportUniqConstraints(),
     elemMatcher.exportValueSets(),
     elemMatcher.exportStatements(),
     elemMatcher.exportYanks(),
     ss.exportStyleDefinitions(),
+    setToShuffleMap,
   ]
 }
 

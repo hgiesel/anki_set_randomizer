@@ -46,6 +46,7 @@ const main2 = function(
       statements,
       yanks,
       styles,
+      setToShuffleMap,
     ] = process(
       elementsOriginal,
       sm.matchGeneratedValues(generatedValuesOld),
@@ -67,7 +68,7 @@ const main2 = function(
       orders,
     ] = randomize(
       elementsShuffle /* is modified */,
-      sm.reorderMatcher(shufflesOld),
+      sm.matchShuffles(shufflesOld, setToShuffleMap),
       ordersOld,
       ...re.exportRandomizationData(),
     )
@@ -81,7 +82,7 @@ const main2 = function(
       ordersForced,
     ] = randomize(
       elementsForce /* is modified */,
-      sm.reorderMatcher(shufflesForcedOld),
+      sm.matchShuffles(shufflesForcedOld, setToShuffleMap),
       ordersForcedOld,
       ...re.exportRandomizationData(true),
     )
@@ -101,13 +102,13 @@ const main2 = function(
 
     //////////////////////////////////////////////////////////////////////////////
     return [[
-      sm.mergeElements(),
+      sm.exportElements(),
       generatedValues,
       uniquenessConstraints,
 
-      shufflesOld.concat(shuffles),
+      sm.mergeShuffles(shuffles, shufflesOld),
       orders,
-      shufflesForcedOld.concat(shufflesForced),
+      sm.mergeShuffles(shufflesForced, shufflesForcedOld),
       ordersForced,
 
       randomIndices,
