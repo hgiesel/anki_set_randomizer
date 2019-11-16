@@ -6,7 +6,7 @@ import {
   escapeString,
 } from './util.js'
 
-export const formatter = function(inputSyntax, injections, iterIndex) {
+export const formatter = function(inputSyntax, injections, iterName) {
   let _isInvalid = false
   const _isContained = false
 
@@ -121,7 +121,7 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
       ))
 
     const elementsOriginal = elementsRaw
-      .map((set, i) => set.map((elem, j) => [iterIndex, i, j, elem, 'n']))
+      .map((set, i) => set.map((elem, j) => [iterName, i, j, elem, 'n']))
 
     deleteFromFoundStructure(theSelector, markedForDeletion)
     return _elementsOriginal[theSelector] = elementsOriginal
@@ -134,7 +134,7 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
     const currentHtmls = theHtml.map(html => html.innerHTML)
 
     for (const [idx, value] of stylizedResults.entries()) {
-      if (stylizedResults[idx] /* when display:meta */) {
+      if (typeof value === 'string' /* for display=meta */) {
         const associations = theFoundStructure[idx]
         const currentHtml = currentHtmls[associations.tagId]
 
