@@ -1,6 +1,6 @@
 {
     "description": "SR Cloze v1.0",
-    "enabled": true,
+    "enabled": false,
     "injections": [
         {
             "conditions": [
@@ -380,9 +380,17 @@
         },
         {
             "conditions": [
-                "iter",
-                "endsWith",
-                "reveal"
+                "|",
+                [
+                    "card",
+                    "=",
+                    "Back"
+                ],
+                [
+                    "iter",
+                    "endsWith",
+                    "reveal"
+                ]
             ],
             "description": "",
             "enabled": true,
@@ -881,7 +889,7 @@
         "clozeOptions": {
             "closeDelim": "]]",
             "openDelim": "[[",
-            "shortcutsEnabled": false,
+            "shortcutsEnabled": true,
             "vsPrefix": "c"
         },
         "occlusionOptions": {}
