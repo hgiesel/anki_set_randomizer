@@ -31,11 +31,9 @@ const styleAccessor = function(styleDefinitions, styleApplications, randomIndice
         const maybeStyle = styleDefinitions
           .find(s => s.name === name)
 
-        if (maybeStyle) {
-          return maybeStyle.stylings
-        }
-
-        return []
+        return maybeStyle
+          ? maybeStyle.stylings
+          : []
       })
 
     /* safenav */

@@ -25,16 +25,16 @@ const initStyle = name => ({
 })
 
 const noneStyle = initStyle('none')
-noneStyle.display = 'none'
+noneStyle.stylings.display = 'none'
 
 const metaStyle = initStyle('meta')
-noneStyle.display = 'meta'
+metaStyle.stylings.display = 'meta'
 
 const blockStyle = initStyle('block')
-blockStyle.openDelim = ''
-blockStyle.closeDelim = ''
-blockStyle.fieldPadding = 0
-noneStyle.display = 'block'
+blockStyle.stylings.openDelim = ''
+blockStyle.stylings.closeDelim = ''
+blockStyle.stylings.fieldPadding = 0
+blockStyle.stylings.display = 'block'
 
 const defaultStyleDefinitions = [
   noneStyle,
