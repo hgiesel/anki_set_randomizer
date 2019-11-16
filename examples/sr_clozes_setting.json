@@ -1,6 +1,6 @@
 {
     "description": "SR Cloze v1.0",
-    "enabled": false,
+    "enabled": true,
     "injections": [
         {
             "conditions": [

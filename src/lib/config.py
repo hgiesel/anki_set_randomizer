@@ -74,7 +74,6 @@ def serialize_iteration(it) -> dict:
         }
     }
 
-
 def serialize_injection(inj) -> dict:
     return {
         'name': inj.name,
@@ -193,14 +192,7 @@ def deserialize_setting_with_default(model_name, settings):
         model_deserialized = deserialize_setting(model_name, next(found))
 
     except StopIteration as e:
-        model_deserialized = SRSetting(
-            model_name,
-            model_default.enabled,
-            model_default.insert_anki_persistence,
-            model_default.paste_into_template,
-            model_default.iterations,
-            model_default.injections,
-        )
+        model_deserialized = deserialize_setting(model_name, model_default)
 
     return model_deserialized
 
