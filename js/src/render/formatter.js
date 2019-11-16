@@ -116,7 +116,6 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
     }
 
     const theFoundStructure = getFoundStructure(theSelector)
-    const markedForDeletion = []
 
     const injectionKeyword = '$inject()'
     const metaKeyword = '$meta()'
@@ -124,21 +123,19 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
     const trueInjections = injections
       .map(injectionSet => injectionSet.concat(metaKeyword))
 
+    const markedForDeletion = []
+
     const elementsRaw = theFoundStructure
       .map(group => group.split(inputSyntax.isRegex
         ? new RegExp(inputSyntax.fieldSeparator, 'u')
         : inputSyntax.fieldSeparator))
-      .flatMap(set => (
+      .flatMap((set, idx) => (
         set.includes(injectionKeyword)
-          ? [set].concat(trueInjections)
+          ? (markedForDeletion.push(idx), [set].concat(trueInjections))
+          : set.includes(metaKeyword)
+          ? (markedForDeletion.push(idx), [set])
           : [set]
       ))
-
-    elementsRaw.forEach((set, idx) => {
-      if (set.includes(metaKeyword)) {
-        markedForDeletion.push(idx)
-      }
-    })
 
     const elementsOriginal = elementsRaw
       .map((set, i) => set.map((elem, j) => [iterIndex, i, j, elem, 'n']))

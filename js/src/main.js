@@ -36,18 +36,17 @@ const main2 = function(
     // SHUFFLING
     const [
       elementsShuffle,
-      yanks,
-      valueSets,
       generatedValues,
       uniquenessConstraints,
+      valueSets,
+      statements,
+      yanks,
       styles,
-      lateEvaluation,
     ] = process(
       elementsOriginal,
       sm.matchGeneratedValues(generatedValuesOld),
       uniquenessConstraintsOld,
       defaultStyle,
-      iterName,
     )
 
     const re = ruleEngine(
@@ -57,7 +56,7 @@ const main2 = function(
       iterName,
     )
 
-    re.lateEvaluate(...lateEvaluation)
+    re.lateEvaluate(...statements)
 
     const reordersShuffle = randomize(
       elementsShuffle /* is modified */,
@@ -67,7 +66,7 @@ const main2 = function(
 
     //////////////////////////////////////////////////////////////////////////////
     // FILTER DELETED + FORCING
-    const [elementsForce] = process(elementsShuffle, [], [], iterName)
+    const [elementsForce] = process(elementsShuffle, [], [], defaultStyle)
 
     const reordersForce = randomize(
       elementsForce /* is modified */,

@@ -1,16 +1,16 @@
 import {
   amountStar,
   vsStar,
-} from '../util.js'
+} from '../../util.js'
 
 import {
-  expandPickValueSet as epvs,
-  expandValueSet as evs,
-} from './expandVs.js'
+  expandPickValueSet as expandPickValueSetOrig,
+  expandValueSet as expandValueSetOrig,
+} from './vs.js'
 
 import {
-  expandPickNumber as epn,
-} from './expandNumber.js'
+  expandPickNumber as expandPickNumberOrig,
+} from './number.js'
 
 const isPregenNecessaryFromVs = function(amount, vs) {
   return (amount.type !== amountStar
@@ -22,7 +22,11 @@ const isPregenNecessaryFromPickNumber = function(amount) {
 }
 
 // Adapter for expanders
-export const pregenManager = function(generatedValues, uniqConstraints) {
+export const pregenManager = function(generatedValues, uniqConstraints, valueSets, evaluators) {
+  const evs = args => expandValueSetOrig(uniqConstraints, valueSets, evaluators, ...args)
+  const epvs = args => expandPickValueSetOrig(uniqConstraints, valueSets, ...args)
+  const epn = args => expandPickNumberOrig(uniqConstraints, ...args)
+
   const pregenChecker = function(iterName, setIndex, elemIndex) {
     const checkForPregen = function() {
       let pregen = null
@@ -40,42 +44,36 @@ export const pregenManager = function(generatedValues, uniqConstraints) {
       return null
     }
 
-    const callthrough = function(f, argumentz, trulyRandom = false) {
+    const callthrough = function(f, args, trulyRandom = false) {
       let resultValues = null
 
       if (trulyRandom) {
         resultValues = checkForPregen()
 
         if (!resultValues) {
-          resultValues = f(uniqConstraints, ...argumentz)
+          resultValues = f(args)
         }
 
         generatedValues.push([iterName, setIndex, elemIndex, resultValues])
       }
 
       else {
-        resultValues = f(uniqConstraints, ...argumentz)
+        resultValues = f(args)
       }
 
       return resultValues.map(v => [iterName, setIndex, elemIndex, v, 'n'])
     }
 
-    const expandPickNumber = (...argumentz) => callthrough(
-      epn,
-      argumentz,
-      isPregenNecessaryFromPickNumber(argumentz[0]),
+    const expandPickNumber = (...args) => callthrough(
+      epn, args, isPregenNecessaryFromPickNumber(args[0]),
     )
 
-    const expandPickValueSet = (...argumentz) => callthrough(
-      epvs,
-      argumentz,
-      isPregenNecessaryFromVs(argumentz[0], argumentz[1]),
+    const expandPickValueSet = (...args) => callthrough(
+      epvs, args, isPregenNecessaryFromVs(args[0], args[1]),
     )
 
-    const expandValueSet = (...argumentz) => callthrough(
-      evs,
-      argumentz,
-      isPregenNecessaryFromVs(argumentz[0], argumentz[1]),
+    const expandValueSet = (...args) => callthrough(
+      evs, args, isPregenNecessaryFromVs(args[0], args[1]),
     )
 
     return {
@@ -94,3 +92,5 @@ export const pregenManager = function(generatedValues, uniqConstraints) {
     exportUniqConstraints: exportUniqConstraints,
   }
 }
+
+export default pregenManager

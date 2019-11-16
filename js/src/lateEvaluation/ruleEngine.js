@@ -29,8 +29,9 @@ import {
 // Adapter for numbered.js evals
 export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterNameOuter) {
   const elementsValues = elements
-    .flat()
-    .filter(elem => isSRToken(elem[3], 'value'))
+    .map(set => set
+      .filter(elem => isSRToken(elem[3], 'value'))
+    )
 
   const namedSets = createDefaultNames(elements, iterNameOuter)
   const orderConstraints = []
@@ -46,11 +47,15 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
     f, iterName, setIndex, elemIndex, appliedName, rule,
     ...argumentz
   ) {
-    const g = function(vs, [
-      iterNameInner,
-      setIndexInner,
-      elemIndexInner,
-      content]) {
+    const g = function(
+      vs, [
+        iterNameInner,
+        setIndexInner,
+        elemIndexInner,
+        content,
+      ],
+      trueSetId,
+    ) {
       const [
         vsName,
         vsSub,
@@ -67,7 +72,7 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
           namedSets,
           yanks,
           appliedName,
-          setIndexInner,
+          trueSetId || setIndexInner,
         )
 
         callthrough(
@@ -90,13 +95,23 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
           for (const value of uniqSet.values
             .filter(v => isSRToken(v, 'value'))
           ) {
-            elementsValues.forEach(elem => g(preprocessVs(fromSRToken(value, true)), elem))
+            const vsMember = preprocessVs(fromSRToken(value, true))
+
+            for (const setId in elementsValues) {
+              for (const elem of elementsValues[setId]) {
+                g(vsMember, elem, Number(setId))
+              }
+            }
           }
         }
         break
 
       case vsSome:
-        elementsValues.forEach(elem => g(rule, elem))
+        for (const setId in elementsValues) {
+          for (const elem of elementsValues[setId]) {
+            g(rule, elem, Number(setId))
+          }
+        }
         break
 
       case vsNone: default:
