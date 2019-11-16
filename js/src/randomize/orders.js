@@ -105,10 +105,14 @@ export const processOrderConstraints = function(
       }
     }
 
-    result.push({
-      name: oc.name,
-      order: detectDictator(namedSets, elements, shuffler, oc).shuffle,
-    })
+    const maybeDictator = detectDictator(namedSets, elements, shuffler, oc)
+
+    if (maybeDictator) {
+      result.push({
+        name: oc.name,
+        order: maybeDictator.shuffle,
+      })
+    }
   }
 
   orderConstraints

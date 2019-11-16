@@ -33,7 +33,7 @@ const analyzeName = function(
   }
 
   else if (!evalNames) {
-    return name1
+    return [name1]
   }
 
   else if (foundSets) {

@@ -60,7 +60,7 @@ export const processOrder = function(
 
   else {
     const maybeNs = namedSets.find(ns => ns.name === correspondingSets[0])
-    theNames = maybeNs ? maybeNs.name : []
+    theNames = maybeNs ? [maybeNs.name] : []
   }
 
   let theOc = null
