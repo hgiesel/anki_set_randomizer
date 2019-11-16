@@ -18,6 +18,8 @@ export const typeName = Symbol('typeName')
 
 export const amountCount = Symbol('amountCount')
 export const amountStar = Symbol('amountStar')
+export const amountPlus = Symbol('amountPlus')
+export const amountQuestion = Symbol('amountQuestion')
 
 export const uniqSome = Symbol('uniqSome')
 export const uniqCond = Symbol('uniqCond')

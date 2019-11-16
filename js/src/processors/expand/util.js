@@ -1,7 +1,7 @@
 import {
   vsStar, vsSelf,
   uniqSome, uniqCond,
-  amountStar,
+  amountCount, amountStar, amountPlus, amountQuestion,
 
   fromSRToken,
 } from '../../util.js'
@@ -168,13 +168,40 @@ export const getUniqProcessor = function(uniqConstraints) {
   }
 }
 
+const amountHandler = function(amount) {
+  switch (amount.type) {
+    case amountCount:
+      return {
+        canStop: v => v === amount.value,
+        isSufficient: v => v === amount.value,
+      }
+
+    case amountStar:
+      return {
+        canStop: () => false,
+        isSufficient: () => true,
+      }
+
+    case amountPlus:
+      return {
+        canStop: () => false,
+        isSufficient: v => v >= 1,
+      }
+
+    case amountQuestion: default:
+      return {
+        canStop: v => v === 1,
+        isSufficient: () => true,
+      }
+  }
+}
+
 export const generate = function(generator, validator, amount) {
   const values = []
+  const ah = amountHandler(amount)
 
   for (const value of generator) {
-    const stop = amount.type !== amountStar && values.length === amount.value
-
-    if (stop) {
+    if (ah.canStop(values.length)) {
       generator.return()
     }
 
@@ -185,6 +212,6 @@ export const generate = function(generator, validator, amount) {
 
   return {
     values: values,
-    sufficient: /* for eval */ amount.type === amountStar || values.length === amount.value
+    sufficient /* for eval */: ah.isSufficient(values.length),
   }
 }

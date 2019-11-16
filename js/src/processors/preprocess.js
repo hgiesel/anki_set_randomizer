@@ -1,14 +1,9 @@
 import {
   vsNone, vsSome, vsStar, vsSelf,
-
   pickInt, pickReal,
-
   typeRel, typeAbs, typeAbsNeg, typeAll,
-
   typeAbsYank, typeAllYank, typeName,
-
-  amountStar, amountCount,
-
+  amountCount, amountStar, amountPlus, amountQuestion,
   uniqSome, uniqCond, uniqNone,
 } from '../util.js'
 
@@ -168,6 +163,20 @@ export const preprocessAmount = function(amountText, defaultAmount = 1) {
   if (amountText === '*' || (!amountText && defaultAmount === amountStar)) {
     return {
       'type': amountStar,
+      'value': null,
+    }
+  }
+
+  else if (amountText === '+' || (!amountText && defaultAmount === amountPlus)) {
+    return {
+      'type': amountPlus,
+      'value': null,
+    }
+  }
+
+  else if (amountText === '?' || (!amountText && defaultAmount === amountQuestion)) {
+    return {
+      'type': amountQuestion,
       'value': null,
     }
   }

@@ -40,7 +40,7 @@ export const valueSetPattern = new RegExp(`^\\$${namePattern}`
   + `(\\W)` /* separator character */
   + `((?:.|\\n|\\r)*)`, 'u')
 
-const amountPattern = '(\\d+|\\*)'
+const amountPattern = '(\\d+|\\*|\\+|\\?)'
 
 const intPattern = '\\d+'
 const realPattern = `\\d+(?:\\.\\d*)?`

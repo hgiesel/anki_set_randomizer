@@ -4,7 +4,7 @@
 import {
   pickInt, pickReal,
   uniqSome, uniqCond,
-  amountCount,
+  amountCount, amountPlus, amountQuestion,
   toSRToken,
 
   vsSerialize,
@@ -50,7 +50,13 @@ export const processPick = function(amount, pick, uniq) {
 
   const amountText = amount.type === amountCount
     ? String(amount.value)
+    : amount.type === amountPlus
+    ? '+'
+    : amount.type === amountQuestion
+    ? '?'
+    // : amount.type === amountStar
     : '*'
+
 
   switch (pick.type) {
     case pickInt:
