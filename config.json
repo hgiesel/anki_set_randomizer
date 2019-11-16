@@ -93,14 +93,14 @@
       "injections": [
         {
           "name": "Example Injection",
-          "description": "This is an example injection",
+          "description": "",
           "enabled": false,
           "conditions": ["&",
               ["tag", "=", "allred"],
               ["card", "endsWith", "allred"],
               ["iter", "includes", "allred"]
           ],
-          "statements": ["$style(default, clrs=[red])"]
+          "statements": ["$style(default, colors=red)"]
         }
       ],
       "sourceMode": {
