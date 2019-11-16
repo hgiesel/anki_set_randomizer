@@ -45,16 +45,12 @@ export const createDefaultNames = function(elements, iterName) {
 export const processOrder = function(
   iterName, setIndex, posIndex, correspondingSets,
 
-  orderName, noEvalNames, options, orderConstraints, orderApplications, namedSets,
+  orderName, options, orderConstraints, orderApplications, namedSets,
 ) {
   const actualOrderName = getActual(orderName)
 
   let theNames = null
-  if (typeof noEvalNames[0] === 'string' && noEvalNames.length === 1) {
-    theNames = noEvalNames
-  }
-
-  else if (typeof correspondingSets[0] === 'number') {
+  if (typeof correspondingSets[0] === 'number') {
     theNames = correspondingSets
       .map(set => processNamedSet(
         iterName, setIndex, posIndex, [set],

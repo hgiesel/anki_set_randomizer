@@ -9,7 +9,14 @@ import {
   typeName,
 } from '../util.js'
 
-const analyzeName = function(elements, yanks, namedSets, [name1, name2, name3, name4], allowYanks = true) {
+const analyzeName = function(
+  elements,
+  yanks,
+  namedSets,
+  [name1, name2, name3, name4],
+  evalNames,
+  allowYanks,
+) {
   const foundSets = namedSets
     .find(v => v.name === name1)
 
@@ -25,9 +32,14 @@ const analyzeName = function(elements, yanks, namedSets, [name1, name2, name3, n
       : []
   }
 
+  else if (!evalNames) {
+    return name1
+  }
+
   else if (foundSets) {
     return foundSets.sets
   }
+
 
   else if (!allowYanks) {
     return []
@@ -81,8 +93,8 @@ export const getCorrespondingSets = function(
   name,
   currentPos,
 
-  evalNames = true,
-  allowYanks = true,
+  evalNames /* evaluate a single name to its corresponding sets */,
+  allowYanks /* allow names that designate yanks */,
 ) {
   switch (name.type) {
     /* returns [number] */
@@ -110,8 +122,6 @@ export const getCorrespondingSets = function(
         : []
 
     case typeName: default:
-      return evalNames
-        ? analyzeName(elements, yanks, namedSets, name.values)
-        : name.values
+      return analyzeName(elements, yanks, namedSets, name.values, evalNames, allowYanks)
   }
 }

@@ -46,7 +46,7 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
   }
 
   const rulethrough = function(
-    f, iterName, setIndex, elemIndex, appliedName, rule,
+    f, iterName, setIndex, elemIndex, appliedName, evalNames, allowYanks, rule,
     ...argumentz
   ) {
     const g = function(
@@ -75,6 +75,8 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
           yanks,
           appliedName,
           trueSetId || setIndexInner,
+          evalNames,
+          allowYanks,
         )
 
         callthrough(
@@ -123,6 +125,8 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
           yanks,
           appliedName,
           setIndex,
+          evalNames,
+          allowYanks,
         )
 
         callthrough(
@@ -144,7 +148,7 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
     rule, shuffleName, appliedName, options,
   ) {
     rulethrough(
-      pns, iterName, setIndex, posIndex, appliedName, rule,
+      pns, iterName, setIndex, posIndex, appliedName, true, false, rule,
       shuffleName, options, namedSets,
     )
   }
@@ -154,19 +158,9 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
 
     rule, orderName, appliedName, options,
   ) {
-    const noEvalNames = getCorrespondingSets(
-      elements,
-      namedSets,
-      yanks,
-      appliedName,
-      setIndex,
-      false,
-      false,
-    )
-
     rulethrough(
-      po, iterName, setIndex, posIndex, appliedName, rule,
-      orderName, noEvalNames, options, orderConstraints, orderApplications, namedSets,
+      po, iterName, setIndex, posIndex, appliedName, false, false, rule,
+      orderName, options, orderConstraints, orderApplications, namedSets,
     )
   }
 
@@ -184,7 +178,7 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
     rule, styleName, appliedName,
   ) {
     rulethrough(
-      pa, iterName, setIndex, posIndex, appliedName, rule,
+      pa, iterName, setIndex, posIndex, appliedName, true, true, rule,
       styleName, styleApplications,
     )
   }
