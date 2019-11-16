@@ -69,11 +69,7 @@ export const expand = function(
     }
   }
 
-  return mode === 'd' /* deleted */
-    ? []
-    : result
-    ? result
-    : [[iterName, setIndex, elemIndex, content, mode]]
+  return result || [[iterName, setIndex, elemIndex, content, mode]]
 }
 
 export default expand

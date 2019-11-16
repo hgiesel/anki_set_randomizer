@@ -53,8 +53,11 @@ const valuePicker = function(valueSets) {
   }
 }
 
-const wrapWithRecordTag = function(delimColor, delimClass, text) {
-  return `<record${delimColor ? ` style="color: ${delimColor}"` : ''}${delimClass ? ` class="${delimClass}"` : ''}>${text}</record>`
+const wrapWithSetTag = function(delimColor, delimClass, text) {
+  const delimClr = delimColor ? ` style="color: ${delimColor}"` : ''
+  const delimCls = delimClass ? ` class="${delimClass}"` : ''
+
+  return `<set${delimClr}${delimCls}>${text}</set>`
 }
 
 export const renderSets = function(
@@ -95,12 +98,12 @@ export const renderSets = function(
           ? ''
           : ` color: ${pa.getProp(['colors', 'values', theIndex], [/* preds */], '')};`
 
-        const className = `class="set-randomizer--element set-randomizer--element-index-${setIndex}-${elemIndex}"`
+        const className = ` class="sr--element sr---index-${setIndex}-${elemIndex}"`
         const blockDisplay = pa.getProp(['block'])
           ? ' display: block;'
           : ''
 
-        const style = `style="padding: 0px ${pa.getProp(['fieldPadding'])}px;${colorChoice}${blockDisplay}"`
+        const style = ` style="padding: 0px ${pa.getProp(['fieldPadding'])}px;${colorChoice}${blockDisplay}"`
 
         const pickedValue = vp.pickValue(elemContent, pa.getProp(['colors', 'rules'], [/* preds */], [/* default */]), pa.getProp(['classes', 'rules'], [/* preds */], [/* default */]))
 
@@ -110,11 +113,11 @@ export const renderSets = function(
 
           const theValue = filterTags
             ? displayBlock
-            ? `<record ${className} ${style}><div>${treatNewlines(pickedValue).replace(htmlTagsNoBrRegex, '')}</div></record>`
-            : `<record ${className} ${style}>${pickedValue.replace(htmlTagsRegex, '')}</record>`
+              ? `<element${className}${style}><div>${treatNewlines(pickedValue).replace(htmlTagsNoBrRegex, '')}</div></element>`
+              : `<element${className}${style}>${pickedValue.replace(htmlTagsRegex, '')}</element>`
             : displayBlock
-            ? `<record ${className} ${style}><div>${treatNewlines(pickedValue)}</div></record>`
-            : `<record ${className} ${style}>${pickedValue}</record>`
+              ? `<element${className}${style}><div>${treatNewlines(pickedValue)}</div></element>`
+              : `<element${className}${style}>${pickedValue}</element>`
 
           actualValues.push(theValue)
         }
@@ -125,7 +128,7 @@ export const renderSets = function(
       stylizedResults[set.order] = ''
     }
     else if (actualValues.length === 0 || pa.getProp(['display']) === 'empty') {
-      stylizedResults[set.order] = wrapWithRecordTag(pa.getProp(['colors', 'delim']), pa.getProp(['classes', 'delim']),
+      stylizedResults[set.order] = wrapWithSetTag(pa.getProp(['colors', 'delim']), pa.getProp(['classes', 'delim']),
         `${pa.getProp(['openDelim'])}`
         + `${pa.getProp(['emptySet'])}`
         + `${pa.getProp(['closeDelim'])}`
@@ -135,7 +138,7 @@ export const renderSets = function(
       stylizedResults[set.order] = null
     }
     else {
-      stylizedResults[set.order] = wrapWithRecordTag(pa.getProp(['colors', 'delim']), pa.getProp(['classes', 'delim']),
+      stylizedResults[set.order] = wrapWithSetTag(pa.getProp(['colors', 'delim']), pa.getProp(['classes', 'delim']),
         `${pa.getProp(['openDelim'])}`
         + `${actualValues.join(pa.getProp(['fieldSeparator']))}`
         + `${pa.getProp(['closeDelim'])}`

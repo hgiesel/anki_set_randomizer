@@ -6,13 +6,9 @@ import {
   escapeString,
 } from './util.js'
 
-import {
-  toSRToken,
-} from '../util.js'
-
 export const formatter = function(inputSyntax, injections, iterIndex) {
   let _isInvalid = false
-  let _isContained = false
+  const _isContained = false
 
   const isInvalid = function() {
     return _isInvalid
@@ -40,35 +36,6 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
     }
   }
 
-  const elemDelim = toSRToken(['ELEMDELIM'])
-
-  // a single big string with inserted elemDelims
-  const _rawStructure = {}
-  const getRawStructure = function(theSelector = inputSyntax.cssSelector) {
-    if (_rawStructure[theSelector]) {
-      return _rawStructure[theSelector]
-    }
-
-    const theHtml = getHtml(theSelector)
-
-    if (!theHtml || theHtml.length === 0) {
-      _isInvalid = true
-      return _rawStructure[theSelector] = ''
-    }
-
-    const theRawStructure = theHtml
-      .map(v => v.innerHTML)
-      .join(elemDelim)
-
-    if (theRawStructure.includes('SET RANDOMIZER FRONT TEMPLATE')
-      || theRawStructure.includes('SET RANDOMIZER BACK TEMPLATE')
-    ) {
-      _isContained = true
-    }
-
-    return _rawStructure[theSelector] = theRawStructure
-  }
-
   const exprContent = '((?:.|\\n|\\r)*?)'
   const exprString = inputSyntax.isRegex
       ? `${inputSyntax.openDelim}${exprContent}${inputSyntax.closeDelim}`
@@ -76,13 +43,19 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
 
   // the found sets in the text
   const _foundStructure = {}
+  const _associations = {}
+
+  const getAssociations = function(theSelector = inputSyntax.cssSelector) {
+    return _associations[theSelector]
+  }
+
   const getFoundStructure = function(theSelector = inputSyntax.cssSelector) {
     if (_foundStructure[theSelector]) {
       return _foundStructure[theSelector]
     }
 
     const theFoundStructure = []
-    const theRawStructure = getRawStructure(theSelector)
+    const theAssociations = []
 
     let exprRegex = null
     try {
@@ -93,19 +66,33 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
       return _foundStructure[theSelector] = []
     }
 
-    let m = exprRegex.exec(theRawStructure)
+    for (const [idx, tag] of getHtml(theSelector).entries()) {
+      const theText = tag.innerHTML
+      let re = exprRegex.exec(theText)
 
-    while (m) {
-      theFoundStructure.push(m[1])
-      m = exprRegex.exec(theRawStructure)
+      while (re) {
+        theAssociations.push([idx, theText.length, re.index, re[0].length])
+        theFoundStructure.push(re[1])
+
+        re = exprRegex.exec(theText)
+      }
     }
 
-    return _foundStructure[theSelector] = theFoundStructure
+    _associations[theSelector] = theAssociations
+    _foundStructure[theSelector] = theFoundStructure
+
+    return theFoundStructure
   }
 
   const deleteFromFoundStructure = function(theSelector = inputSyntax.cssSelector, markedForDeletion) {
-    _foundStructure[theSelector] = _foundStructure[theSelector]
-      .filter((set, idx) => !markedForDeletion.includes(idx))
+    for (const idx of markedForDeletion) {
+      delete _foundStructure[theSelector][idx]
+      delete _associations[theSelector][idx]
+    }
+
+    // filtered out elements made empty
+    _foundStructure[theSelector] = _foundStructure[theSelector].filter(() => true)
+    _associations[theSelector] = _associations[theSelector].filter(() => true)
   }
 
   // 2d list of elements in the form of [[i, j, element]]
@@ -145,21 +132,21 @@ export const formatter = function(inputSyntax, injections, iterIndex) {
   }
 
   const outputSets = function(stylizedResults, theSelector = inputSyntax.cssSelector) {
-    let theRawStructure = getRawStructure(theSelector)
+    const theHtml = getHtml(theSelector)
+    const theAssociations = getAssociations(theSelector)
 
-    for (const [i, value] of getFoundStructure(theSelector).entries()) {
-      if (stylizedResults[i] !== null /* when display:meta */) {
-        theRawStructure = theRawStructure
-          .replace((inputSyntax.isRegex
-            ? new RegExp(`${inputSyntax.openDelim}${escapeString(value)}${inputSyntax.closeDelim}`, 'u')
-            : `${inputSyntax.openDelim}${value}${inputSyntax.closeDelim}`), `${stylizedResults[i]}`)
+    for (const [idx, value] of stylizedResults.entries()) {
+      if (stylizedResults[idx] /* when display:meta */) {
+        const currentHtml = theHtml[theAssociations[idx][0]].innerHTML
+        const associations = theAssociations[idx]
+
+        theHtml[associations[0]].innerHTML = (
+          currentHtml.substring(0, associations[2] - (associations[1] - currentHtml.length))
+          + value
+          + currentHtml.substring(associations[2] + associations[3] - (associations[1] - currentHtml.length), currentHtml.length)
+        )
       }
     }
-
-    const theHtml = getHtml(theSelector)
-    theRawStructure
-      .split(elemDelim)
-      .forEach((v, i) => theHtml[i].innerHTML = v)
   }
 
   return {
