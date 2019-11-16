@@ -12,8 +12,27 @@ import {
   fromSRToken,
 } from '../util.js'
 
-const htmlTagsRegex = (/<.*?>/gu)
-const htmlTagsNoBrRegex = (/<(?!br>)[^>]*>/gu)
+const treatValue = function(value, block, filter) {
+  return block && filter
+    ? `<div>${treatNewlines(value).replace(filter, '')}</div>`
+    : block
+    ? `<div>${treatNewlines(value)}</div>`
+    : filter
+    ? value.replace(filter, '')
+    : value
+}
+
+const getHtmlTagsRegex = function(restrictTags, excludeTags) {
+  const restrictRegex = `(?:${restrictTags.join('|')})`
+  const excludeRegex = `(?:${excludeTags.join('|')})`
+
+  const resultRegex = new RegExp(
+    `<(?=\\/?${restrictRegex})(?!\\/?${excludeRegex})[^>]*>`,
+    'gu',
+  )
+
+  return resultRegex
+}
 
 const valuePicker = function(valueSets) {
   const pickValue = function(name, colorRules, classRules) {
@@ -107,16 +126,16 @@ export const renderSets = function(
         const pickedValue = vp.pickValue(elemContent, pa.getProp(['colors', 'rules'], [/* preds */], [/* default */]), pa.getProp(['classes', 'rules'], [/* preds */], [/* default */]))
 
         if (pickedValue) {
-          const filterTags = pa.getProp(['filterTags'])
-          const displayBlock = pa.getProp(['block'])
-
-          const newContent = displayBlock
-            ? filterTags
-              ? `<div>${treatNewlines(pickedValue).replace(htmlTagsNoBrRegex, '')}</div>`
-              : `<div>${treatNewlines(pickedValue)}</div>`
-            : filterTags
-              ? pickedValue.replace(htmlTagsNoBrRegex, '')
-              : pickedValue
+          const newContent = treatValue(
+            pickedValue,
+            pa.getProp(['block']),
+            pa.getProp(['filterTags'])
+              ? getHtmlTagsRegex(
+                pa.getProp(['filterTagsRestricted'], [/* preds */], []),
+                pa.getProp(['filterTagsExcluded'], [/* preds */], ['br']),
+              )
+              : null,
+          )
 
           const theValue = `<elem${className}${style}>${newContent}</elem>`
           actualValues.push(theValue)
