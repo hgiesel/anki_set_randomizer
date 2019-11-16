@@ -17,6 +17,7 @@
     "document": "readonly",
     "window": "readonly",
     "Persistence": "readonly",
+    "DOMParser": "readonly",
     "$$iterations": "readonly",
     "$$injections": "readonly"
   },

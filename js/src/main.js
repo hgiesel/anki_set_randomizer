@@ -1,5 +1,6 @@
 import structureMatcher from './matching.js'
 import process from './processors/process.js'
+import postprocess from './processors/postprocess.js'
 
 import ruleEngine from './lateEvaluation/ruleEngine'
 import randomize from './randomize/randomize.js'
@@ -77,7 +78,7 @@ const main2 = function(
 
     //////////////////////////////////////////////////////////////////////////////
     // FILTER DELETED + FORCING
-    const [elementsForce] = process(elementsShuffle, [], [], defaultStyle)
+    const elementsForce = postprocess(elementsShuffle)
 
     const [
       shufflesForced,

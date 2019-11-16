@@ -1,0 +1,98 @@
+<set>                ::= <open-delim> , <field> , <close-delim>;
+<field>              ::= <element> , [ <field-separator> , <field> ];
+<element>            ::= <text-element> | <value-set> | <function-element>;
+
+<text-element>       ::= (* all Unicode character except
+                     <field-separator> and <close-delim> and not starting with "$" *);
+
+<value-set>          ::= "$" , <qual-identifier> , { <value-set-delim> , <value> };
+<value>              ::= <text-element> (* with special escapting rules *);
+<value-set-delim>    ::= "|" | "@" | "#" | "^" | …;
+
+<function-element>   ::= <generator-function> | <shuffle-function> | <styling-function>;
+
+<generator-function> ::= <pick-function> | <eval-function> | <yank-function>;
+<yank-type>          ::= "rect" | "ellipse" | "polygon" | "line" | "arrow" | "darrow" | "text"
+
+<pick-function>      ::= "$pick"
+                     , <open-paren>
+                     , [ <amount-expr> , <comma-left> ]
+                     , <value-set-expr>
+                     , { <comma-right> , <gen-kwarg> }
+                     , <close-paren>;
+
+<eval-function>      ::= "$eval"
+                     , <open-paren>
+                     , [ <amount-expr> , <comma-left> ]
+                     , <value-set-expr>
+                     , { <comma-right> , <gen-kwarg> }
+                     , <close-paren>;
+
+<yank-function>      ::= "$yank"
+                     , <open-paren>
+                     , [ <number> , <comma-left> ]
+                     , <qual-identifier>
+                     , [ <comma-right> , <yank-type> ]
+                     , [ <comma-right> , <dimensions> ]
+                     , <close-paren>;
+
+<shuffle-function>   ::= <name-function> | <order-function> | <copy-function> | <del-function>;
+
+<name-function>      ::= "$name"
+                     , <open-paren>
+                     , [ <rule> , <comma-left> ]
+                     , <qual-identifier>
+                     , [ <comma-right> , <position> ]
+                     , [ <comma-right> , <force-kwarg> ]
+                     , <close-paren>;
+
+<name-function>      ::= "$order"
+                     , <open-paren>
+                     , [ <rule> , <comma-left> ]
+                     , <qual-identifier>
+                     , [ <comma-right> , <position> ]
+                     , [ <comma-right> , <force-kwarg> ]
+                     , <close-paren>;
+
+<copy-function>      ::= "$copy"
+                     , <open-paren>
+                     , [ <amount-expr> , <comma-left> ]
+
+<del-function>       ::= "$del"
+                     , <open-paren>
+                     , [ <amount-expr> , <comma-left> ]
+                     , <close-paren>;
+
+<styling-function>   ::= <style-function> | <apply-function>;
+
+<style-function>     ::= "$style",
+                     , <open-paren>
+                     , <qual-identifier>
+                     , { <comma-right> , <style-property> }
+                     , <close-paren>;
+
+<apply-function>     ::= "$apply",
+                     , <open-paren>
+                     , [ <rule> , <comma-left> ]
+                     , <qual-identifier>
+                     , [ <comma-right> , <position> ]
+                     , <close-paren>;
+
+<open-paren>         ::= "(" , <opt-whitespace>;
+<close-paren>        ::= <opt-whitespace> , ")";
+<comma-left>         ::= "," , <opt-whitespace>;
+<comma-right>        ::= <opt-whitespace> , ",";
+
+<amount-expr>        ::= <number> | <amount-star> | <amount-plus> | <amount-question>;
+<amount-star>        ::= "*";
+<amount-plus>        ::= "+";
+<amount-question>    ::= "?";
+<number>             ::= { <digit> };
+<digit>              ::= "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0";
+
+<rule>               ::= <value-set-name> | <uniq-set-name>;
+<value-set-name>     ::= "$$" | ( <value-set-part> , <value-set-part> , <value-set-part> );
+<value-set-part>     ::= "$" , ( "_" | "*" | <qual-identifier> );
+<uniq-set-name>      ::= "uc:" , <qual-identifier>;
+
+<qual-identifier>    ::= [ "_" ] , <alpha> , <alpha-num-symbol>
