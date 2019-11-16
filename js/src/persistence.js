@@ -6,6 +6,7 @@ export const getNullData = function() {
     [/* generatedValues */],
     [/* uniquenessConstraints */],
 
+    {/* setToShuffleMap */},
     [/* shuffles */],
     [/* orders */],
     [/* shufflesForced */],

@@ -1,10 +1,10 @@
 export const parseInjections = function(
   injections,
-  iterIds,
+  iterNames,
   tags,
   cardType,
 ) {
-  const result = iterIds.map((iter) => {
+  const result = iterNames.map((iter) => {
     const parseConditions = function(condition) {
       switch (condition[0]) {
         case 'card':
@@ -32,7 +32,7 @@ export const parseInjections = function(
             : iter[condition[1]](condition[2])
 
         case '!':
-          return !condition[1]
+          return !parseConditions(condition[1])
 
         case '&':
           return condition.slice(1).map(v => parseConditions(v)).reduce((accu, v) => accu && v)

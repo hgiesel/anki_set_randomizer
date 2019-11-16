@@ -146,7 +146,7 @@ export const getUniqProcessor = function(uniqConstraints) {
         return false
       }
 
-      for (const name of (passes ? uc.add : uc.fail)) {
+      for (const name of (passes ? (uc.name ? uc.add.concat(uc.name) : uc.add) : uc.fail)) {
         preUcs[name]
           ? preUcs[name].push(currentValue)
           : preUcs[name] = [currentValue]

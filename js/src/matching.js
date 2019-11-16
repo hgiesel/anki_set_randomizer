@@ -44,6 +44,8 @@ export const structureMatcher = function(
     }
   }
 
+  console.log(iterName, structureMatches)
+
   const exportElements = function() {
     return elements.concat(elementsOld
       .filter(elem => !structureMatches
@@ -74,16 +76,15 @@ export const structureMatcher = function(
     return result
   }
 
-  const matchShuffles = function(shufflesOld, setToShuffleMap) {
+  const matchShuffles = function(shufflesOld, setToShufflesMap) {
     const matchReorder = function(shuffle) {
       const match /*
       a structure match that maps to the new shuffle location
       */ = structureMatches
         .find(({to}) => {
           const [toIter, toSet] = to
-          return compareArrays([shuffle.iter, shuffle.name], adaptForShuffles([toIter, setToShuffleMap[toSet]]))
+          return compareArrays([shuffle.iter, shuffle.name], adaptForShuffles([toIter, setToShufflesMap[toIter][toSet]]))
         })
-
 
       const shuffleOld /*
       an old shuffle that is mapped to by the found structure match
@@ -91,7 +92,7 @@ export const structureMatcher = function(
         // search if inherited numbered set
         ? shufflesOld.find(({iter, name}) => {
           const [matchIter, matchSet] = match.from
-          return compareArrays([iter, name], adaptForShuffles([matchIter, setToShuffleMap[matchSet]]))
+          return compareArrays([iter, name], adaptForShuffles([matchIter, setToShufflesMap[matchIter][matchSet]]))
         })
         : Number.isNaN(Number(shuffle.name))
         // search if inherited named set

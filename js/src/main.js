@@ -21,6 +21,7 @@ const main2 = function(
   generatedValuesOld,
   uniquenessConstraintsOld,
 
+  setToShufflesMap,
   shufflesOld,
   ordersOld,
   shufflesForcedOld,
@@ -46,13 +47,15 @@ const main2 = function(
       statements,
       yanks,
       styles,
-      setToShuffleMap,
+      setToShuffles,
     ] = process(
       elementsOriginal,
       sm.matchGeneratedValues(generatedValuesOld),
       uniquenessConstraintsOld,
       defaultStyle,
     )
+
+    setToShufflesMap[iterName] = setToShuffles
 
     const re = ruleEngine(
       elementsShuffle,
@@ -68,7 +71,7 @@ const main2 = function(
       orders,
     ] = randomize(
       elementsShuffle /* is modified */,
-      sm.matchShuffles(shufflesOld, setToShuffleMap),
+      sm.matchShuffles(shufflesOld, setToShufflesMap),
       ordersOld,
       ...re.exportRandomizationData(),
     )
@@ -82,7 +85,7 @@ const main2 = function(
       ordersForced,
     ] = randomize(
       elementsForce /* is modified */,
-      sm.matchShuffles(shufflesForcedOld, setToShuffleMap),
+      sm.matchShuffles(shufflesForcedOld, setToShufflesMap),
       ordersForcedOld,
       ...re.exportRandomizationData(true),
     )
@@ -106,6 +109,7 @@ const main2 = function(
       generatedValues,
       uniquenessConstraints,
 
+      setToShufflesMap,
       sm.mergeShuffles(shuffles, shufflesOld),
       orders,
       sm.mergeShuffles(shufflesForced, shufflesForcedOld),
@@ -121,6 +125,7 @@ const main2 = function(
       generatedValuesOld,
       uniquenessConstraintsOld,
 
+      setToShufflesMap,
       shufflesOld,
       ordersOld,
       shufflesForcedOld,

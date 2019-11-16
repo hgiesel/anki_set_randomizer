@@ -9,6 +9,8 @@ export const processApplication = function(
         styleApplications[set] = []
       }
 
-      styleApplications[set].unshift(styleName)
+      if (styleApplications[set][0] !== styleName /* do not apply styles more than once after another */) {
+        styleApplications[set].unshift(styleName)
+      }
     })
 }

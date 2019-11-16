@@ -6,23 +6,23 @@ import pregenManager from './expand/pregen.js'
 import expand from './expand/expand.js'
 
 const filterElements = function(elements, markedForDeletion) {
-  const setToShuffleMap = {}
+  const setToShuffles = {}
   const elementsFiltered = []
 
   for (const [setId, set] of elements.entries()) {
     if (markedForDeletion.includes(setId)) {
-      setToShuffleMap[setId] = null
+      setToShuffles[setId] = null
     }
 
     else {
       const newId = elementsFiltered.push(set) - 1
-      setToShuffleMap[setId] = newId
+      setToShuffles[setId] = newId
     }
   }
 
   return [
     elementsFiltered,
-    setToShuffleMap,
+    setToShuffles,
   ]
 }
 
@@ -51,7 +51,7 @@ export const process = function(
 
   const [
     elementsFiltered,
-    setToShuffleMap,
+    setToShuffles,
   ] = filterElements(elementsExpanded, markedForDeletion)
 
   return [
@@ -62,7 +62,7 @@ export const process = function(
     elemMatcher.exportStatements(),
     elemMatcher.exportYanks(),
     ss.exportStyleDefinitions(),
-    setToShuffleMap,
+    setToShuffles,
   ]
 }
 

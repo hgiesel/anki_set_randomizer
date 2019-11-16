@@ -74,7 +74,7 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
           namedSets,
           yanks,
           appliedName,
-          trueSetId || setIndexInner,
+          typeof trueSetId === 'number' ? trueSetId : setIndexInner /* not sure when this happens */,
           evalNames,
           allowYanks,
         )

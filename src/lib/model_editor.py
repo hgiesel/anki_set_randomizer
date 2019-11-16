@@ -8,6 +8,7 @@ from string import Template
 
 from anki import media
 from aqt import mw
+from aqt.utils import showInfo
 
 from .config import serialize_setting
 from .utils import version_string
@@ -105,9 +106,9 @@ def get_injection_condition_parser(card, iterations):
             parsed_cond = parse_injection(inj[1])
 
             if type(parsed_cond[1]) == bool:
-                return not parsed_cond[0], not parsed_cond[1]
+                return True, not parsed_cond[1]
             else:
-                return not parsed_cond[0], [inj[0], parsed_cond[1]]
+                return True, [inj[0], parsed_cond[1]]
 
         elif inj[0] == 'card':
             if inj[1] == '=':
