@@ -20,8 +20,12 @@ const main2 = function(
   elementsOld,
   generatedValuesOld,
   uniquenessConstraintsOld,
-  reordersShuffleOld,
-  reordersForceOld,
+
+  shufflesOld,
+  ordersOld,
+  shufflesForcedOld,
+  ordersForcedOld,
+
   randomIndicesOld,
 
   injections,
@@ -58,9 +62,13 @@ const main2 = function(
 
     re.lateEvaluate(...statements)
 
-    const reordersShuffle = randomize(
+    const [
+      shuffles,
+      orders,
+    ] = randomize(
       elementsShuffle /* is modified */,
-      sm.reorderMatcher(reordersShuffleOld),
+      sm.reorderMatcher(shufflesOld),
+      ordersOld,
       ...re.exportRandomizationData(),
     )
 
@@ -68,9 +76,13 @@ const main2 = function(
     // FILTER DELETED + FORCING
     const [elementsForce] = process(elementsShuffle, [], [], defaultStyle)
 
-    const reordersForce = randomize(
+    const [
+      shufflesForced,
+      ordersForced,
+    ] = randomize(
       elementsForce /* is modified */,
-      sm.reorderMatcher(reordersForceOld),
+      sm.reorderMatcher(shufflesForcedOld),
+      ordersForcedOld,
       ...re.exportRandomizationData(true),
     )
 
@@ -92,8 +104,12 @@ const main2 = function(
       sm.mergeElements(),
       generatedValues,
       uniquenessConstraints,
-      reordersShuffleOld.concat(reordersShuffle),
-      reordersForceOld.concat(reordersForce),
+
+      shufflesOld.concat(shuffles),
+      orders,
+      shufflesForcedOld.concat(shufflesForced),
+      ordersForced,
+
       randomIndices,
     ], true]
   }
@@ -103,8 +119,12 @@ const main2 = function(
       elementsOld,
       generatedValuesOld,
       uniquenessConstraintsOld,
-      reordersShuffleOld,
-      reordersForceOld,
+
+      shufflesOld,
+      ordersOld,
+      shufflesForcedOld,
+      ordersForcedOld,
+
       randomIndicesOld,
     ], false]
   }

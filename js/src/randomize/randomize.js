@@ -6,21 +6,25 @@ import applyReorders from './reorder.js'
 export const randomize = function(
   elements /* is modified !!! */,
   reorderMatcher,
+  ordersOld,
   namedSets,
   orderConstraints,
+  orderApplications,
   // commands,
 ) {
-  const dictatedOrders = processOrderConstraints(
+  const orders = processOrderConstraints(
     orderConstraints,
+    ordersOld,
     namedSets,
     elements,
-    getShuffler(reorderMatcher, []),
+    getShuffler(reorderMatcher, [], {}),
   )
 
-  const reorders = applyReorders(
+  const shuffles = applyReorders(
     namedSets,
     elements,
-    getShuffler(reorderMatcher, dictatedOrders),
+    getShuffler(reorderMatcher, orders, orderApplications),
+    orders,
   )
 
   // applyCommands(
@@ -28,7 +32,10 @@ export const randomize = function(
   //   elements,
   // )
 
-  return reorders
+  return [
+    shuffles,
+    orders,
+  ]
 }
 
 export default randomize

@@ -83,7 +83,7 @@ export const structureMatcher = function(
         : null
 
       return reorderOld
-        ? reorderOld.order
+        ? reorderOld.shuffle
         : null
     }
 

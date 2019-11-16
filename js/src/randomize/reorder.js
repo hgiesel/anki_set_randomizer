@@ -66,10 +66,10 @@ const applyReorder = function(ns, elements, shuffler) {
     setLengths,
   ] = getLengths(ns, elements)
 
-  const order = shuffler.shuffleFromNs(ns, length)
+  const shuffle = shuffler.shuffleFromNs(ns, length).shuffle
 
   const mixedAndSliced = sliceWithLengths(
-    sortWithIndices(flatSaveElems, order),
+    sortWithIndices(flatSaveElems, shuffle),
     setLengths,
   )
 
@@ -80,7 +80,7 @@ const applyReorder = function(ns, elements, shuffler) {
   return {
     iter: ns.iter,
     name: ns.name,
-    order: order,
+    shuffle: shuffle,
   }
 }
 

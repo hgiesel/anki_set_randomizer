@@ -1,4 +1,4 @@
-const shuffle = function(array) {
+export const shuffle = function(array) {
   const result = array.slice(0)
   let currentIndex = array.length, temporaryValue = null, randomIndex = null
 
@@ -17,27 +17,45 @@ const shuffle = function(array) {
   return result
 }
 
-export const getShuffler = function(reoMatcher, dictatedOrders) {
+export const shuffleOrder = Symbol('shuffleOrder')
+export const shuffleNew = Symbol('shuffleNew')
+export const shuffleOld = Symbol('shuffleOld')
+
+export const getShuffler = function(reoMatcher, orders, orderApplications) {
   const shuffleFromNs = function(
     ns,
     nsLength,
   ) {
     let orderOld = null
-    let dictatedMatch = null
+    let orderApplied = null
 
-    if (dictatedMatch = dictatedOrders.find(dio => dio.sets.includes(ns.name))) {
-      return dictatedMatch.order.filter(index => index < nsLength)
+    if (orderApplied = orderApplications[ns.name]) {
+      return {
+        type: shuffleOrder,
+        shuffle: orders
+          .find(o => o.name === orderApplied)
+          .order
+          .filter(index => index < nsLength)
+      }
     }
 
     else if (orderOld = reoMatcher.matchReorder(ns)) {
-      const additionalIndices = [...Array(nsLength).keys()]
-        .filter(v => !orderOld.includes(v))
+      const underflow = nsLength - orderOld.length
+      const additionalIndices = underflow > 0
+        ? shuffle([...Array(underflow).keys()].map(v => v + orderOld.length))
+        : []
 
-      return orderOld.concat(shuffle(additionalIndices))
+      return {
+        type: shuffleOld,
+        shuffle: orderOld.concat(additionalIndices)
+      }
     }
 
     else {
-      return shuffle([...Array(nsLength).keys()])
+      return {
+        type: shuffleNew,
+        shuffle: shuffle([...Array(nsLength).keys()]),
+      }
     }
   }
 

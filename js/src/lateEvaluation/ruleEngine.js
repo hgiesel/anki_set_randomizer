@@ -34,9 +34,11 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
     )
 
   const namedSets = createDefaultNames(elements, iterNameOuter)
+
   const orderConstraints = []
   const commands = []
 
+  const orderApplications = {/* for guaranteeing, every set has max of one order */}
   const styleApplications = {}
 
   const callthrough = function(f, ...argumentz) {
@@ -154,7 +156,7 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
   ) {
     rulethrough(
       po, iterName, setIndex, posIndex, appliedName, rule,
-      orderName, options, orderConstraints, namedSets,
+      orderName, options, orderConstraints, orderApplications, namedSets,
     )
   }
 
@@ -178,9 +180,25 @@ export const ruleEngine = function(elements, uniquenessConstraints, yanks, iterN
   }
 
   const exportRandomizationData = function(forced) {
+    const orderApps = {}
+    if (forced) {
+      for (const key in orderApplications) {
+        if (orderApplications[key][1]) {
+          orderApps[key] = orderApplications[key][0]
+        }
+      }
+    }
+
+    else {
+      for (const key in orderApplications) {
+        orderApps[key] = orderApplications[key][0]
+      }
+    }
+
     return [
       forced ? namedSets.filter(ns => ns.force) : namedSets,
-      forced ? orderConstraints.filter(oc => oc.force) : orderConstraints,
+      (forced ? orderConstraints.filter(oc => oc.force) : orderConstraints),
+      orderApps,
       forced ? [] : commands,
     ]
   }

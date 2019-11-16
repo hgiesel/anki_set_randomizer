@@ -2,11 +2,15 @@ const dataName = 'SRData'
 
 export const getNullData = function() {
   return [
-    [/* setsHistory */],
+    [/* elements */],
     [/* generatedValues */],
     [/* uniquenessConstraints */],
-    [/* reordersShuffle */],
-    [/* reordersForce */],
+
+    [/* shuffles */],
+    [/* orders */],
+    [/* shufflesForced */],
+    [/* ordersForced */],
+
     {/* randomIndices */},
   ]
 }

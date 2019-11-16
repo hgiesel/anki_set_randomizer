@@ -45,7 +45,7 @@ export const createDefaultNames = function(elements, iterName) {
 export const processOrder = function(
   iterName, setIndex, posIndex, correspondingSets,
 
-  orderName, options, orderConstraints, namedSets,
+  orderName, options, orderConstraints, orderApplications, namedSets,
 ) {
   const actualOrderName = getActual(orderName)
 
@@ -73,18 +73,20 @@ export const processOrder = function(
       force: false,
     }) - 1]
 
+  if (options.force) {
+    oc.force = true
+  }
+
   for (const stringName of theNames) {
     if (!oc.sets.includes(stringName)) {
       oc.sets.push(stringName)
     }
 
-    if (options.force) {
-      oc.force = true
-    }
-
     if (oc.force) {
       namedSets.find(ns => ns.name === stringName).force = true
     }
+
+    orderApplications[stringName] = [actualOrderName, oc.force]
   }
 
   return actualOrderName /* never really used */

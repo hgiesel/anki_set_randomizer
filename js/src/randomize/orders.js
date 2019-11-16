@@ -2,44 +2,119 @@ import {
   getLengths,
 } from './util.js'
 
-export const getDictatorOrders = function(orderConstraints, namedSets, elements, shuffler) {
-  const detectOrderDictator = function(oc) {
-    return oc
-      .sets
-      .reduce((accu, setName) => {
-        const foundNs = namedSets.find(ns => ns.name === setName)
+import {
+  shuffle,
+  shuffleNew,
+  shuffleOld,
+} from './shuffling.js'
 
-        const [
-          foundLength,
-          // setLengths,
-        ] = getLengths(foundNs, elements)
+const detectDictator = function(namedSets, elements, shuffler, oc) {
+  const findDictator = function(accu, setName) {
+    const foundNs = namedSets
+      .find(ns => ns.name === setName)
 
-        if (accu) {
-          const [
-            accuNs,
-            accuLength,
-          ] = accu
+    if (foundNs) {
+      const [
+        foundLength,
+        // setLengths,
+      ] = getLengths(foundNs, elements)
 
-          return accuLength <= foundLength
-            ? [accuNs, accuLength]
-            : [foundNs, foundLength]
-        }
+      const shuf = shuffler.shuffleFromNs(foundNs, foundLength)
 
-        else {
-          return [foundNs, foundLength]
-        }
-      }, null)
-  }
+      if (accu) {
+        return shuf.type === shuffleOld && accu.type === shuffleNew
+          ? shuf
+          : accu.shuffle.length < shuf.shuffle.length
+          ? shuf
+          : accu
+      }
 
-  const processOc = function(oc) {
-    return {
-      sets: oc.sets,
-      order: shuffler.shuffleFromNs(...detectOrderDictator(oc)),
+      return shuf
     }
+
+    return accu
   }
 
-  return orderConstraints
-    .map(oc => processOc(oc))
+  return oc
+    .sets
+    .reduce(findDictator, null)
 }
 
-export default getDictatorOrders
+const detectDictatorLength = function(namedSets, elements, oc) {
+  const findDictatorLength = function(accu, setName) {
+    const foundNs = namedSets
+      .find(ns => ns.name === setName)
+
+    if (foundNs) {
+      const [
+        foundLength,
+        // setLengths,
+      ] = getLengths(foundNs, elements)
+
+      if (accu) {
+        const [
+          accuNs,
+          accuLength,
+        ] = accu
+
+        return accuLength < foundLength
+          ? [foundNs, foundLength]
+          : [accuNs, accuLength]
+      }
+
+      return [foundNs, foundLength]
+    }
+
+    return accu
+  }
+
+  return oc
+    .sets
+    .reduce(findDictatorLength, null)
+}
+
+export const processOrderConstraints = function(
+  orderConstraints,
+  ordersOld,
+  namedSets,
+  elements,
+  shuffler,
+) {
+  const result = [...ordersOld]
+
+  const processOc = function(oc) {
+    const matchIndex = result.findIndex(orderOld => orderOld.name === oc.name)
+
+    if (matchIndex > -1) {
+      const [
+        /* ns */,
+        maxLength,
+      ] = detectDictatorLength(namedSets, elements, oc)
+
+      const oldLength = result[matchIndex].order.length
+      const underflow = maxLength - oldLength
+
+      const additionalIndices = underflow > 0
+        ? shuffle([...Array(underflow).keys()]
+          .map(v => v + oldLength))
+        : []
+
+      result[matchIndex] = {
+        name: oc.name,
+        order: result[matchIndex].order.concat(additionalIndices),
+      }
+    }
+
+    result.push({
+      name: oc.name,
+      order: detectDictator(namedSets, elements, shuffler, oc).shuffle,
+    })
+  }
+
+  orderConstraints
+    .forEach(oc => processOc(oc))
+
+  return result
+}
+
+export default processOrderConstraints

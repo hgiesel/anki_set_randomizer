@@ -1,0 +1,32 @@
+= Orders
+
+* `ruleEngine` generates two structures:
+.. `orderConstraints`: useful for generating orders
+.. `orderApplications`: useful for applying order
+
+----
+orderConstraints [{
+  iter: "iter1",
+  name: "o1",
+  force: false,
+  sets: ["name", "0", "1"],
+}
+
+orderApplications {
+  "0": "o1",
+  "name": "o2",
+  …
+}
+----
+
+'''
+
+* `randomizer` generates:
+.. `orders`: for looking up order + inheriting
+
+----
+orders [{
+  name: "o1",
+  order: [3, 2, 0, 1, 4]
+}]
+----
