@@ -27,13 +27,8 @@ import {
 } from './styleApplier.js'
 
 // Adapter for numbered.js evals
-export const ruleEngine = function(elements, uniquenessConstraints, setToShuffles, yanks, iterNameOuter) {
-  const elementsValues = elements
-    .map(set => set
-      .filter(elem => isSRToken(elem[3], 'value'))
-    )
-
-  const namedSets = createDefaultNames(elements, iterNameOuter)
+export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) {
+  let namedSets = null
 
   const orderConstraints = []
   const commands = []
@@ -47,7 +42,7 @@ export const ruleEngine = function(elements, uniquenessConstraints, setToShuffle
 
   const rulethrough = function(
     f, iterName, setIndex, elemIndex, appliedName, evalNames, allowYanks, rule,
-    ...argumentz
+    elements, elementsValues, ...argumentz
   ) {
     const g = function(
       vs, [
@@ -143,29 +138,29 @@ export const ruleEngine = function(elements, uniquenessConstraints, setToShuffle
 
   /////////////////////////////
   const processNamedSet = function(
-    iterName, setIndex, posIndex,
+    elements, ev, iterName, setIndex, posIndex,
 
     rule, shuffleName, appliedName, options,
   ) {
     rulethrough(
       pns, iterName, setIndex, posIndex, appliedName, true, false, rule,
-      shuffleName, options, namedSets,
+      elements, ev, shuffleName, options, namedSets,
     )
   }
 
   const processOrder = function(
-    iterName, setIndex, posIndex,
+    elements, ev, iterName, setIndex, posIndex,
 
     rule, orderName, appliedName, options,
   ) {
     rulethrough(
       po, iterName, setIndex, posIndex, appliedName, false, false, rule,
-      orderName, options, orderConstraints, orderApplications, namedSets,
+      elements, ev, orderName, options, orderConstraints, orderApplications, namedSets,
     )
   }
 
   const processCommand = function(
-    // iterName, setIndex, posIndex,
+    // elements, ev, iterName, setIndex, posIndex,
     // copyCmd, moveCmd, delCmd, xchCmd, replCmd,
     // ...argumentz
   ) {
@@ -173,13 +168,13 @@ export const ruleEngine = function(elements, uniquenessConstraints, setToShuffle
   }
 
   const processApplication = function(
-    iterName, setIndex, posIndex,
+    elements, ev, iterName, setIndex, posIndex,
 
     rule, styleName, appliedName,
   ) {
     rulethrough(
       pa, iterName, setIndex, posIndex, appliedName, true, true, rule,
-      styleName, styleApplications,
+      elements, ev, styleName, styleApplications,
     )
   }
 
@@ -207,16 +202,31 @@ export const ruleEngine = function(elements, uniquenessConstraints, setToShuffle
     ]
   }
 
-  const exportStyleApplications = function() {
+  let savedApplyStatements = null
+  const getStyleApplications = function(elements) {
+    const elementsValues = elements
+      .map(set => set
+        .filter(elem => isSRToken(elem[3], 'value'))
+      )
+
+    savedApplyStatements.forEach(stmt => processApplication(elements, elementsValues, ...stmt))
     return styleApplications
   }
 
   const lateEvaluate = function(
+    elements,
+    iterNameOuter,
     namedSetStatements,
     orderStatements,
     commandStatements,
     applyStatements,
   ) {
+    namedSets = createDefaultNames(elements, iterNameOuter)
+    const elementsValues = elements
+      .map(set => set
+        .filter(elem => isSRToken(elem[3], 'value'))
+      )
+
     namedSetStatements
       .reduce((accu, elem) => {
         elem[5] || elem[6] || elem[7] || elem[8] || elem[9]
@@ -224,18 +234,19 @@ export const ruleEngine = function(elements, uniquenessConstraints, setToShuffle
           : accu.unshift(elem)
         return accu
       }, [])
-      .forEach(stmt => processNamedSet(...stmt))
+      .forEach(stmt => processNamedSet(elements, elementsValues, ...stmt))
 
-    orderStatements.forEach(stmt => processOrder(...stmt))
-    commandStatements.forEach(stmt => processCommand(...stmt))
-    applyStatements.forEach(stmt => processApplication(...stmt))
+    orderStatements.forEach(stmt => processOrder(elements, elementsValues, ...stmt))
+    commandStatements.forEach(stmt => processCommand(elements, elementsValues, ...stmt))
+
+    savedApplyStatements = applyStatements
   }
 
   return {
     lateEvaluate: lateEvaluate,
 
     exportRandomizationData: exportRandomizationData,
-    exportStyleApplications: exportStyleApplications,
+    getStyleApplications: getStyleApplications,
   }
 }
 

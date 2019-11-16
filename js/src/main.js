@@ -58,14 +58,12 @@ const main2 = function(
     setToShufflesMap[iterName] = setToShuffles
 
     const re = ruleEngine(
-      elementsShuffle,
       uniquenessConstraints,
       setToShuffles,
       yanks,
-      iterName,
     )
 
-    re.lateEvaluate(...statements)
+    re.lateEvaluate(elementsShuffle, iterName, ...statements)
 
     const [
       shuffles,
@@ -99,7 +97,7 @@ const main2 = function(
       valueSets,
       yanks,
       styles,
-      re.exportStyleApplications(),
+      re.getStyleApplications(elementsForce),
       randomIndicesOld,
       elementsShuffle,
     )
