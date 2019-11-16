@@ -1,0 +1,889 @@
+{
+    "description": "SR Cloze v1.0",
+    "enabled": true,
+    "injections": [
+        {
+            "conditions": [
+                "&",
+                [
+                    "card",
+                    "=",
+                    "Cmds1"
+                ],
+                [
+                    "!",
+                    [
+                        "iter",
+                        "endsWith",
+                        "post"
+                    ]
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "defaults::cmds1",
+            "statements": [
+                "$pick($c1, add=cloze)"
+            ]
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "card",
+                    "=",
+                    "Cmds2"
+                ],
+                [
+                    "!",
+                    [
+                        "iter",
+                        "endsWith",
+                        "post"
+                    ]
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "defaults::cmds2",
+            "statements": [
+                "$pick($c2, add=cloze)"
+            ]
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "card",
+                    "=",
+                    "Cmds3"
+                ],
+                [
+                    "!",
+                    [
+                        "iter",
+                        "endsWith",
+                        "post"
+                    ]
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "defaults::cmds3",
+            "statements": [
+                "$pick($c3, add=cloze)"
+            ]
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "card",
+                    "=",
+                    "Cmds4"
+                ],
+                [
+                    "!",
+                    [
+                        "iter",
+                        "endsWith",
+                        "post"
+                    ]
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "defaults::cmds4",
+            "statements": [
+                "$pick($c4, add=cloze)"
+            ]
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "card",
+                    "=",
+                    "Cmds5"
+                ],
+                [
+                    "!",
+                    [
+                        "iter",
+                        "endsWith",
+                        "post"
+                    ]
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "defaults::cmds5",
+            "statements": [
+                "$pick($c5, add=cloze)"
+            ]
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "card",
+                    "=",
+                    "Cmds6"
+                ],
+                [
+                    "!",
+                    [
+                        "iter",
+                        "endsWith",
+                        "post"
+                    ]
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "defaults::cmds6",
+            "statements": [
+                "$pick($c6, add=cloze)"
+            ]
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "card",
+                    "=",
+                    "Cmds7"
+                ],
+                [
+                    "!",
+                    [
+                        "iter",
+                        "endsWith",
+                        "post"
+                    ]
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "defaults::cmds7",
+            "statements": [
+                "$pick($c7, add=cloze)"
+            ]
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "card",
+                    "=",
+                    "Cmds8"
+                ],
+                [
+                    "!",
+                    [
+                        "iter",
+                        "endsWith",
+                        "post"
+                    ]
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "defaults::cmds8",
+            "statements": [
+                "$pick($c8, add=cloze)"
+            ]
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "card",
+                    "=",
+                    "Cmds9"
+                ],
+                [
+                    "!",
+                    [
+                        "iter",
+                        "endsWith",
+                        "post"
+                    ]
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "defaults::cmds9",
+            "statements": [
+                "$pick($c9, add=cloze)"
+            ]
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "card",
+                    "=",
+                    "Cmds10"
+                ],
+                [
+                    "!",
+                    [
+                        "iter",
+                        "endsWith",
+                        "post"
+                    ]
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "defaults::cmds10",
+            "statements": [
+                "$pick($c10, add=cloze)"
+            ]
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "tag",
+                    "=",
+                    "cloze::show"
+                ],
+                [
+                    "!",
+                    [
+                        "iter",
+                        "endsWith",
+                        "post"
+                    ]
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "option::show",
+            "statements": [
+                "$eval($*:0)"
+            ]
+        },
+        {
+            "conditions": [
+                "|",
+                [
+                    "iter",
+                    "endsWith",
+                    "question"
+                ],
+                [
+                    "iter",
+                    "endsWith",
+                    "answer"
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "style::cloze",
+            "statements": [
+                "$style(cloze, colors=[sandybrown, salmon, rosybrown, chocolate], colorDelim=aqua)",
+                "$style(cloze, openDelim=\"[\", closeDelim=\"]\")",
+                "$apply(uc:clozeApply, cloze)"
+            ]
+        },
+        {
+            "conditions": [
+                "|",
+                [
+                    "iter",
+                    "endsWith",
+                    "question"
+                ],
+                [
+                    "iter",
+                    "endsWith",
+                    "answer"
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "style::mc",
+            "statements": [
+                "$style(mc, colors=[sandybrown, salmon, rosybrown, chocolate], colorDelim=aqua)",
+                "$style(mc, openDelim=\"((\", closeDelim=\"))\", fieldSeparator=\" \u2016 \", fieldPadding=2)"
+            ]
+        },
+        {
+            "conditions": [
+                "iter",
+                "endsWith",
+                "answer"
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "style::mc::answer",
+            "statements": [
+                "$style(mc, colors=red, colorRules=[$*:0, lime])"
+            ]
+        },
+        {
+            "conditions": [
+                "iter",
+                "endsWith",
+                "question"
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "eval::cloze::question",
+            "statements": [
+                "$eval($*:0, cond=[\"cloze\", \"includes\", \"$_\"], add=[clozeApply, emptyApply])",
+                "$eval($*:0, cond=[\"clozeSub\", \"includes\", \"$_:_:*\"], add=[clozeApply, emptyApply])",
+                "$eval($*:1, cond=[\"cloze\", \"includes\", \"$_\"], add=clozeApply)",
+                "$eval($*:1, cond=[\"clozeSub\", \"includes\", \"$_:_:*\"], add=clozeApply)",
+                "$apply(uc:emptyApply, empty)"
+            ]
+        },
+        {
+            "conditions": [
+                "iter",
+                "endsWith",
+                "answer"
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "eval::cloze::answer",
+            "statements": [
+                "$eval($*:0, cond=[\"cloze\", \"includes\", \"$_\"], add=clozeApply)",
+                "$eval($*:0, cond=[\"clozeSub\", \"includes\", \"$_:_:*\"], add=clozeApply)"
+            ]
+        },
+        {
+            "conditions": [
+                "|",
+                [
+                    "iter",
+                    "endsWith",
+                    "question"
+                ],
+                [
+                    "iter",
+                    "endsWith",
+                    "answer"
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "eval::mc",
+            "statements": [
+                "$eval(+, $*, cond=[\"mc\", \"includes\", \"$_\"], uniq=mcApply)",
+                "$eval(+, $*, cond=[\"mcSub\", \"includes\", \"$_:_:*\"], uniq=mcApply)",
+                "$apply(uc:mcApply, mc)"
+            ]
+        },
+        {
+            "conditions": [
+                "iter",
+                "endsWith",
+                "reveal"
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "eval::reveal",
+            "statements": [
+                "$eval($*:0)"
+            ]
+        }
+    ],
+    "insertAnkiPersistence": true,
+    "iterations": [
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "...",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
+            },
+            "description": "",
+            "enabled": true,
+            "inputSyntax": {
+                "closeDelim": "\\]\\]",
+                "cssSelector": "#main-question > .extras, #main-question > .content",
+                "fieldSeparator": "::",
+                "isRegex": true,
+                "openDelim": "\\[[fq]?\\["
+            },
+            "name": "-question"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "...",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
+            },
+            "description": "",
+            "enabled": true,
+            "inputSyntax": {
+                "closeDelim": "\\]\\]",
+                "cssSelector": "#main-question > .extras, #main-question > .content",
+                "fieldSeparator": "::",
+                "isRegex": true,
+                "openDelim": "\\[[fq]?\\["
+            },
+            "name": "+question"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "...",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
+            },
+            "description": "",
+            "enabled": false,
+            "inputSyntax": {
+                "closeDelim": "\\]\\]",
+                "cssSelector": "#main-answer > .extras, #main-answer > .content",
+                "fieldSeparator": "::",
+                "isRegex": true,
+                "openDelim": "\\[[fa]?\\["
+            },
+            "name": "-answer"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "...",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
+            },
+            "description": "",
+            "enabled": true,
+            "inputSyntax": {
+                "closeDelim": "\\]\\]",
+                "cssSelector": "#main-answer > .extras, #main-answer > .content",
+                "fieldSeparator": "::",
+                "isRegex": true,
+                "openDelim": "\\[[fa]?\\["
+            },
+            "name": "+answer"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "...",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
+            },
+            "description": "",
+            "enabled": false,
+            "inputSyntax": {
+                "closeDelim": "\\]\\]",
+                "cssSelector": "#main-reveal > .extras, #main-reveal > .content",
+                "fieldSeparator": "::",
+                "isRegex": true,
+                "openDelim": "\\[r?\\["
+            },
+            "name": "-reveal"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "...",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
+            },
+            "description": "",
+            "enabled": true,
+            "inputSyntax": {
+                "closeDelim": "\\]\\]",
+                "cssSelector": "#main-reveal > .extras, #main-reveal > .content",
+                "fieldSeparator": "::",
+                "isRegex": true,
+                "openDelim": "\\[r?\\["
+            },
+            "name": "+reveal"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "...",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
+            },
+            "description": "",
+            "enabled": true,
+            "inputSyntax": {
+                "closeDelim": "#]",
+                "cssSelector": "#main-question > .extras, #main-question > .content",
+                "fieldSeparator": "::",
+                "isRegex": false,
+                "openDelim": "[#"
+            },
+            "name": "-question_post"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "...",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
+            },
+            "description": "",
+            "enabled": true,
+            "inputSyntax": {
+                "closeDelim": "#]",
+                "cssSelector": "#main-question > .extras, #main-question > .content",
+                "fieldSeparator": "::",
+                "isRegex": false,
+                "openDelim": "[#"
+            },
+            "name": "+question_post"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "...",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
+            },
+            "description": "",
+            "enabled": false,
+            "inputSyntax": {
+                "closeDelim": "#]",
+                "cssSelector": "#main-answer > .extras, #main-answer > .content",
+                "fieldSeparator": "::",
+                "isRegex": false,
+                "openDelim": "[#"
+            },
+            "name": "-answer_post"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "...",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
+            },
+            "description": "",
+            "enabled": true,
+            "inputSyntax": {
+                "closeDelim": "#]",
+                "cssSelector": "#main-answer > .extras, #main-answer > .content",
+                "fieldSeparator": "::",
+                "isRegex": false,
+                "openDelim": "[#"
+            },
+            "name": "+answer_post"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "...",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
+            },
+            "description": "",
+            "enabled": false,
+            "inputSyntax": {
+                "closeDelim": "#]",
+                "cssSelector": "#main-reveal > .extras, #main-reveal > .content",
+                "fieldSeparator": "::",
+                "isRegex": false,
+                "openDelim": "[#"
+            },
+            "name": "-reveal_post"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": false,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "...",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
+            },
+            "description": "",
+            "enabled": true,
+            "inputSyntax": {
+                "closeDelim": "#]",
+                "cssSelector": "#main-reveal > .extras, #main-reveal > .content",
+                "fieldSeparator": "::",
+                "isRegex": false,
+                "openDelim": "[#"
+            },
+            "name": "+reveal_post"
+        }
+    ],
+    "modelName": "Source",
+    "pasteIntoTemplate": true,
+    "sourceMode": {
+        "clozeOptions": {
+            "closeDelim": "]]",
+            "openDelim": "[[",
+            "shortcutsEnabled": false,
+            "vsPrefix": "c"
+        },
+        "occlusionOptions": {}
+    }
+}
