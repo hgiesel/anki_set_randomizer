@@ -38,7 +38,7 @@
    <item row="3" column="0">
     <widget class="QPushButton" name="importButton">
      <property name="text">
-      <string>⎈ Import</string>
+      <string>⎈ Import / Export</string>
      </property>
     </widget>
    </item>

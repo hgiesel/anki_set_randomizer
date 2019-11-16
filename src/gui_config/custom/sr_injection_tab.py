@@ -1,12 +1,17 @@
 import json
+import os
+
+from jsonschema import RefResolver, Draft7Validator
 
 from aqt import mw
 from aqt.qt import QWidget, QLabel, Qt
 
-from ...lib.config import deserialize_injection
+from ...lib.config import deserialize_injection, serialize_injection
 from ..sr_injection_tab_ui import Ui_SRInjectionTab
 
+from .sr_setting_add_replace import SRSettingAddReplace
 from .sr_injection_config import SRInjectionConfig
+
 from .util import mapTruthValueToIcon
 
 class SRInjectionTab(QWidget):
@@ -63,8 +68,8 @@ class SRInjectionTab(QWidget):
             self.inj[row] = newInjection
             self.drawInjections()
 
-        a = SRInjectionConfig(mw)
-        a.setupUi(self.inj[row], saveInjection)
+        a = SRInjectionConfig(mw, saveInjection)
+        a.setupUi(self.inj[row])
         a.exec_()
 
     ###########
@@ -111,10 +116,35 @@ class SRInjectionTab(QWidget):
             self.drawInjections()
             self.ui.injectionsTable.setCurrentCell(i - 1, 0)
 
+    ###########
+
     def exportData(self):
         return self.inj
 
-    ###########
-
     def importDialog(self):
-        pass
+        def addAfterImport(injections_new):
+            self.setupUi(self.inj + [deserialize_injection(inj) for inj in injections_new])
+
+        def replaceAfterImport(injections_new):
+            self.setupUi([deserialize_injection(inj) for inj in injections_new])
+
+        dirpath = f'{os.path.dirname(os.path.realpath(__file__))}/../../json_schemas/injections.json'
+        schema_path = f'file:{dirpath}'
+
+        with open(dirpath, 'r') as jsonfile:
+            schema = json.load(jsonfile)
+            resolver = RefResolver(
+                schema_path,
+                schema,
+            )
+
+            validator = Draft7Validator(schema, resolver=resolver, format_checker=None)
+
+            dial = SRSettingAddReplace(mw)
+            dial.setupUi(
+                json.dumps([serialize_injection(inj) for inj in self.inj], sort_keys=True, indent=4),
+                validator,
+                addAfterImport,
+                replaceAfterImport,
+            )
+            dial.exec_()

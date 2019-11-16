@@ -113,7 +113,7 @@ class Ui_SRIterationTab(object):
         self.upPushButton.setText(_translate("SRIterationTab", "▲ Up"))
         self.duplicatePushButton.setText(_translate("SRIterationTab", "⊕ Duplicate"))
         self.deletePushButton.setText(_translate("SRIterationTab", "⌫ Delete"))
-        self.importButton.setText(_translate("SRIterationTab", "⎈ Import"))
+        self.importButton.setText(_translate("SRIterationTab", "⎈ Import / Export"))
         self.downPushButton.setText(_translate("SRIterationTab", "▼ Down"))
         self.iterationsTable.setSortingEnabled(False)
         item = self.iterationsTable.verticalHeaderItem(0)

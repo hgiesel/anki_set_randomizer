@@ -4,8 +4,10 @@ from anki.hooks import addHook
 from ..sr_iteration_frontback_ui import Ui_SRIterationFrontback
 
 class SRIterationFrontback(QDialog):
-    def __init__(self, parent):
+    def __init__(self, parent, callback):
         super().__init__(parent=parent)
+
+        self.callback = callback
 
         self.ui = Ui_SRIterationFrontback()
         self.ui.setupUi(self)
@@ -22,11 +24,8 @@ class SRIterationFrontback(QDialog):
         self.ui.saveButton.setDefault(True)
 
         self.ui.cancelButton.clicked.connect(self.reject)
-        self.ui.importButton.clicked.connect(self.importDialog)
 
-    def setupUi(self, iterations, callback):
-        self.callback = callback
-
+    def setupUi(self, iterations):
         # use front name and cut off prefix
         self.ui.iterationNameLineEdit.setText(iterations[0].name[1:])
 
@@ -82,8 +81,3 @@ class SRIterationFrontback(QDialog):
             self.getFrontData(),
             self.getBackData(),
         ]
-
-    #########
-
-    def importDialog(self):
-        pass

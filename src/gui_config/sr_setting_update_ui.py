@@ -41,7 +41,7 @@ class Ui_SRSettingUpdate(object):
 
     def retranslateUi(self, SRSettingUpdate):
         _translate = QtCore.QCoreApplication.translate
-        SRSettingUpdate.setWindowTitle(_translate("SRSettingUpdate", "Dialog"))
+        SRSettingUpdate.setWindowTitle(_translate("SRSettingUpdate", "Update Dialog"))
         self.validateButton.setText(_translate("SRSettingUpdate", "Validate"))
         self.cancelButton.setText(_translate("SRSettingUpdate", "Cancel"))
         self.updateButton.setText(_translate("SRSettingUpdate", "Update"))

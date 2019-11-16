@@ -67,7 +67,8 @@
           "$ref": "#/definitions/values"
         },
         "fieldPadding": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0
         },
         "fieldSeparator": {
           "type": "string"
@@ -85,16 +86,21 @@
           "type": "string"
         },
         "strokeOpacity": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
         },
         "strokeWidth": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0
         },
         "fill": {
           "type": "string"
         },
         "fillOpacity": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
         }
       },
       "additionalProperties": false,

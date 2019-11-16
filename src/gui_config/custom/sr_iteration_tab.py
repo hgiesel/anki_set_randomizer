@@ -1,3 +1,8 @@
+import json
+import os
+
+from jsonschema import RefResolver, Draft7Validator
+
 from itertools import groupby
 from copy import deepcopy
 
@@ -7,8 +12,12 @@ from aqt.utils import showInfo
 
 from .util import mapTruthValueToIcon
 
+from .sr_setting_add_replace import SRSettingAddReplace
 from .sr_iteration_frontback import SRIterationFrontback
+
 from ..sr_iteration_tab_ui import Ui_SRIterationTab
+
+from ...lib.config import deserialize_iteration, serialize_iteration
 
 def mapSyntaxToExample(openDelim, closeDelim, fieldSeparator, enabled):
     return (f'{openDelim} item1 {fieldSeparator} item2 {closeDelim}' if enabled else '---')
@@ -83,8 +92,8 @@ class SRIterationTab(QWidget):
             self.ic[row] = newIterations
             self.drawIterations()
 
-        a = SRIterationFrontback(mw)
-        a.setupUi(self.ic[row], saveIterations)
+        a = SRIterationFrontback(mw, saveIterations)
+        a.setupUi(self.ic[row])
         a.exec_()
 
     #################
@@ -129,6 +138,8 @@ class SRIterationTab(QWidget):
             self.drawIterations()
             self.ui.iterationsTable.setCurrentCell(i - 1, 0)
 
+    ###########
+
     def exportData(self):
         result = []
 
@@ -139,7 +150,30 @@ class SRIterationTab(QWidget):
 
         return result
 
-    ###########
-
     def importDialog(self):
-        pass
+        def addAfterImport(iterations_new):
+            self.setupUi(self.ic + [deserialize_iteration(iter) for iter in iterations_new])
+
+        def replaceAfterImport(iterations_new):
+            self.setupUi([deserialize_iteration(iter) for iter in iterations_new])
+
+        dirpath = f'{os.path.dirname(os.path.realpath(__file__))}/../../json_schemas/iterations.json'
+        schema_path = f'file:{dirpath}'
+
+        with open(dirpath, 'r') as jsonfile:
+            schema = json.load(jsonfile)
+            resolver = RefResolver(
+                schema_path,
+                schema,
+            )
+
+            validator = Draft7Validator(schema, resolver=resolver, format_checker=None)
+
+            dial = SRSettingAddReplace(mw)
+            dial.setupUi(
+                json.dumps([serialize_iteration(iter) for iterCouple in self.ic for iter in iterCouple], sort_keys=True, indent=4),
+                validator,
+                addAfterImport,
+                replaceAfterImport,
+            )
+            dial.exec_()

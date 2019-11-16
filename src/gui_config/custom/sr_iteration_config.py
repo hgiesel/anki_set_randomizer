@@ -1,10 +1,18 @@
+import os
+import json
+
+from jsonschema import validate, RefResolver, Draft7Validator
 from itertools import groupby
 
+from aqt import mw
 from aqt.qt import QDialog, QWidget, QAction
+
+from .sr_setting_update import SRSettingUpdate
 
 from ..sr_iteration_config_ui import Ui_SRIterationConfig
 
-from ...lib.config import deserialize_default_style, deserialize_input_syntax, deserialize_iteration
+from ...lib.config import deserialize_default_style, deserialize_input_syntax, deserialize_iteration, serialize_iteration
+
 from .util import mapTruthValueToIcon
 
 class SRIterationConfig(QWidget):
@@ -15,6 +23,7 @@ class SRIterationConfig(QWidget):
         self.ui.setupUi(self)
 
         self.ui.enableIterationCheckBox.stateChanged.connect(self.enableChangeGui)
+        self.ui.importButton.clicked.connect(self.importDialog)
 
     def setupUi(self, iteration):
         self.name = iteration.name
@@ -164,3 +173,27 @@ class SRIterationConfig(QWidget):
             'inputSyntax': self.exportIs(),
             'defaultStyle': self.exportDs(),
         })
+
+    def importDialog(self):
+        def updateAfterImport(new_iteration):
+            self.setupUi(deserialize_iteration(new_iteration))
+
+        dirpath = f'{os.path.dirname(os.path.realpath(__file__))}/../../json_schemas/iter.json'
+        schema_path = f'file:{dirpath}'
+
+        with open(dirpath, 'r') as jsonfile:
+            schema = json.load(jsonfile)
+            resolver = RefResolver(
+                schema_path,
+                schema,
+            )
+
+            validator = Draft7Validator(schema, resolver=resolver, format_checker=None)
+
+            dial = SRSettingUpdate(mw)
+            dial.setupUi(
+                json.dumps(serialize_iteration(self.exportData()), sort_keys=True, indent=4),
+                validator,
+                updateAfterImport,
+            )
+            dial.exec_()

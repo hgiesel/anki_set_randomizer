@@ -1,16 +1,24 @@
 import os
 import json
-import jsonschema
 
+import jsonschema
+from jsonschema import validate, RefResolver, Draft7Validator
+
+from aqt import mw
 from aqt.qt import QDialog, QWidget, Qt
 from aqt.utils import showInfo # actually needed!
 
+from .sr_setting_update import SRSettingUpdate
+
 from ..sr_injection_config_ui import Ui_SRInjectionConfig
-from ...lib.config import deserialize_injection
+
+from ...lib.config import deserialize_injection, serialize_injection
 
 class SRInjectionConfig(QDialog):
-    def __init__(self, parent):
+    def __init__(self, parent, callback):
         super().__init__(parent=parent)
+
+        self.callback = callback
 
         self.ui = Ui_SRInjectionConfig()
         self.ui.setupUi(self)
@@ -27,11 +35,11 @@ class SRInjectionConfig(QDialog):
         self.ui.addButton.clicked.connect(self.addEmptyStatement)
         self.ui.deleteButton.clicked.connect(self.deleteCurrentItem)
 
+        self.ui.importButton.clicked.connect(self.importDialog)
+
         self.ui.enableInjectionCheckBox.stateChanged.connect(self.enableChangeGui)
 
-    def setupUi(self, injection, callback):
-        self.callback = callback
-
+    def setupUi(self, injection):
         self.ui.nameLineEdit.setText(injection.name)
         self.ui.descriptionTextEdit.setPlainText(injection.description)
 
@@ -81,7 +89,7 @@ class SRInjectionConfig(QDialog):
             schema = json.load(jsonfile)
             instance = self.getConditions()
 
-            jsonschema.validate(instance, schema)
+            validate(instance, schema)
 
     def validateConditions(self):
         try:
@@ -122,3 +130,27 @@ class SRInjectionConfig(QDialog):
             'statements': [self.ui.statementsList.item(i).text() for i in range(self.ui.statementsList.count())],
         })
         return result
+
+    def importDialog(self):
+        def updateAfterImport(new_injection):
+            self.setupUi(deserialize_injection(new_injection))
+
+        dirpath = f'{os.path.dirname(os.path.realpath(__file__))}/../../json_schemas/inj.json'
+        schema_path = f'file:{dirpath}'
+
+        with open(dirpath, 'r') as jsonfile:
+            schema = json.load(jsonfile)
+            resolver = RefResolver(
+                schema_path,
+                schema,
+            )
+
+            validator = Draft7Validator(schema, resolver=resolver, format_checker=None)
+
+            dial = SRSettingUpdate(mw)
+            dial.setupUi(
+                json.dumps(serialize_injection(self.exportData()), sort_keys=True, indent=4),
+                validator,
+                updateAfterImport,
+            )
+            dial.exec_()

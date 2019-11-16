@@ -35,6 +35,55 @@ with open(path.join(SCRIPTNAME, '../../config.json'), encoding='utf-8') as confi
     safenav_cloze_options = safenav_preset([model_default['sourceMode']['clozeOptions']])
     safenav_occlusion_options = safenav_preset([model_default['sourceMode']['occlusionOptions']])
 
+def serialize_iteration(it) -> dict:
+    return {
+        'name': it.name,
+        'description': it.description,
+        'enabled': it.enabled,
+        'inputSyntax': {
+            'cssSelector': it.input_syntax.css_selector,
+            'openDelim': it.input_syntax.open_delim,
+            'closeDelim': it.input_syntax.close_delim,
+            'fieldSeparator': it.input_syntax.field_separator,
+            'isRegex': it.input_syntax.is_regex,
+        },
+        'defaultStyle': {
+            'colors': {
+                'values': it.default_style.colors.values,
+                'delim': it.default_style.colors.delim,
+                'randomStartIndex': it.default_style.colors.random_start_index,
+                'collectiveIndexing': it.default_style.colors.collective_indexing,
+            },
+            'classes': {
+                'values': it.default_style.classes.values,
+                'delim': it.default_style.classes.delim,
+                'randomStartIndex': it.default_style.classes.random_start_index,
+                'collectiveIndexing': it.default_style.classes.collective_indexing,
+            },
+            'fieldPadding': it.default_style.field_padding,
+            'fieldSeparator': it.default_style.field_separator,
+            'openDelim': it.default_style.open_delim,
+            'closeDelim': it.default_style.close_delim,
+            'emptySet': it.default_style.empty_set,
+
+            'stroke': it.default_style.stroke,
+            'strokeOpacity': it.default_style.stroke_opacity,
+            'strokeWidth': it.default_style.stroke_width,
+            'fill': it.default_style.fill,
+            'fillOpacity': it.default_style.fill_opacity,
+        }
+    }
+
+
+def serialize_injection(inj) -> dict:
+    return {
+        'name': inj.name,
+        'description': inj.description,
+        'enabled': inj.enabled,
+        'conditions': inj.conditions,
+        'statements': inj.statements,
+    }
+
 def serialize_setting(setting) -> dict:
     return {
         'modelName': setting.model_name,
@@ -42,50 +91,8 @@ def serialize_setting(setting) -> dict:
         'enabled': setting.enabled,
         'insertAnkiPersistence': setting.insert_anki_persistence,
         'pasteIntoTemplate': setting.paste_into_template,
-        'iterations': [{
-            'name': it.name,
-            'description': it.description,
-            'enabled': it.enabled,
-            'inputSyntax': {
-                'cssSelector': it.input_syntax.css_selector,
-                'openDelim': it.input_syntax.open_delim,
-                'closeDelim': it.input_syntax.close_delim,
-                'fieldSeparator': it.input_syntax.field_separator,
-                'isRegex': it.input_syntax.is_regex,
-            },
-            'defaultStyle': {
-                'colors': {
-                    'values': it.default_style.colors.values,
-                    'delim': it.default_style.colors.delim,
-                    'randomStartIndex': it.default_style.colors.random_start_index,
-                    'collectiveIndexing': it.default_style.colors.collective_indexing,
-                },
-                'classes': {
-                    'values': it.default_style.classes.values,
-                    'delim': it.default_style.classes.delim,
-                    'randomStartIndex': it.default_style.classes.random_start_index,
-                    'collectiveIndexing': it.default_style.classes.collective_indexing,
-                },
-                'fieldPadding': it.default_style.field_padding,
-                'fieldSeparator': it.default_style.field_separator,
-                'openDelim': it.default_style.open_delim,
-                'closeDelim': it.default_style.close_delim,
-                'emptySet': it.default_style.empty_set,
-
-                'stroke': it.default_style.stroke,
-                'strokeOpacity': it.default_style.stroke_opacity,
-                'strokeWidth': it.default_style.stroke_width,
-                'fill': it.default_style.fill,
-                'fillOpacity': it.default_style.fill_opacity,
-            }
-        } for it in setting.iterations],
-        'injections': [{
-            'name': inj.name,
-            'description': inj.description,
-            'enabled': inj.enabled,
-            'conditions': inj.conditions,
-            'statements': inj.statements,
-        } for inj in setting.injections],
+        'iterations': [serialize_iteration(it) for it in setting.iterations],
+        'injections': [serialize_injection(inj) for inj in setting.injections],
         'sourceMode': {
             'clozeOptions': {
                 'shortcutsEnabled': setting.source_mode.cloze_options.shortcuts_enabled,

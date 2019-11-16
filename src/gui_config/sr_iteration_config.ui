@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1038</width>
-    <height>475</height>
+    <width>794</width>
+    <height>486</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -349,24 +349,31 @@
      <property name="title">
       <string>General</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_8">
-      <item>
-       <widget class="QCheckBox" name="enableIterationCheckBox">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Advanced feature. Check this if you want to treat the content of the &amp;quot;Open Delimiter&amp;quot;, &amp;quot;Close Delimiter&amp;quot;, and &amp;quot;Field separator&amp;quot; as regular expressions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>Enable this iteration</string>
-        </property>
-       </widget>
-      </item>
-      <item>
+     <layout class="QGridLayout" name="gridLayout_5">
+      <item row="3" column="0" colspan="3">
        <widget class="QPlainTextEdit" name="descriptionTextEdit">
         <property name="plainText">
          <string/>
         </property>
         <property name="placeholderText">
          <string>Description</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="importButton">
+        <property name="text">
+         <string>⎈ Import / Export</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="enableIterationCheckBox">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Advanced feature. Check this if you want to treat the content of the &amp;quot;Open Delimiter&amp;quot;, &amp;quot;Close Delimiter&amp;quot;, and &amp;quot;Field separator&amp;quot; as regular expressions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Enable this iteration</string>
         </property>
        </widget>
       </item>

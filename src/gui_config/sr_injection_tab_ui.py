@@ -88,7 +88,7 @@ class Ui_SRInjectionTab(object):
         self.addPushButton.setText(_translate("SRInjectionTab", "⊕ Add"))
         self.deletePushButton.setText(_translate("SRInjectionTab", "⌫ Delete"))
         self.upPushButton.setText(_translate("SRInjectionTab", "▲ Up"))
-        self.importButton.setText(_translate("SRInjectionTab", "⎈ Import"))
+        self.importButton.setText(_translate("SRInjectionTab", "⎈ Import / Export"))
         self.injectionsTable.setSortingEnabled(False)
         item = self.injectionsTable.verticalHeaderItem(0)
         item.setText(_translate("SRInjectionTab", "Injection 1"))

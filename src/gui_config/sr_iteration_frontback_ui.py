@@ -43,14 +43,11 @@ class Ui_SRIterationFrontback(object):
         self.copyDsToOtherSideButton = QtWidgets.QPushButton(SRIterationFrontback)
         self.copyDsToOtherSideButton.setObjectName("copyDsToOtherSideButton")
         self.gridLayout.addWidget(self.copyDsToOtherSideButton, 0, 10, 1, 2)
-        self.importButton = QtWidgets.QPushButton(SRIterationFrontback)
-        self.importButton.setObjectName("importButton")
-        self.gridLayout.addWidget(self.importButton, 5, 0, 1, 1)
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem, 5, 1, 1, 9)
         self.iterationNameLineEdit = QtWidgets.QLineEdit(SRIterationFrontback)
         self.iterationNameLineEdit.setObjectName("iterationNameLineEdit")
         self.gridLayout.addWidget(self.iterationNameLineEdit, 0, 1, 1, 3)
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem, 5, 0, 1, 10)
 
         self.retranslateUi(SRIterationFrontback)
         self.tabWidget.setCurrentIndex(0)
@@ -65,5 +62,4 @@ class Ui_SRIterationFrontback(object):
         self.saveButton.setText(_translate("SRIterationFrontback", "Save"))
         self.copyIsToOtherSideButton.setText(_translate("SRIterationFrontback", "Copy Input Syntax To Other Side"))
         self.copyDsToOtherSideButton.setText(_translate("SRIterationFrontback", "Copy Default Style To Other Side"))
-        self.importButton.setText(_translate("SRIterationFrontback", "Import / Export"))
 from anki_set_randomizer.src.gui_config.custom.sr_iteration_config import SRIterationConfig

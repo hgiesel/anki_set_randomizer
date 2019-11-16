@@ -44,7 +44,7 @@ class Ui_SRSettingAddReplace(object):
 
     def retranslateUi(self, SRSettingAddReplace):
         _translate = QtCore.QCoreApplication.translate
-        SRSettingAddReplace.setWindowTitle(_translate("SRSettingAddReplace", "Dialog"))
+        SRSettingAddReplace.setWindowTitle(_translate("SRSettingAddReplace", "Add / Replace Dialog"))
         self.validateButton.setText(_translate("SRSettingAddReplace", "Validate"))
         self.cancelButton.setText(_translate("SRSettingAddReplace", "Cancel"))
         self.replaceButton.setText(_translate("SRSettingAddReplace", "Replace"))
