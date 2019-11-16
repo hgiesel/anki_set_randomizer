@@ -71,7 +71,7 @@ const main2 = function(
       orders,
     ] = randomize(
       elementsShuffle /* is modified */,
-      sm.matchShuffles(shufflesOld, setToShufflesMap),
+      sm.matchShuffles(setToShufflesMap, shufflesOld),
       ordersOld,
       ...re.exportRandomizationData(),
     )
@@ -110,9 +110,9 @@ const main2 = function(
       uniquenessConstraints,
 
       setToShufflesMap,
-      sm.mergeShuffles(shuffles, shufflesOld),
+      sm.mergeShuffles(setToShufflesMap, shuffles, shufflesOld),
       orders,
-      sm.mergeShuffles(shufflesForced, shufflesForcedOld),
+      sm.mergeShuffles(setToShufflesMap, shufflesForced, shufflesForcedOld),
       ordersForced,
 
       randomIndices,

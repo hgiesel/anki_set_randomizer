@@ -44,8 +44,6 @@ export const structureMatcher = function(
     }
   }
 
-  console.log(iterName, structureMatches)
-
   const exportElements = function() {
     return elements.concat(elementsOld
       .filter(elem => !structureMatches
@@ -53,11 +51,22 @@ export const structureMatcher = function(
       ))
   }
 
-  const mergeShuffles = function(shuffles, shufflesOld) {
+  const mergeShuffles = function(setToShufflesMap, shuffles, shufflesOld) {
     const result = shuffles.concat(shufflesOld
-      .filter(({iter, name}) => !structureMatches
-        .find(sm => compareArrays(adaptForShuffles(sm.from), [iter, name]))
-      ))
+      .filter(({iter, name}) => {
+        const findStructureMatchForShuffle = (sm) => {
+          const [fromIter, fromName] = sm.from
+          const isEqual = compareArrays(
+            adaptForShuffles([fromIter, setToShufflesMap[fromIter][fromName]]),
+            [iter, name],
+          )
+
+          return isEqual
+        }
+        const foundSm = Boolean(structureMatches.find(findStructureMatchForShuffle))
+        return !foundSm
+      })
+    )
 
     return result
   }
@@ -76,7 +85,7 @@ export const structureMatcher = function(
     return result
   }
 
-  const matchShuffles = function(shufflesOld, setToShufflesMap) {
+  const matchShuffles = function(setToShufflesMap, shufflesOld) {
     const matchReorder = function(shuffle) {
       const match /*
       a structure match that maps to the new shuffle location
@@ -86,18 +95,21 @@ export const structureMatcher = function(
           return compareArrays([shuffle.iter, shuffle.name], adaptForShuffles([toIter, setToShufflesMap[toIter][toSet]]))
         })
 
-      const shuffleOld /*
-      an old shuffle that is mapped to by the found structure match
-      */ = match
+      // an old shuffle that is mapped to by the found structure match
+      let shuffleOld = null
+
+      if (match) {
         // search if inherited numbered set
-        ? shufflesOld.find(({iter, name}) => {
-          const [matchIter, matchSet] = match.from
-          return compareArrays([iter, name], adaptForShuffles([matchIter, setToShufflesMap[matchIter][matchSet]]))
-        })
-        : Number.isNaN(Number(shuffle.name))
+        const [matchIter, matchSet] = match.from
+
+        shuffleOld = shufflesOld.find(({iter, name}) => (
+          compareArrays([iter, name], adaptForShuffles([matchIter, setToShufflesMap[matchIter][matchSet]]))
+        ))
+      }
+      else if (Number.isNaN(Number(shuffle.name))) {
         // search if inherited named set
-        ? shufflesOld.find(({name}) => shuffle.name === name)
-        : null
+        shuffleOld = shufflesOld.find(({name}) => shuffle.name === name)
+      }
 
       return shuffleOld
         ? shuffleOld.shuffle
