@@ -13,11 +13,10 @@ import {
 } from '../util.js'
 
 const htmlTagsRegex = (/<.*?>/gu)
-const htmlTagsNoBrRegex = (/<(?!br>).*?>/gu)
+const htmlTagsNoBrRegex = (/<(?!br>)[^>]*>/gu)
 
 const valuePicker = function(valueSets) {
   const pickValue = function(name, colorRules, classRules) {
-
     if (!isSRToken(name, 'value')) {
       return name
     }
@@ -111,14 +110,15 @@ export const renderSets = function(
           const filterTags = pa.getProp(['filterTags'])
           const displayBlock = pa.getProp(['block'])
 
-          const theValue = filterTags
-            ? displayBlock
-              ? `<element${className}${style}><div>${treatNewlines(pickedValue).replace(htmlTagsNoBrRegex, '')}</div></element>`
-              : `<element${className}${style}>${pickedValue.replace(htmlTagsRegex, '')}</element>`
-            : displayBlock
-              ? `<element${className}${style}><div>${treatNewlines(pickedValue)}</div></element>`
-              : `<element${className}${style}>${pickedValue}</element>`
+          const newContent = displayBlock
+            ? filterTags
+              ? `<div>${treatNewlines(pickedValue).replace(htmlTagsNoBrRegex, '')}</div>`
+              : `<div>${treatNewlines(pickedValue)}</div>`
+            : filterTags
+              ? pickedValue.replace(htmlTagsNoBrRegex, '')
+              : pickedValue
 
+          const theValue = `<elem${className}${style}>${newContent}</elem>`
           actualValues.push(theValue)
         }
       }
