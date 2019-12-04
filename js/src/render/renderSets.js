@@ -3,9 +3,7 @@ import {
 } from './util.js'
 
 import {
-  vs,
-  // isSRToken,
-  // fromSRToken,
+  elem, vs, extract,
 } from '../types.js'
 
 const treatValue = function(value, block, filter) {
@@ -31,35 +29,39 @@ const getHtmlTagsRegex = function(restrictTags, excludeTags) {
 }
 
 const elementResolver = function(valueSets) {
-  const resolveElem = function(name, colorRules, classRules) {
-    if (!isSRToken(name, 'value')) {
-      return name
+  const resolveElem = function(element, colorRules, classRules) {
+    switch (element.type) {
+      case elem.value:
+        const vsData = extract(element)
+
+        // cannot be invalid, because wouldn't be expanded otherwise
+        const theValue = valueSets[vsData.name][vsData.sub].values[vsData.pos]
+
+        const theColor = colorRules.find(([ruleData /*, color */]) => (
+          (ruleData.name === vs.star || ruleData.name === vsData.name)
+          && (ruleData.sub === vs.star || ruleData.sub === vsData.sub)
+          && (ruleData.pos === vs.star || ruleData.pos === vsData.pos)
+        ))
+
+        const theColorCss = theColor
+          ? ` style="color: ${theColor[1]}"`
+          : ''
+
+        const theClass = classRules.find(([ruleData /*, class */]) => (
+          (ruleData.name === vs.star || ruleData.name === vsData.name)
+          && (ruleData.sub === vs.star || ruleData.sub === vsData.sub)
+          && (ruleData.pos === vs.star || ruleData.pos === vsData.pos)
+        ))
+
+        const theClassCss = theClass
+          ? ` class="${theClass[1]}"`
+          : ''
+
+        return `<span${theColorCss}${theClassCss}>${theValue}</span>`
+
+      case elem.text: default:
+        return extract(element)
     }
-
-    const vsData = name // preprocessVs(fromSRToken(name))
-    const theValue = valueSets[vsData.name][vsData.sub].values[vsData.pos]
-
-    const theColor = colorRules.find(([rule /*, color */]) => (
-      (rule.name === vs.star || rule.name === vsData.name)
-      && (rule.sub === vs.star || rule.sub === vsData.sub)
-      && (rule.pos === vs.star || rule.pos === vsData.pos)
-    ))
-
-    const theColorCss = theColor
-      ? ` style="color: ${theColor[1]}"`
-      : ''
-
-    const theClass = classRules.find(([rule /*, class */]) => (
-      (rule.name === vs.star || rule.name === vsData.name)
-      && (rule.sub === vs.star || rule.sub === vsData.sub)
-      && (rule.pos === vs.star || rule.pos === vsData.pos)
-    ))
-
-    const theClassCss = theClass
-      ? ` class="${theClass[1]}"`
-      : ''
-
-    return `<span${theColorCss}${theClassCss}>${theValue}</span>`
   }
 
   return {

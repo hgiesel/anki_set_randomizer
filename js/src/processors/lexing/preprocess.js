@@ -30,15 +30,11 @@ export const preprocessYank = function([
 
 export const preprocessNamepos = function([abs, absNeg, rel, all, absYank, allYank, name]) {
   if (abs) {
-    return tag(pos.abs, {
-      'values': Number(abs),
-    })
+    return tag(pos.abs, Number(abs))
   }
 
   else if (absNeg) {
-    return tag(pos.absNeg, {
-      'values': Number(absNeg),
-    })
+    return tag(pos.absNeg, Number(absNeg))
   }
 
   else if (all) {
@@ -46,9 +42,7 @@ export const preprocessNamepos = function([abs, absNeg, rel, all, absYank, allYa
   }
 
   else if (absYank) {
-    return tag(pos.absYank, {
-      'values': Number(absYank),
-    })
+    return tag(pos.absYank, Number(absYank))
   }
 
   else if (allYank) {
@@ -56,15 +50,11 @@ export const preprocessNamepos = function([abs, absNeg, rel, all, absYank, allYa
   }
 
   else if (name) {
-    return tag(pos.name, {
-      'values': name.split(':'),
-    })
+    return tag(pos.name, name.split(':'))
   }
 
   else /* rel */ {
-    return tag(pos.rel, {
-      'values': Number(rel) || 0,
-    })
+    return tag(pos.rel, Number(rel) || 0)
   }
 }
 
@@ -122,11 +112,10 @@ export const preprocessAmount = function(amountText, defaultAmount = 1) {
   }
 
   const amountNumber = Number(amountText)
-  return tag(amount.count, {
-    'value': Number.isNaN(amountNumber)
-      ? defaultAmount
-      : amountNumber,
-  })
+  return tag(amount.count, Number.isNaN(amountNumber)
+    ? defaultAmount
+    : amountNumber
+  )
 }
 
 const parseUniqConditions = function(cond, add, fail, uniqVal) {
@@ -179,9 +168,7 @@ export const preprocessUniq = function(options) {
   }
 
   else if (options.hasOwnProperty('uniq')) {
-    return tag(uniq.some, {
-      'name': parseUniqName(options.uniq),
-    })
+    return tag(uniq.some, parseUniqName(options.uniq))
   }
 
   else {

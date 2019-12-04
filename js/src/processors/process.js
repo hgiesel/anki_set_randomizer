@@ -60,7 +60,7 @@ export const process = function(
     pregenMngr.exportGeneratedValues(),
     pregenMngr.exportUniqConstraints(),
     elemMatcher.exportValueSets(),
-    elemMatcher.exportStatements(),
+    elemMatcher.exportTokens(),
     elemMatcher.exportYanks(),
     ss.exportStyleDefinitions(),
     setToShuffles,

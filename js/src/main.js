@@ -6,7 +6,6 @@ import ruleEngine from './ruleEngine/ruleEngine.js'
 import randomize from './randomize/randomize.js'
 
 import applyCommands from './commands/commands.js'
-import postprocess from './commands/postprocess.js'
 
 import render from './render/render.js'
 import formatter from './render/formatter.js'
@@ -79,21 +78,20 @@ const main2 = function(
 
     //////////////////////////////////////////////////////////////////////////////
     // COMMANDS
-    // applyCommands(
+    // const elementsCmds = applyCommands(
     //   re.getCommands(elementsShuffle),
     //   elementsShuffle),
     // )
-    const elementsCmds = postprocess(elementsShuffle)
 
     //////////////////////////////////////////////////////////////////////////////
     // RENDERING
     const randomIndices = render(
       form,
-      sm.reorderForRendering(elementsCmds),
+      sm.reorderForRendering(elementsShuffle),
       valueSets,
       yanks,
       styles,
-      re.getStyleApplications(elementsCmds),
+      re.getStyleApplications(elementsShuffle),
       randomIndicesOld,
       elementsShuffle,
     )

@@ -7,15 +7,7 @@ import {
   catchPattern,
 } from './grammar/patterns.js'
 
-const unescapeSeparator = function(token) {
-  return token
-    .split('%%')
-    .slice(3, -1)
-}
-
-const escapeSeparator = function(components) {
-  return `%%sr%%${components.join('%%')}%%`
-}
+const escdelim = '%%sr%%escdelim%%'
 
 export const processValueSet = function(
   valueSets,
@@ -26,11 +18,11 @@ export const processValueSet = function(
   valueString
 ) {
   const values = valueString
-    .replace(`\\${valueSeparator}`, escapeSeparator(['escdelim']))
+    .replace(`\\${valueSeparator}`, escdelim)
     .replace(newLinePattern, '<br/>')
     .replace(catchPattern, x => x.slice(1))
     .split(valueSeparator)
-    .map(v => v.replace(unescapeSeparator(['escdelim']), valueSeparator))
+    .map(v => v.replace(escdelim, valueSeparator))
 
   const vsSub = (valueSets[vsName] || (valueSets[vsName] = [])).push({
     name: vsName,

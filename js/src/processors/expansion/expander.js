@@ -19,8 +19,8 @@ export const expander = function(pregenManager) {
         return [[iterName, setIndex, elemIndex, content, mode]]
 
       case elem.vs:
-        const vs = extract(content)
-        return pg.expandValueSet(content.name, content.sub)
+        const vsVal = extract(content)
+        return pg.expandValueSet(vsVal.name, vsVal.sub)
 
       case elem.pick: default:
         const picked = extract(content)

@@ -1,5 +1,5 @@
 import {
-  elem, uniq, vs, tag,
+  elem, uniq, vs, tag, extract,
 } from '../../types.js'
 
 import {
@@ -7,17 +7,17 @@ import {
   getUniqProcessor,
 } from './util.js'
 
-const getAllVsValues = function(valueSets, vsVal) {
-  const vsNames = vsVal.name === vs.star
+const getAllVsValues = function(valueSets, vsData) {
+  const vsNames = vsData.name === vs.star
     ? Object.keys(valueSets)
-    : valueSets.hasOwnProperty(vsVal.name) ? [vsVal.name] : []
+    : valueSets.hasOwnProperty(vsData.name) ? [vsData.name] : []
 
   const result = []
 
   for (const vsName of vsNames) {
-    if (vs.sub === vs.star) {
+    if (vsData.sub === vs.star) {
       for (const [subIdx, sub] of valueSets[vsName].entries()) {
-        if (vs.pos === vs.star) {
+        if (vsData.pos === vs.star) {
           for (const [posIdx /*, value */] of sub.values.entries()) {
             result.push(tag(elem.value, {
               name: vsName,
@@ -27,32 +27,32 @@ const getAllVsValues = function(valueSets, vsVal) {
           }
         }
 
-        else if (typeof sub.values[vs.pos] === 'string') {
+        else if (typeof sub.values[vsData.pos] === 'string') {
           result.push(tag(elem.value, {
             name: vsName,
             sub: subIdx,
-            pos: vs.pos,
+            pos: vsData.pos,
           }))
         }
       }
     }
 
-    else if (valueSets[vsName][vs.sub]) {
-      if (vs.pos === vs.star) {
-        for (const [posIdx /*, value */] of valueSets[vsName][vs.sub].values.entries()) {
+    else if (valueSets[vsName][vsData.sub]) {
+      if (vsData.pos === vs.star) {
+        for (const [posIdx /*, value */] of valueSets[vsName][vsData.sub].values.entries()) {
           result.push(tag(elem.value, {
             name: vsName,
-            sub: vs.sub,
+            sub: vsData.sub,
             pos: posIdx,
           }))
         }
       }
 
-      else if (typeof valueSets[vsName][vs.sub].values[vs.pos] === 'string') {
+      else if (typeof valueSets[vsName][vsData.sub].values[vsData.pos] === 'string') {
         result.push(tag(elem.value, {
           name: vsName,
-          sub: vs.sub,
-          pos: vs.pos,
+          sub: vsData.sub,
+          pos: vsData.pos,
         }))
       }
     }
@@ -116,19 +116,31 @@ export const expandValueSet = function(
   valueMemory, name, sub,
 ) {
   let firstLookup = null
-  const foundEvaluators = evaluators.filter(([/* amount */, evalVs /*, uc */]) => (
-    (evalVs.name === vs.star || evalVs.name === name) && (evalVs.sub === vs.star || evalVs.sub === sub)
-  ))
+
+  const checkForMatchingEval = ([/* amount */, evalVs /*, uc */]) => {
+    if (evalVs.type === vs.some) {
+      const evalVsData = extract(evalVs)
+
+      return (evalVsData.name === vs.star || evalVsData.name === name)
+        && (evalVsData.sub === vs.star || evalVsData.sub === sub)
+    }
+
+    return false
+  }
+
+  const foundEvaluators = evaluators.filter(checkForMatchingEval)
 
   const uniqProc = getUniqProcessor(uniqConstraints)
 
-  for (const [amount, evalVs, uc] of foundEvaluators) {
-    const foundEval = [amount, evalVs, uc]
+  for (const foundEval of foundEvaluators) {
+    const [amount, evalVs, uc] = foundEval
+    const evalData = extract(evalVs)
+
     const generator = valueGenerator(
       valueSets, {
         name: name,
         sub: sub,
-        pos: evalVs.pos,
+        pos: evalData.pos,
       },
       valueMemory.get(foundEval),
       uc.type === uniq.some || (uc.type === uniq.cond && Boolean(uc.name)),

@@ -30,6 +30,11 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
   const orderApplications = {/* for guaranteeing, every set has max of one order */}
   const styleApplications = {}
 
+  const filterValues = sets => sets
+    .map(set => set
+      .filter(elem => elem[3].type === elem.value)
+    )
+
   const callthrough = function(f, ...argumentz) {
     f(...argumentz)
   }
@@ -198,10 +203,7 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
 
   let savedApplyStatements = null
   const getStyleApplications = function(elements) {
-    const elementsValues = elements
-      .map(set => set
-        .filter(elem => isSRToken(elem[3], 'value'))
-      )
+    const elementsValues = filterValues(elements)
 
     savedApplyStatements.forEach(stmt => processApplication(elements, elementsValues, ...stmt))
     return styleApplications
@@ -216,10 +218,7 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
     applyStatements,
   ) {
     namedSets = createDefaultNames(elements, iterNameOuter)
-    const elementsValues = elements
-      .map(set => set
-        .filter(elem => isSRToken(elem[3], 'value'))
-      )
+    const elementsValues = filterValues(elements)
 
     namedSetStatements
       .reduce((accu, elem) => {
