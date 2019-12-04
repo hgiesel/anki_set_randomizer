@@ -16,7 +16,7 @@ export const pos = {
   abs: 'posAbs',
   absNeg: 'posAbsNeg',
   absYank: 'posAbsYank',
-  rel: 'posReal',
+  rel: 'posRel',
 
   all: 'posAll',
   allYank: 'posAllYank',
@@ -50,12 +50,10 @@ export const rule = {
 }
 
 export const tag = function(typeName, data = null) {
-  return data
-    ? {
-      type: typeName,
-      data: data,
-    }
-    : { type: typeName }
+  return {
+    type: typeName,
+    data: data,
+  }
 }
 
 export const extract = data => data.data

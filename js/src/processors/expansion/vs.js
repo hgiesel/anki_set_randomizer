@@ -7,58 +7,65 @@ import {
   getUniqProcessor,
 } from './util.js'
 
-const getAllVsValues = function(valueSets, vsData) {
-  const vsNames = vsData.name === vs.star
-    ? Object.keys(valueSets)
-    : valueSets.hasOwnProperty(vsData.name) ? [vsData.name] : []
+const getAllVsValues = function(valueSets, vsVal) {
+  switch (vsVal.type) {
+    case vs.some:
+      const vsData = extract(vsVal)
+      const vsNames = vsData.name === vs.star
+        ? Object.keys(valueSets)
+        : valueSets.hasOwnProperty(vsData.name) ? [vsData.name] : []
 
-  const result = []
+      const result = []
 
-  for (const vsName of vsNames) {
-    if (vsData.sub === vs.star) {
-      for (const [subIdx, sub] of valueSets[vsName].entries()) {
-        if (vsData.pos === vs.star) {
-          for (const [posIdx /*, value */] of sub.values.entries()) {
-            result.push(tag(elem.value, {
-              name: vsName,
-              sub: subIdx,
-              pos: posIdx,
-            }))
+      for (const vsName of vsNames) {
+        if (vsData.sub === vs.star) {
+          for (const [subIdx, sub] of valueSets[vsName].entries()) {
+            if (vsData.pos === vs.star) {
+              for (const [posIdx /*, value */] of sub.values.entries()) {
+                result.push(tag(elem.value, {
+                  name: vsName,
+                  sub: subIdx,
+                  pos: posIdx,
+                }))
+              }
+            }
+
+            else if (typeof sub.values[vsData.pos] === 'string') {
+              result.push(tag(elem.value, {
+                name: vsName,
+                sub: subIdx,
+                pos: vsData.pos,
+              }))
+            }
           }
         }
 
-        else if (typeof sub.values[vsData.pos] === 'string') {
-          result.push(tag(elem.value, {
-            name: vsName,
-            sub: subIdx,
-            pos: vsData.pos,
-          }))
+        else if (valueSets[vsName][vsData.sub]) {
+          if (vsData.pos === vs.star) {
+            for (const [posIdx /*, value */] of valueSets[vsName][vsData.sub].values.entries()) {
+              result.push(tag(elem.value, {
+                name: vsName,
+                sub: vsData.sub,
+                pos: posIdx,
+              }))
+            }
+          }
+
+          else if (typeof valueSets[vsName][vsData.sub].values[vsData.pos] === 'string') {
+            result.push(tag(elem.value, {
+              name: vsName,
+              sub: vsData.sub,
+              pos: vsData.pos,
+            }))
+          }
         }
       }
-    }
 
-    else if (valueSets[vsName][vsData.sub]) {
-      if (vsData.pos === vs.star) {
-        for (const [posIdx /*, value */] of valueSets[vsName][vsData.sub].values.entries()) {
-          result.push(tag(elem.value, {
-            name: vsName,
-            sub: vsData.sub,
-            pos: posIdx,
-          }))
-        }
-      }
+      return result
 
-      else if (typeof valueSets[vsName][vsData.sub].values[vsData.pos] === 'string') {
-        result.push(tag(elem.value, {
-          name: vsName,
-          sub: vsData.sub,
-          pos: vsData.pos,
-        }))
-      }
-    }
+    case vs.none: default:
+      return []
   }
-
-  return result
 }
 
 const valueGenerator = function*(valueSets, vsVal, presetValues, filter = false) {
@@ -137,11 +144,11 @@ export const expandValueSet = function(
     const evalData = extract(evalVs)
 
     const generator = valueGenerator(
-      valueSets, {
+      valueSets, tag(vs.some, {
         name: name,
         sub: sub,
         pos: evalData.pos,
-      },
+      }),
       valueMemory.get(foundEval),
       uc.type === uniq.some || (uc.type === uniq.cond && Boolean(uc.name)),
     )

@@ -92,13 +92,13 @@ export const getCorrespondingSets = function(
   switch (name.type) {
     /* returns [number] */
     case pos.rel:
-      return [currentPos + extract(name).values]
+      return [currentPos + extract(name)]
 
     case pos.abs:
-      return [extract(name).values]
+      return [extract(name)]
 
     case pos.absNeg:
-      return [elements.length + extract(name).values]
+      return [elements.length + extract(name)]
 
     case pos.all:
       return [...elements.keys()]
@@ -106,7 +106,7 @@ export const getCorrespondingSets = function(
     /* returns [string] */
     case pos.absYank:
       return allowYanks
-        ? [`_${extract(name).values}`]
+        ? [`_${extract(name)}`]
         : []
 
     case pos.allYank:
@@ -115,6 +115,6 @@ export const getCorrespondingSets = function(
         : []
 
     case pos.name: default:
-      return analyzeName(elements, yanks, namedSets, extract(name).values, evalNames, allowYanks)
+      return analyzeName(elements, yanks, namedSets, extract(name), evalNames, allowYanks)
   }
 }

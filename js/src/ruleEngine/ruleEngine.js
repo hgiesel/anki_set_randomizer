@@ -1,5 +1,5 @@
 import {
-  rule, vs,
+  elem, rule, vs, extract,
 } from '../types.js'
 
 import {
@@ -21,7 +21,22 @@ import {
 } from './styleApplier.js'
 
 // Adapter for numbered.js evals
-export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) {
+
+const filterValues = sets => sets
+  .map(set => set
+    .filter(element => element[3].type === elem.value)
+  )
+
+export const ruleEngine = function(
+  uniquenessConstraints,
+  setToShuffles,
+  yanks,
+  iterNameOuter,
+  namedSetStatements,
+  orderStatements,
+  commandStatements,
+  applyStatements,
+) {
   let namedSets = null
 
   const orderConstraints = []
@@ -29,11 +44,6 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
 
   const orderApplications = {/* for guaranteeing, every set has max of one order */}
   const styleApplications = {}
-
-  const filterValues = sets => sets
-    .map(set => set
-      .filter(elem => elem[3].type === elem.value)
-    )
 
   const callthrough = function(f, ...argumentz) {
     f(...argumentz)
@@ -43,7 +53,7 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
     f, iterName, setIndex, elemIndex, appliedName, evalNames, allowYanks, ruleVal,
     elements, elementsValues, ...argumentz
   ) {
-    const g = function(
+    const checkRule = function(
       vsVal, [
         iterNameInner,
         setIndexInner,
@@ -52,16 +62,12 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
       ],
       trueSetId,
     ) {
-      const [
-        vsName,
-        vsSub,
-        vsPos,
-      ] = fromSRToken(content)
+      const testValue = extract(content)
 
       if (
-        (vsVal.name === vs.star || vsVal.name === vsName)
-        && (vsVal.sub === vs.star || vsVal.sub === Number(vsSub))
-        && (vsVal.pos === vs.star || vsVal.pos === Number(vsPos))
+        (vsVal.name === vs.star || vsVal.name === testValue.name)
+        && (vsVal.sub === vs.star || vsVal.sub === testValue.sub)
+        && (vsVal.pos === vs.star || vsVal.pos === testValue.pos)
       ) {
         const correspondingSets = getCorrespondingSets(
           elements,
@@ -86,18 +92,20 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
 
     switch (ruleVal.type) {
       case rule.uniq:
+        // no invalid name specifiable
+        const uniqRule = extract(extract(ruleVal))
         const uniqSet = uniquenessConstraints
-          .find(({name}) => name === ruleVal.name)
+          .find(({name}) => name === uniqRule)
 
         if (uniqSet) {
           for (const value of uniqSet.values
-            .filter(v => isSRToken(v, 'value'))
+            .filter(v => v.type === elem.value)
           ) {
-            const vsMember = preprocessVs(fromSRToken(value, true))
-
             for (const setId in elementsValues) {
-              for (const elem of elementsValues[setId]) {
-                g(vsMember, elem, Number(setId))
+              const setNum = Number(setId)
+
+              for (const element of elementsValues[setNum]) {
+                checkRule(extract(value), element, setNum)
               }
             }
           }
@@ -106,8 +114,11 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
 
       case rule.vs:
         for (const setId in elementsValues) {
-          for (const elem of elementsValues[setId]) {
-            g(ruleVal, elem, Number(setId))
+          const setNum = Number(setId)
+
+          for (const element of elementsValues[setNum]) {
+            // cannot be vsNone inside of ruleVs
+            checkRule(extract(extract(ruleVal)), element, setNum)
           }
         }
         break
@@ -177,46 +188,7 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
     )
   }
 
-  const exportRandomizationData = function(forced) {
-    const orderApps = {}
-    if (forced) {
-      for (const key in orderApplications) {
-        if (orderApplications[key][1]) {
-          orderApps[key] = orderApplications[key][0]
-        }
-      }
-    }
-
-    else {
-      for (const key in orderApplications) {
-        orderApps[key] = orderApplications[key][0]
-      }
-    }
-
-    return [
-      forced ? namedSets.filter(ns => ns.force) : namedSets,
-      (forced ? orderConstraints.filter(oc => oc.force) : orderConstraints),
-      orderApps,
-      forced ? [] : commands,
-    ]
-  }
-
-  let savedApplyStatements = null
-  const getStyleApplications = function(elements) {
-    const elementsValues = filterValues(elements)
-
-    savedApplyStatements.forEach(stmt => processApplication(elements, elementsValues, ...stmt))
-    return styleApplications
-  }
-
-  const lateEvaluate = function(
-    elements,
-    iterNameOuter,
-    namedSetStatements,
-    orderStatements,
-    commandStatements,
-    applyStatements,
-  ) {
+  const getRandomizationData = function(elements) {
     namedSets = createDefaultNames(elements, iterNameOuter)
     const elementsValues = filterValues(elements)
 
@@ -230,15 +202,35 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
       .forEach(stmt => processNamedSet(elements, elementsValues, ...stmt))
 
     orderStatements.forEach(stmt => processOrder(elements, elementsValues, ...stmt))
-    commandStatements.forEach(stmt => processCommand(elements, elementsValues, ...stmt))
 
-    savedApplyStatements = applyStatements
+    const orderApps = {}
+    for (const key in orderApplications) {
+      orderApps[key] = orderApplications[key][0]
+    }
+
+    return [
+      namedSets,
+      orderConstraints,
+      orderApps,
+    ]
+  }
+
+  const getCommands = function(elements) {
+    const elementsValues = filterValues(elements)
+    commandStatements.forEach(stmt => processCommand(elements, elementsValues, ...stmt))
+    return commands
+  }
+
+  const getStyleApplications = function(elements) {
+    const elementsValues = filterValues(elements)
+
+    applyStatements.forEach(stmt => processApplication(elements, elementsValues, ...stmt))
+    return styleApplications
   }
 
   return {
-    lateEvaluate: lateEvaluate,
-
-    exportRandomizationData: exportRandomizationData,
+    getRandomizationData: getRandomizationData,
+    getCommands: getCommands,
     getStyleApplications: getStyleApplications,
   }
 }

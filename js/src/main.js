@@ -11,7 +11,7 @@ import render from './render/render.js'
 import formatter from './render/formatter.js'
 
 //////////////////////////////////////////////////////////////////////////////
-// elementsOld + elementsOriginal -> elementsShuffle -> elementsForce
+// elementsOld + elementsOriginal -> elementsShuffle -> elementsCmds
 // [['iter', 0, 0, 'Hello', 'n'],['iter', 0, 1, 'World'],[]],[[],[]], etc.]
 // namedSets [{iter, name, sets, force}]
 // reordersShuffle -> reordersShuffle [{iter, name, order}]
@@ -39,7 +39,7 @@ const main2 = function(
     const sm = structureMatcher(elementsOriginal, elementsOld, iterName)
 
     //////////////////////////////////////////////////////////////////////////////
-    // SHUFFLING
+    // GENERATION
     const [
       elementsShuffle,
       generatedValues,
@@ -62,10 +62,12 @@ const main2 = function(
       uniquenessConstraints,
       setToShuffles,
       yanks,
+      iterName,
+      ...statements,
     )
 
-    re.lateEvaluate(elementsShuffle, iterName, ...statements)
-
+    //////////////////////////////////////////////////////////////////////////////
+    // SHUFFLING
     const [
       shuffles,
       orders,
@@ -73,15 +75,15 @@ const main2 = function(
       elementsShuffle /* is modified */,
       sm.matchShuffles(setToShufflesMap, shufflesOld),
       ordersOld,
-      ...re.exportRandomizationData(),
+      ...re.getRandomizationData(elementsShuffle),
     )
 
     //////////////////////////////////////////////////////////////////////////////
     // COMMANDS
-    // const elementsCmds = applyCommands(
-    //   re.getCommands(elementsShuffle),
-    //   elementsShuffle),
-    // )
+    applyCommands(
+      elementsShuffle,
+      re.getCommands(elementsShuffle),
+    )
 
     //////////////////////////////////////////////////////////////////////////////
     // RENDERING

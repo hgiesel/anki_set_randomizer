@@ -1,27 +1,3 @@
-///////////////// TODO remove:
-export const vsSerialize = function(component) {
-  return component === vsSelf
-    ? '_'
-    : component === vsStar
-    ? '*'
-    : component
-}
-
-export const isSRToken = function(token, name = '') {
-  return token.startsWith(`%%sr%%${name}`)
-}
-
-export const fromSRToken = function(token, dropFirst = true) {
-  return token
-    .split('%%')
-    .slice(dropFirst ? 3 : 2, -1)
-}
-
-export const toSRToken = function(components) {
-  return `%%sr%%${components.join('%%')}%%`
-}
-///////////////////
-
 const getWarningDiv = function(warningMessage) {
   const warningDiv = document.createElement('div')
   warningDiv.id = 'set-randomizer--warning'

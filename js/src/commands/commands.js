@@ -95,9 +95,8 @@ const applyCommand = function(cmd, elems) {
 // values states include 'n', 'c', 'd'
 // cmds states include 'c', 'd', 'm'
 // cmd = [0:cmdType, 1: amount, 2:fromPosition, 3:fromAmount, 4:toSet, 5:toPosition]
-export const applyCommands = function(cmds, elems) {
-  const cmdType = 0
-
+const cmdType = 0
+export const applyCommands = function(elements, cmds) {
   cmds
     .sort((a, b) => (
       a[cmdType] === b[cmdType]
@@ -112,7 +111,7 @@ export const applyCommands = function(cmds, elems) {
         ? 1
         : 1 /* should never happen */
     ))
-    .forEach(cmd => applyCommand(cmd, elems)) // modifies newElements
+    .forEach(cmd => applyCommand(cmd, elements)) // modifies newElements
 }
 
 export default applyCommands
