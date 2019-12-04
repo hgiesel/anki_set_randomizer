@@ -29,13 +29,10 @@ const front = function() {
     cardType,
   )
 
-  const [
-    theSaveData,
-    wereSetsUsed,
-  ] = main(iterations, injectionsParsed, getNullData())
+  const theSaveData = main(iterations, injectionsParsed, getNullData())
 
   saveData(theSaveData)
-  createWarnings(wereSetsUsed)
+  createWarnings()
 }
 
 try {

@@ -31,13 +31,13 @@ const createWarningNotAvailable = function() {
       + 'Randomization will be inconsistent.'))
 }
 
-export const createWarnings = function(wereSetsUsed) {
+export const createWarnings = function() {
   if (!document.querySelector('#set-randomizer--warning')) {
     if (!window.Persistence) {
       createWarningNotDefined()
     }
 
-    else if (!Persistence.isAvailable() && wereSetsUsed) {
+    else if (!Persistence.isAvailable()) {
       // only show Warning if you used some sets at all
       createWarningNotAvailable()
     }

@@ -20,6 +20,7 @@ const main2 = function(
   iterName,
   inputSyntax,
   defaultStyle,
+  injections,
 
   elementsOld,
   generatedValuesOld,
@@ -30,13 +31,11 @@ const main2 = function(
   ordersOld,
 
   randomIndicesOld,
-
-  injections,
 ) {
   const form = formatter(inputSyntax, injections, iterName)
   const elementsOriginal = form.getElementsOriginal()
 
-  if (!form.isInvalid() /* && !form.isContained() */ && elementsOriginal.length > 0) {
+  if (!form.isInvalid() && elementsOriginal.length > 0) {
     const sm = structureMatcher(elementsOriginal, elementsOld, iterName)
 
     //////////////////////////////////////////////////////////////////////////////
@@ -88,7 +87,10 @@ const main2 = function(
 
     //////////////////////////////////////////////////////////////////////////////
     // RENDERING
-    const randomIndices = render(
+    const [
+      events,
+      randomIndices,
+    ] = render(
       form,
       sm.reorderForRendering(elementsShuffle),
       valueSets,
@@ -110,7 +112,7 @@ const main2 = function(
       orders,
 
       randomIndices,
-    ], true]
+    ], events]
   }
 
   else {
@@ -124,7 +126,7 @@ const main2 = function(
       ordersOld,
 
       randomIndicesOld,
-    ], false]
+    ], []]
   }
 }
 
@@ -132,24 +134,31 @@ export const main = function(iterations, injectionsParsed, saveDataOld) {
   // frontside will be run with indices (-1, -2, -3, etc...)
   // backside will be run with indices (+1, +2, +3, etc...)
   // but technically they are run in a row
-  const saveDataAndSetsUsed = iterations
+  const events = []
+  const saveData = iterations
     .reduce((accu, v, i) => {
       const [
         saveDataNew,
-        wereSetsUsed,
+        eventsInner,
       ] = main2(
         v.name,
         v.inputSyntax,
         v.defaultStyle,
-        ...accu[0],
         injectionsParsed[i],
+        ...accu,
       )
 
-      return [saveDataNew, wereSetsUsed || accu[1]]
-    }, [
-      saveDataOld,
-      false /* no sets used is assumption */
-    ])
+      events.push(...eventsInner)
 
-  return saveDataAndSetsUsed
+      return saveDataNew
+    }, saveDataOld)
+
+  events.forEach((ev) => {
+    const tag = document.querySelector(ev.breadcrumb)
+    if (tag) {
+      tag.addEventListener(ev.event, ev.listener)
+    }
+  })
+
+  return saveData
 }

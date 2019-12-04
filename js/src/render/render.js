@@ -190,9 +190,16 @@ export const render = function(
   )
 
   form.outputSets(stylizedResults)
-  renderOcclusion(form.getHtml(), occlusions, sa)
 
-  return sa.exportIndices()
+  // order is important!
+  // outputSets requires that underlying html doesn't change length
+  // however renderOcclusion does just that
+  const events = renderOcclusion(form.getHtml(), occlusions, sa)
+
+  return [
+    events,
+    sa.exportIndices(),
+  ]
 }
 
 export default render

@@ -128,13 +128,11 @@ const toSvgShape = function(
   return [defs, svgShape]
 }
 
-const getOccluder = function(shapeData, sa, rawHtml, idx) {
+const getOccluder = function(shapeData, sa) {
   const manipulate = function(event) {
     // TODO for some reason, the images seems to be exchanged sometimes
     // I think this is something Anki does for some reason
-    const theImg = document.body.contains(event.target)
-      ? event.target
-      : rawHtml.flatMap(section => Array.from(section.querySelectorAll('img')))[idx]
+    const theImg = event.target
 
     const theSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     theSvg.setAttribute('viewBox', `0 0 ${event.target.width} ${event.target.height}`)
@@ -174,6 +172,8 @@ export const renderOcclusion = function(rawHtml /* from formatter */, rawData, s
   const images = rawHtml
     .flatMap(section => Array.from(section.querySelectorAll('img')))
 
+  const events = []
+
   if (rawData.length > 0) {
     const occlusionStyle = document.createElement('style')
     occlusionStyle.innerHTML = occlusionCss
@@ -187,8 +187,19 @@ export const renderOcclusion = function(rawHtml /* from formatter */, rawData, s
       ))
       .forEach((data, idx) => {
         if (data.length > 0) {
-          images[idx].addEventListener('load', getOccluder(data, styleAccessor, rawHtml, idx))
+          const breadcrumb = String(Math.random()).substring(2)
+          const breadcrumbClass = `sr--breadcrumb-${breadcrumb}`
+
+          images[idx].classList.add(breadcrumbClass)
+
+          events.push({
+            breadcrumb: `.${breadcrumbClass}`,
+            event: 'load',
+            listener: getOccluder(data, styleAccessor),
+          })
         }
       })
   }
+
+  return events
 }

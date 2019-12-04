@@ -28,8 +28,8 @@ const back = function() {
     cardType,
   )
 
-  const [, wereSetsUsed] = main(iterations, injectionsParsed, getData())
-  createWarnings(wereSetsUsed)
+  main(iterations, injectionsParsed, getData())
+  createWarnings()
 }
 
 
