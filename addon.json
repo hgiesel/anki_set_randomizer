@@ -1,0 +1,15 @@
+{
+    "display_name": "Set Randomizer",
+    "module_name": "set_randomizer",
+    "repo_name": "anki_set_randomizer",
+    "ankiweb_id": "1164532380",
+    "author": "hgiesel",
+    "contact": "https://github.com/hgiesel",
+    "homepage": "https://github.com/hgiesel/anki_set_randomizer",
+    "copyright_start": 2019,
+    "tags": "set randomization list clozes shuffling shuffle",
+    "conflicts": [],
+    "targets": [
+      "anki21"
+    ]
+}
