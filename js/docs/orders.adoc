@@ -8,7 +8,6 @@
 orderConstraints [{
   iter: "iter1",
   name: "o1",
-  force: false,
   sets: ["name", "0", "1"],
 }
 

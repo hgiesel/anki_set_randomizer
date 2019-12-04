@@ -43,7 +43,6 @@
                      , [ <rule> , <comma-left> ]
                      , <qual-identifier>
                      , [ <comma-right> , <position> ]
-                     , [ <comma-right> , <force-kwarg> ]
                      , <close-paren>;
 
 <name-function>      ::= "$order"
@@ -51,7 +50,6 @@
                      , [ <rule> , <comma-left> ]
                      , <qual-identifier>
                      , [ <comma-right> , <position> ]
-                     , [ <comma-right> , <force-kwarg> ]
                      , <close-paren>;
 
 <copy-function>      ::= "$copy"

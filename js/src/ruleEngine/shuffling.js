@@ -18,15 +18,10 @@ export const processNamedSet = function(
       iter: iterName,
       name: actualName,
       sets: [/* all strings */],
-      force: false,
     }) - 1]
 
   ns.sets.push(...correspondingSets)
   ns.sets = [...new Set(ns.sets)].sort()
-
-  if (options.force) {
-    ns.force = true
-  }
 
   return actualName
 }
@@ -70,23 +65,14 @@ export const processOrder = function(
       iter: iterName,
       name: actualOrderName,
       sets: [/* only named sets allowed */],
-      force: false,
     }) - 1]
-
-  if (options.force) {
-    oc.force = true
-  }
 
   for (const stringName of theNames) {
     if (!oc.sets.includes(stringName)) {
       oc.sets.push(stringName)
     }
 
-    if (oc.force) {
-      namedSets.find(ns => ns.name === stringName).force = true
-    }
-
-    orderApplications[stringName] = [actualOrderName, oc.force]
+    orderApplications[stringName] = [actualOrderName]
   }
 
   return actualOrderName /* never really used */

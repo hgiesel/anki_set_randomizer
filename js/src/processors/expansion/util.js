@@ -3,6 +3,7 @@ import {
   uniq,
   amount,
   extract,
+  tag,
 } from '../../types.js'
 
 //////////////////////////////////////////////////
@@ -46,6 +47,10 @@ export const getUniqProcessor = function(uniqConstraints) {
     const getUniqCond = function(ucData) {
       return function(currentValue) {
         const processUniqCondRecursive = function(condition) {
+          if (condition.length === 0) {
+            return true
+          }
+
           switch (condition[0]) {
             case '&': case '&amp;':
               return condition
@@ -65,64 +70,60 @@ export const getUniqProcessor = function(uniqConstraints) {
             default:
               const uniqSet = getUc(uniqConstraints, condition[0])
                 .values
+                .filter(value => value.type === currentValue.type)
                 .concat(preUcs[condition[0]] || [])
+
+              const comparisonValue = condition[2]
               let vsVal = null
-              let currentVs = null
 
-              if (condition.length === 0) {
-                return true
-              }
+              const currentVsData = extract(currentValue)
 
-              else {
-                switch (condition[1]) {
-                  case 'includes':
-                    vsVal = preprocessVs(condition[2].match(vsRegex).slice(1))
-                    currentVs = preprocessVs(fromSRToken(currentValue, true))
+              switch (condition[1]) {
+                case 'includes':
+                  vsVal = extract(comparisonValue)
 
-                    return Boolean(uniqSet.find((usVs) => {
-                      const usVsDeserialized = preprocessVs(fromSRToken(usVs, true))
+                  return Boolean(uniqSet.find((usVs) => {
+                    const usVsData = extract(usVs)
 
-                      return (vsVal.name === vs.star || (vsVal.name === vs.self ? currentVs.name : vsVal.name) === usVsDeserialized.name)
-                        && (vsVal.sub === vs.star || (vsVal.sub === vs.self ? currentVs.sub : vsVal.sub) === usVsDeserialized.sub)
-                        && (vsVal.pos === vs.star || (vsVal.pos === vs.self ? currentVs.pos : vsVal.pos) === usVsDeserialized.pos)
-                    }))
+                    return (vsVal.name === vs.star || (vsVal.name === vs.self ? currentVsData.name : vsVal.name) === usVsData.name)
+                      && (vsVal.sub === vs.star || (vsVal.sub === vs.self ? currentVsData.sub : vsVal.sub) === usVsData.sub)
+                      && (vsVal.pos === vs.star || (vsVal.pos === vs.self ? currentVsData.pos : vsVal.pos) === usVsData.pos)
+                  }))
 
-                  case '!includes':
-                    vsVal = preprocessVs(condition[2].match(vsRegex).slice(1))
-                    currentVs = preprocessVs(fromSRToken(currentValue, true))
+                case '!includes':
+                  vsVal = extract(comparisonValue)
 
-                    return !Boolean(uniqSet.find((usVs) => {
-                      const usVsDeserialized = preprocessVs(fromSRToken(usVs, true))
+                  return !Boolean(uniqSet.find((usVs) => {
+                    const usVsData = extract(usVs)
 
-                      return (vsVal.name === vs.star || (vsVal.name === vs.self ? currentVs.name : vsVal.name) === usVsDeserialized.name)
-                        && (vsVal.sub === vs.star || (vsVal.sub === vs.self ? currentVs.sub : vsVal.sub) === usVsDeserialized.sub)
-                        && (vsVal.pos === vs.star || (vsVal.pos === vs.self ? currentVs.pos : vsVal.pos) === usVsDeserialized.pos)
-                    }))
+                    return (vsVal.name === vs.star || (vsVal.name === vs.self ? currentVsData.name : vsVal.name) === usVsData.name)
+                      && (vsVal.sub === vs.star || (vsVal.sub === vs.self ? currentVsData.sub : vsVal.sub) === usVsData.sub)
+                      && (vsVal.pos === vs.star || (vsVal.pos === vs.self ? currentVsData.pos : vsVal.pos) === usVsData.pos)
+                  }))
 
-                  case '<': case '&lt;':
-                    return uniqSet.length < condition[2]
+                case '<': case '&lt;':
+                  return uniqSet.length < comparisonValue
 
-                  case '<=': case '&lt;=':
-                    return uniqSet.length <= condition[2]
+                case '<=': case '&lt;=':
+                  return uniqSet.length <= comparisonValue
 
-                  case 'eq':
-                    return uniqSet.length === condition[2]
+                case 'eq':
+                  return uniqSet.length === comparisonValue
 
-                  case 'neq':
-                    return uniqSet.length !== condition[2]
+                case 'neq':
+                  return uniqSet.length !== comparisonValue
 
-                  case '>=': case '&gt;=':
-                    return uniqSet.length >= condition[2]
+                case '>=': case '&gt;=':
+                  return uniqSet.length >= comparisonValue
 
-                  case '>': case '&gt;':
-                    return uniqSet.length > condition[2]
+                case '>': case '&gt;':
+                  return uniqSet.length > comparisonValue
 
-                  case '%':
-                    return (uniqSet.length % condition[2]) === 0
+                case '%':
+                  return (uniqSet.length % comparisonValue) === 0
 
-                  default:
-                    return false
-                }
+                default:
+                  return false
               }
           }
         }
@@ -131,7 +132,11 @@ export const getUniqProcessor = function(uniqConstraints) {
 
         try {
           passes = processUniqCondRecursive(ucData.name
-            ? ['&', [ucData.name, '!includes', '$$'], ucData.cond]
+            ? ['&', [ucData.name, '!includes', tag(vs.some, {
+              name: vs.self,
+              sub: vs.self,
+              pos: vs.self,
+            })], ucData.cond]
             : ucData.cond
           )
         }

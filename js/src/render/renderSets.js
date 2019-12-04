@@ -37,21 +37,23 @@ const elementResolver = function(valueSets) {
         // cannot be invalid, because wouldn't be expanded otherwise
         const theValue = valueSets[vsData.name][vsData.sub].values[vsData.pos]
 
-        const theColor = colorRules.find(([ruleData /*, color */]) => (
-          (ruleData.name === vs.star || ruleData.name === vsData.name)
-          && (ruleData.sub === vs.star || ruleData.sub === vsData.sub)
-          && (ruleData.pos === vs.star || ruleData.pos === vsData.pos)
-        ))
+        const theColor = colorRules.find(([ruleVal/*, color */]) => {
+          const ruleData = extract(ruleVal)
+          return (ruleData.name === vs.star || ruleData.name === vsData.name)
+            && (ruleData.sub === vs.star || ruleData.sub === vsData.sub)
+            && (ruleData.pos === vs.star || ruleData.pos === vsData.pos)
+        })
 
         const theColorCss = theColor
           ? ` style="color: ${theColor[1]}"`
           : ''
 
-        const theClass = classRules.find(([ruleData /*, class */]) => (
-          (ruleData.name === vs.star || ruleData.name === vsData.name)
-          && (ruleData.sub === vs.star || ruleData.sub === vsData.sub)
-          && (ruleData.pos === vs.star || ruleData.pos === vsData.pos)
-        ))
+        const theClass = classRules.find(([ruleVal /*, class */]) => {
+          const ruleData = extract(ruleVal)
+          return (ruleData.name === vs.star || ruleData.name === vsData.name)
+            && (ruleData.sub === vs.star || ruleData.sub === vsData.sub)
+            && (ruleData.pos === vs.star || ruleData.pos === vsData.pos)
+        })
 
         const theClassCss = theClass
           ? ` class="${theClass[1]}"`

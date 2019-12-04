@@ -4,6 +4,7 @@ import {
 
 import {
   namePatternRaw,
+  valueSetRegex,
 } from './grammar/patterns.js'
 
 import {
@@ -118,11 +119,26 @@ export const preprocessAmount = function(amountText, defaultAmount = 1) {
   )
 }
 
+const parseVsInCond = function(ast) {
+  if (ast.length === 3 && (ast[1] === 'includes' || ast[1] === '!includes')) {
+    const calculatedVs = preprocessVs(ast[2].match(valueSetRegex).slice(1), false)
+    console.log([ast[0], ast[1], calculatedVs])
+    return [ast[0], ast[1], calculatedVs]
+  }
+
+  else {
+    return ast.map(member => Array.isArray(member)
+      ? parseVsInCond(member)
+      : member
+    )
+  }
+}
+
 const parseUniqConditions = function(cond, add, fail, uniqVal) {
   let condResult = null
   if (cond) {
     try {
-      condResult = JSON.parse(cond)
+      condResult = parseVsInCond(JSON.parse(cond))
     }
     catch (e) {
       return tag(uniq.none)

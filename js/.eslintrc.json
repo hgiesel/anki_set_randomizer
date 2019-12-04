@@ -79,7 +79,7 @@
     // for one-space spacing
     "arrow-spacing": "error",
     // disallow arrow and comparisons too close to each other
-    "no-confusing-arrow": ["error", { "allowParens": true }],
+    // "no-confusing-arrow": ["error", { "allowParens": true }],
 
     "brace-style": ["error", "stroustrup"],
     "camelcase": "error",

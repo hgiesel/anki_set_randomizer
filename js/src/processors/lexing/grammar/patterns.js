@@ -13,9 +13,9 @@ const allYanksPattern = `_(\\*)`
 const valSetPos = `(\\d+|\\*|_)`
 
 export const valueSetName = `\\$(${namePatternRaw}|\\*|_|\\$)(?:(?::${valSetPos})?:${valSetPos})?`
-export const ruleName = `(?:${valueSetName}|uc:${namePattern})`
+export const valueSetRegex = new RegExp(`^${valueSetName}$`, 'u')
 
-const vsRegex = new RegExp(`^\\$(${namePatternRaw}|\\*|_|\\$)(?:(?::${valSetPos})?:${valSetPos})?$`, 'u')
+export const ruleName = `(?:${valueSetName}|uc:${namePattern})`
 
 export const amountPattern = '(\\d+|\\*|\\+|\\?)'
 
