@@ -1,6 +1,6 @@
 import {
   tag, elem,
-} from '../types.js'
+} from '../../types.js'
 
 import {
   newLinePattern,

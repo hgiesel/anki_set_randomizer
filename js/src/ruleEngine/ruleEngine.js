@@ -1,6 +1,6 @@
 import {
-  vsNone, vsSome, vsStar, uniqSome,
-} from '../util.js'
+  rule, vs,
+} from '../types.js'
 
 import {
   getCorrespondingSets,
@@ -35,11 +35,11 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
   }
 
   const rulethrough = function(
-    f, iterName, setIndex, elemIndex, appliedName, evalNames, allowYanks, rule,
+    f, iterName, setIndex, elemIndex, appliedName, evalNames, allowYanks, ruleVal,
     elements, elementsValues, ...argumentz
   ) {
     const g = function(
-      vs, [
+      vsVal, [
         iterNameInner,
         setIndexInner,
         elemIndexInner,
@@ -54,9 +54,9 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
       ] = fromSRToken(content)
 
       if (
-        (vs.name === vsStar || vs.name === vsName)
-        && (vs.sub === vsStar || vs.sub === Number(vsSub))
-        && (vs.pos === vsStar || vs.pos === Number(vsPos))
+        (vsVal.name === vs.star || vsVal.name === vsName)
+        && (vsVal.sub === vs.star || vsVal.sub === Number(vsSub))
+        && (vsVal.pos === vs.star || vsVal.pos === Number(vsPos))
       ) {
         const correspondingSets = getCorrespondingSets(
           elements,
@@ -79,10 +79,10 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
       }
     }
 
-    switch (rule.type) {
-      case uniqSome:
+    switch (ruleVal.type) {
+      case rule.uniq:
         const uniqSet = uniquenessConstraints
-          .find(({name}) => name === rule.name)
+          .find(({name}) => name === ruleVal.name)
 
         if (uniqSet) {
           for (const value of uniqSet.values
@@ -99,15 +99,15 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
         }
         break
 
-      case vsSome:
+      case rule.vs:
         for (const setId in elementsValues) {
           for (const elem of elementsValues[setId]) {
-            g(rule, elem, Number(setId))
+            g(ruleVal, elem, Number(setId))
           }
         }
         break
 
-      case vsNone: default:
+      case rule.none: default:
         const correspondingSets = getCorrespondingSets(
           elements,
           namedSets,
@@ -134,10 +134,10 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
   const processNamedSet = function(
     elements, ev, iterName, setIndex, posIndex,
 
-    rule, shuffleName, appliedName, options,
+    ruleData, shuffleName, appliedName, options,
   ) {
     rulethrough(
-      pns, iterName, setIndex, posIndex, appliedName, true, false, rule,
+      pns, iterName, setIndex, posIndex, appliedName, true, false, ruleData,
       elements, ev, shuffleName, options, namedSets,
     )
   }
@@ -145,10 +145,10 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
   const processOrder = function(
     elements, ev, iterName, setIndex, posIndex,
 
-    rule, orderName, appliedName, options,
+    ruleData, orderName, appliedName, options,
   ) {
     rulethrough(
-      po, iterName, setIndex, posIndex, appliedName, false, false, rule,
+      po, iterName, setIndex, posIndex, appliedName, false, false, ruleData,
       elements, ev, orderName, options, orderConstraints, orderApplications, namedSets,
     )
   }
@@ -164,10 +164,10 @@ export const ruleEngine = function(uniquenessConstraints, setToShuffles, yanks) 
   const processApplication = function(
     elements, ev, iterName, setIndex, posIndex,
 
-    rule, styleName, appliedName,
+    ruleData, styleName, appliedName,
   ) {
     rulethrough(
-      pa, iterName, setIndex, posIndex, appliedName, true, true, rule,
+      pa, iterName, setIndex, posIndex, appliedName, true, true, ruleData,
       elements, ev, styleName, styleApplications,
     )
   }

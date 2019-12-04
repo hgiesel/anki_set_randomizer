@@ -4,7 +4,7 @@ import {
 
 import {
   namePatternRaw,
-} from './util.js'
+} from './grammar/patterns.js'
 
 import {
   simpleStringToList,
@@ -42,9 +42,7 @@ export const preprocessNamepos = function([abs, absNeg, rel, all, absYank, allYa
   }
 
   else if (all) {
-    return tag(pos.all, {
-      'values': null,
-    })
+    return tag(pos.all)
   }
 
   else if (absYank) {
@@ -54,9 +52,7 @@ export const preprocessNamepos = function([abs, absNeg, rel, all, absYank, allYa
   }
 
   else if (allYank) {
-    return tag(pos.allYank, {
-      'values': null,
-    })
+    return tag(pos.allYank)
   }
 
   else if (name) {
@@ -109,35 +105,27 @@ export const preprocessVs = function(
     })
   }
 
-  return tag(vs.none, {
-    'name': null,
-    'sub': null,
-    'pos': null,
-  })
+  return tag(vs.none)
 }
 
 export const preprocessAmount = function(amountText, defaultAmount = 1) {
   if (amountText === '*' || (!amountText && defaultAmount === amount.star)) {
-    return tag(amount.star, {
-      'value': null,
-    })
+    return tag(amount.star)
   }
 
   else if (amountText === '+' || (!amountText && defaultAmount === amount.plus)) {
-    return tag(amount.plus, {
-      'value': null,
-    })
+    return tag(amount.plus)
   }
 
   else if (amountText === '?' || (!amountText && defaultAmount === amount.question)) {
-    return tag(amount.question, {
-      'value': null,
-    })
+    return tag(amount.question)
   }
 
   const amountNumber = Number(amountText)
   return tag(amount.count, {
-    'value': Number.isNaN(amountNumber) ? defaultAmount : amountNumber,
+    'value': Number.isNaN(amountNumber)
+      ? defaultAmount
+      : amountNumber,
   })
 }
 
@@ -148,9 +136,7 @@ const parseUniqConditions = function(cond, add, fail, uniqVal) {
       condResult = JSON.parse(cond)
     }
     catch (e) {
-      return tag(uniq.none, {
-        'name': null,
-      })
+      return tag(uniq.none)
     }
   }
   else {
@@ -199,9 +185,7 @@ export const preprocessUniq = function(options) {
   }
 
   else {
-    return tag(uniq.none, {
-      'name': null,
-    })
+    return tag(uniq.none)
   }
 }
 
@@ -247,7 +231,11 @@ export const preprocessRule = function([
     }))
   }
 
-  else {
+  if (vsName) {
     return tag(rule.vs, preprocessVs([vsName, vsSubIndex, vsPosIndex], false))
+  }
+
+  else {
+    return tag(rule.none)
   }
 }

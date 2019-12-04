@@ -5,12 +5,12 @@ import {
 } from './kwargs.js'
 
 import {
-  vsSome,
-} from '../util.js'
+  vs,
+} from '../../types.js'
 
 import {
   valueSetName,
-} from './util.js'
+} from './grammar/patterns.js'
 
 import {
   preprocessVs,
@@ -95,11 +95,11 @@ export default function styleSetter(defaultStyle) {
         )
           .map(([vsText, colorText]) => {
             const regexResult = vsText.match(`^${valueSetName}$`)
-            const vs = preprocessVs(regexResult ? regexResult.slice(1) : [/* invalid vs */])
+            const vsVal = preprocessVs(regexResult ? regexResult.slice(1) : [/* invalid vs */])
 
-            return [vs, colorText]
+            return [vsVal, colorText]
           })
-          .filter(([vs/*, color */]) => vs.type === vsSome)
+          .filter(([vsVal/*, color */]) => vsVal.type === vs.some)
         break
 
       case 'classRules':
@@ -108,11 +108,11 @@ export default function styleSetter(defaultStyle) {
         )
           .map(([vsText, classText]) => {
             const regexResult = vsText.match(`^${valueSetName}$`)
-            const vs = preprocessVs(regexResult ? regexResult.slice(1) : [/* invalid vs */])
+            const vsVal = preprocessVs(regexResult ? regexResult.slice(1) : [/* invalid vs */])
 
             return [vs, classText]
           })
-          .filter(([vs/*, class */]) => vs.type === vsSome)
+          .filter(([vsVal/*, class */]) => vsVal.type === vs.some)
         break
 
       case 'colorCi':

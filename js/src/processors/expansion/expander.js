@@ -1,6 +1,7 @@
 import {
-  elemText, elemVs, elemPick,
-  pickInt, pickReal,
+  elem,
+  pick,
+  extract,
 } from '../../types.js'
 
 export const expander = function(pregenManager) {
@@ -14,23 +15,25 @@ export const expander = function(pregenManager) {
     const pg = pregenManager.pregenChecker(iterName, setIndex, elemIndex)
 
     switch (content.type) {
-      case elemText:
+      case elem.text:
         return [[iterName, setIndex, elemIndex, content, mode]]
 
-      case elemVs:
+      case elem.vs:
+        const vs = extract(content)
         return pg.expandValueSet(content.name, content.sub)
 
-      case elemPick: default:
-        const picker = content.pick.type === pickInt
+      case elem.pick: default:
+        const picked = extract(content)
+        const picker = picked.pick.type === pick.int
           ? pg.expandPickInt
-          : content.pick.type === pickReal
+          : picked.pick.type === pick.real
           ? pg.expandPickReal
           : pg.expandPickValueSet
 
         return picker(
-          content.pick.amount,
-          content.pick.pick,
-          content.pick.uniq,
+          picked.amount,
+          extract(picked.pick),
+          picked.uniq,
         )
     }
   }

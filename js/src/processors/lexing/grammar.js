@@ -8,7 +8,7 @@ import {
   availableShapes,
   ruleName,
   posPattern,
-} from './grammar.js'
+} from './grammar/patterns.js'
 
 const left = Symbol('left')
 const right = Symbol('right')

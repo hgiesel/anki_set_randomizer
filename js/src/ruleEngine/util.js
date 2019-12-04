@@ -1,13 +1,6 @@
 import {
-  typeRel,
-  typeAbs,
-  typeAbsNeg,
-  typeAll,
-
-  typeAbsYank,
-  typeAllYank,
-  typeName,
-} from '../util.js'
+  pos, extract,
+} from '../types.js'
 
 const analyzeName = function(
   elements,
@@ -98,30 +91,30 @@ export const getCorrespondingSets = function(
 ) {
   switch (name.type) {
     /* returns [number] */
-    case typeRel:
-      return [currentPos + name.values]
+    case pos.rel:
+      return [currentPos + extract(name).values]
 
-    case typeAbs:
-      return [name.values]
+    case pos.abs:
+      return [extract(name).values]
 
-    case typeAbsNeg:
-      return [elements.length + name.values]
+    case pos.absNeg:
+      return [elements.length + extract(name).values]
 
-    case typeAll:
+    case pos.all:
       return [...elements.keys()]
 
     /* returns [string] */
-    case typeAbsYank:
+    case pos.absYank:
       return allowYanks
-        ? [`_${name.values}`]
+        ? [`_${extract(name).values}`]
         : []
 
-    case typeAllYank:
+    case pos.allYank:
       return allowYanks
         ? yanks.map(([yankid /*, ... */]) => `_${yankid}`)
         : []
 
-    case typeName: default:
-      return analyzeName(elements, yanks, namedSets, name.values, evalNames, allowYanks)
+    case pos.name: default:
+      return analyzeName(elements, yanks, namedSets, extract(name).values, evalNames, allowYanks)
   }
 }

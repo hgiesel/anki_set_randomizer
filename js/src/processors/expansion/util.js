@@ -5,10 +5,6 @@ import {
   extract,
 } from '../../types.js'
 
-import {
-  vsRegex,
-} from '../util.js'
-
 //////////////////////////////////////////////////
 // UNIQUENESS SETS AND CONSTRAINTS
 const getUc = function(uniqConstraints, ucName) {
@@ -67,7 +63,7 @@ export const getUniqProcessor = function(uniqConstraints) {
             const uniqSet = getUc(uniqConstraints, condition[0])
               .values
               .concat(preUcs[condition[0]] || [])
-            let vs = null
+            let vsVal = null
             let currentVs = null
 
             if (condition.length === 0) {
@@ -77,27 +73,27 @@ export const getUniqProcessor = function(uniqConstraints) {
             else {
               switch (condition[1]) {
                 case 'includes':
-                  vs = preprocessVs(condition[2].match(vsRegex).slice(1))
+                  vsVal = preprocessVs(condition[2].match(vsRegex).slice(1))
                   currentVs = preprocessVs(fromSRToken(currentValue, true))
 
                   return Boolean(uniqSet.find((usVs) => {
                     const usVsDeserialized = preprocessVs(fromSRToken(usVs, true))
 
-                    return (vs.name === vsStar || (vs.name === vsSelf ? currentVs.name : vs.name) === usVsDeserialized.name)
-                      && (vs.sub === vsStar || (vs.sub === vsSelf ? currentVs.sub : vs.sub) === usVsDeserialized.sub)
-                      && (vs.pos === vsStar || (vs.pos === vsSelf ? currentVs.pos : vs.pos) === usVsDeserialized.pos)
+                    return (vsVal.name === vs.star || (vsVal.name === vs.self ? currentVs.name : vsVal.name) === usVsDeserialized.name)
+                      && (vsVal.sub === vs.star || (vsVal.sub === vs.self ? currentVs.sub : vsVal.sub) === usVsDeserialized.sub)
+                      && (vsVal.pos === vs.star || (vsVal.pos === vs.self ? currentVs.pos : vsVal.pos) === usVsDeserialized.pos)
                   }))
 
                 case '!includes':
-                  vs = preprocessVs(condition[2].match(vsRegex).slice(1))
+                  vsVal = preprocessVs(condition[2].match(vsRegex).slice(1))
                   currentVs = preprocessVs(fromSRToken(currentValue, true))
 
                   return !Boolean(uniqSet.find((usVs) => {
                     const usVsDeserialized = preprocessVs(fromSRToken(usVs, true))
 
-                    return (vs.name === vsStar || (vs.name === vsSelf ? currentVs.name : vs.name) === usVsDeserialized.name)
-                      && (vs.sub === vsStar || (vs.sub === vsSelf ? currentVs.sub : vs.sub) === usVsDeserialized.sub)
-                      && (vs.pos === vsStar || (vs.pos === vsSelf ? currentVs.pos : vs.pos) === usVsDeserialized.pos)
+                    return (vsVal.name === vs.star || (vsVal.name === vs.self ? currentVs.name : vsVal.name) === usVsDeserialized.name)
+                      && (vsVal.sub === vs.star || (vsVal.sub === vs.self ? currentVs.sub : vsVal.sub) === usVsDeserialized.sub)
+                      && (vsVal.pos === vs.star || (vsVal.pos === vs.self ? currentVs.pos : vsVal.pos) === usVsDeserialized.pos)
                   }))
 
                 case '<': case '&lt;':
@@ -153,9 +149,9 @@ export const getUniqProcessor = function(uniqConstraints) {
     return {
       check: valueMemory
         ? /* no validating necessary */ () => true
-        : uc.type === uniqCond
+        : uc.type === uniq.cond
         ? processUniqCond
-        : uc.type === uniqSome
+        : uc.type === uniq.some
         ? processUniqSome
         : /* uniqNone */ () => true,
       preUcs: preUcs,

@@ -1,6 +1,6 @@
 import {
-  uniqSome, uniqCond,
-} from '../../util.js'
+  uniq,
+} from '../../types.js'
 
 import {
   getUniqProcessor,
@@ -80,7 +80,7 @@ export const expandPickInt = function(
     pick.max,
     pick.extra,
     valueMemory.get(),
-    uc.type === uniqSome || (uc.type === uniqCond && Boolean(uc.name)),
+    uc.type === uniq.some || (uc.type === uniq.cond && Boolean(uc.name)),
   )
 
   return expandPickNumber(uniqConstraints, valueMemory, amount, generator, uc)

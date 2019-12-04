@@ -1,45 +1,59 @@
 import {
-  vsStar,
-  uniqSome, uniqCond,
-  toSRToken,
-} from '../../util.js'
+  elem, uniq, vs, tag,
+} from '../../types.js'
 
 import {
   generate,
   getUniqProcessor,
 } from './util.js'
 
-const getAllVsValues = function(valueSets, vs) {
-  const vsNames = vs.name === vsStar
+const getAllVsValues = function(valueSets, vsVal) {
+  const vsNames = vsVal.name === vs.star
     ? Object.keys(valueSets)
-    : valueSets.hasOwnProperty(vs.name) ? [vs.name] : []
+    : valueSets.hasOwnProperty(vsVal.name) ? [vsVal.name] : []
 
   const result = []
 
   for (const vsName of vsNames) {
-    if (vs.sub === vsStar) {
+    if (vs.sub === vs.star) {
       for (const [subIdx, sub] of valueSets[vsName].entries()) {
-        if (vs.pos === vsStar) {
+        if (vs.pos === vs.star) {
           for (const [posIdx /*, value */] of sub.values.entries()) {
-            result.push(toSRToken(['value', vsName, subIdx, posIdx]))
+            result.push(tag(elem.value, {
+              name: vsName,
+              sub: subIdx,
+              pos: posIdx,
+            }))
           }
         }
 
         else if (typeof sub.values[vs.pos] === 'string') {
-          result.push(toSRToken(['value', vsName, subIdx, vs.pos]))
+          result.push(tag(elem.value, {
+            name: vsName,
+            sub: subIdx,
+            pos: vs.pos,
+          }))
         }
       }
     }
 
     else if (valueSets[vsName][vs.sub]) {
-      if (vs.pos === vsStar) {
+      if (vs.pos === vs.star) {
         for (const [posIdx /*, value */] of valueSets[vsName][vs.sub].values.entries()) {
-          result.push(toSRToken(['value', vsName, vs.sub, posIdx]))
+          result.push(tag(elem.value, {
+            name: vsName,
+            sub: vs.sub,
+            pos: posIdx,
+          }))
         }
       }
 
       else if (typeof valueSets[vsName][vs.sub].values[vs.pos] === 'string') {
-        result.push(toSRToken(['value', vsName, vs.sub, vs.pos]))
+        result.push(tag(elem.value, {
+          name: vsName,
+          sub: vs.sub,
+          pos: vs.pos,
+        }))
       }
     }
   }
@@ -47,10 +61,10 @@ const getAllVsValues = function(valueSets, vs) {
   return result
 }
 
-const valueGenerator = function*(valueSets, vs, presetValues, filter = false) {
+const valueGenerator = function*(valueSets, vsVal, presetValues, filter = false) {
   const searchDomain = presetValues
     ? [...presetValues]
-    : getAllVsValues(valueSets, vs)
+    : getAllVsValues(valueSets, vsVal)
 
   if (presetValues) {
     filter = true
@@ -78,15 +92,15 @@ const valueGenerator = function*(valueSets, vs, presetValues, filter = false) {
 
 export const expandPickValueSet = function(
   uniqConstraints, valueSets,
-  valueMemory, amount, vs, uc,
+  valueMemory, amount, vsVal, uc,
 ) {
   const uniqProc = getUniqProcessor(uniqConstraints)
 
   const generator = valueGenerator(
     valueSets,
-    vs,
+    vsVal,
     valueMemory.get(),
-    uc.type === uniqSome || (uc.type === uniqCond && uc.name),
+    uc.type === uniq.some || (uc.type === uniq.cond && uc.name),
   )
   const validator = uniqProc.init(uc, valueMemory.exists())
 
@@ -99,11 +113,11 @@ export const expandPickValueSet = function(
 
 export const expandValueSet = function(
   uniqConstraints, valueSets, evaluators,
-  valueMemory, vsName, vsSub,
+  valueMemory, name, sub,
 ) {
   let firstLookup = null
   const foundEvaluators = evaluators.filter(([/* amount */, evalVs /*, uc */]) => (
-    (evalVs.name === vsStar || evalVs.name === vsName) && (evalVs.sub === vsStar || evalVs.sub === vsSub)
+    (evalVs.name === vs.star || evalVs.name === name) && (evalVs.sub === vs.star || evalVs.sub === sub)
   ))
 
   const uniqProc = getUniqProcessor(uniqConstraints)
@@ -112,12 +126,12 @@ export const expandValueSet = function(
     const foundEval = [amount, evalVs, uc]
     const generator = valueGenerator(
       valueSets, {
-        name: vsName,
-        sub: vsSub,
+        name: name,
+        sub: sub,
         pos: evalVs.pos,
       },
       valueMemory.get(foundEval),
-      uc.type === uniqSome || (uc.type === uniqCond && Boolean(uc.name)),
+      uc.type === uniq.some || (uc.type === uniq.cond && Boolean(uc.name)),
     )
     const validator = uniqProc.init(uc, valueMemory.exists(foundEval))
 

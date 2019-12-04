@@ -10,7 +10,7 @@ import {
 
   stylePattern,
   applyPattern,
-} from './util.js'
+} from './grammar.js'
 
 import {
   kwargs,
@@ -26,7 +26,6 @@ import {
   preprocessNamepos,
   preprocessRule,
   preprocessPick,
-  preprocessForce,
   preprocessVs,
   preprocessAmount,
   preprocessUniq,
@@ -34,7 +33,7 @@ import {
 
 import {
   tag, elem,
-} from '../types.js'
+} from '../../types.js'
 
 export const elementMatcher = function(styleSetter) {
   const valueSets = {}
@@ -113,7 +112,6 @@ export const elementMatcher = function(styleSetter) {
         preprocessRule(patternResult.slice(1, 5), true),
         patternResult[5] /* name */,
         preprocessNamepos(patternResult.slice(6, 13)),
-        preprocessForce(kwargs(patternResult[13])),
       ])
     }
 
@@ -125,7 +123,6 @@ export const elementMatcher = function(styleSetter) {
         preprocessRule(patternResult.slice(1, 5), true),
         patternResult[5] /* name */,
         preprocessNamepos(patternResult.slice(6, 13)),
-        preprocessForce(kwargs(patternResult[13])),
       ])
     }
 

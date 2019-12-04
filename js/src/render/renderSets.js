@@ -3,14 +3,10 @@ import {
 } from './util.js'
 
 import {
-  preprocessVs,
-} from '../processors/preprocess.js'
-
-import {
-  vsStar,
-  isSRToken,
-  fromSRToken,
-} from '../util.js'
+  vs,
+  // isSRToken,
+  // fromSRToken,
+} from '../types.js'
 
 const treatValue = function(value, block, filter) {
   return block && filter
@@ -34,19 +30,19 @@ const getHtmlTagsRegex = function(restrictTags, excludeTags) {
   return resultRegex
 }
 
-const valuePicker = function(valueSets) {
-  const pickValue = function(name, colorRules, classRules) {
+const elementResolver = function(valueSets) {
+  const resolveElem = function(name, colorRules, classRules) {
     if (!isSRToken(name, 'value')) {
       return name
     }
 
-    const vs = preprocessVs(fromSRToken(name))
-    const theValue = valueSets[vs.name][vs.sub].values[vs.pos]
+    const vsData = name // preprocessVs(fromSRToken(name))
+    const theValue = valueSets[vsData.name][vsData.sub].values[vsData.pos]
 
     const theColor = colorRules.find(([rule /*, color */]) => (
-      (rule.name === vsStar || rule.name === vs.name)
-      && (rule.sub === vsStar || rule.sub === vs.sub)
-      && (rule.pos === vsStar || rule.pos === vs.pos)
+      (rule.name === vs.star || rule.name === vsData.name)
+      && (rule.sub === vs.star || rule.sub === vsData.sub)
+      && (rule.pos === vs.star || rule.pos === vsData.pos)
     ))
 
     const theColorCss = theColor
@@ -54,9 +50,9 @@ const valuePicker = function(valueSets) {
       : ''
 
     const theClass = classRules.find(([rule /*, class */]) => (
-      (rule.name === vsStar || rule.name === vs.name)
-      && (rule.sub === vsStar || rule.sub === vs.sub)
-      && (rule.pos === vsStar || rule.pos === vs.pos)
+      (rule.name === vs.star || rule.name === vsData.name)
+      && (rule.sub === vs.star || rule.sub === vsData.sub)
+      && (rule.pos === vs.star || rule.pos === vsData.pos)
     ))
 
     const theClassCss = theClass
@@ -67,7 +63,7 @@ const valuePicker = function(valueSets) {
   }
 
   return {
-    pickValue: pickValue,
+    resolveElem: resolveElem,
   }
 }
 
@@ -84,7 +80,7 @@ export const renderSets = function(
   styleAccessor,
   elements,
 ) {
-  const vp = valuePicker(valueSets)
+  const er = elementResolver(valueSets)
 
   const stylizedResults = Array(reordering.length)
 
@@ -123,11 +119,11 @@ export const renderSets = function(
 
         const style = ` style="padding: 0px ${pa.getProp(['fieldPadding'])}px;${colorChoice}${blockDisplay}"`
 
-        const pickedValue = vp.pickValue(elemContent, pa.getProp(['colors', 'rules'], [/* preds */], [/* default */]), pa.getProp(['classes', 'rules'], [/* preds */], [/* default */]))
+        const resolvedElem = er.resolveElem(elemContent, pa.getProp(['colors', 'rules'], [/* preds */], [/* default */]), pa.getProp(['classes', 'rules'], [/* preds */], [/* default */]))
 
-        if (pickedValue) {
+        if (resolvedElem) {
           const newContent = treatValue(
-            pickedValue,
+            resolvedElem,
             pa.getProp(['block']),
             pa.getProp(['filterTags'])
               ? getHtmlTagsRegex(

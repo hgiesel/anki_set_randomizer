@@ -1,5 +1,5 @@
-import styleSetter from './styleSetter.js'
-import elementMatcher from './matchElem.js'
+import styleSetter from './lexing/styleSetter.js'
+import elementMatcher from './lexing/matchElem.js'
 
 import pregenManager from './expansion/pregen.js'
 import expander from './expansion/expander.js'

@@ -46,13 +46,16 @@ export const pick = {
 export const rule = {
   vs: 'ruleVs',
   uniq: 'ruleUniq',
+  none: 'ruleNone',
 }
 
-export const tag = function(typeName, data) {
-  return {
-    type: typeName,
-    data: data,
-  }
+export const tag = function(typeName, data = null) {
+  return data
+    ? {
+      type: typeName,
+      data: data,
+    }
+    : { type: typeName }
 }
 
 export const extract = data => data.data

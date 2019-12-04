@@ -1,5 +1,5 @@
 
-const namePatternRaw = '_?[a-zA-Z][a-zA-Z0-9_\\-]*'
+export const namePatternRaw = '_?[a-zA-Z][a-zA-Z0-9_\\-]*'
 export const namePattern = `(${namePatternRaw})`
 
 const absoluteIdxPattern = `(\\d+)`
