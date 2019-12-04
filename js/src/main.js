@@ -1,6 +1,7 @@
 import structureMatcher from './matching.js'
 
 import process from './processors/process.js'
+import postprocess from './processors/postprocess.js'
 
 import ruleEngine from './ruleEngine/ruleEngine.js'
 import randomize from './randomize/randomize.js'
