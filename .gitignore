@@ -20,3 +20,4 @@ meta.json
 # Compiled js output
 /js/dist/front.js
 /js/dist/back.js
+/build/*
