@@ -114,6 +114,13 @@ export const getCorrespondingSets = function(
         ? yanks.map(([yankid /*, ... */]) => `_${yankid}`)
         : []
 
+    case pos.list:
+      return extract(name)
+        .flatMap(v => getCorrespondingSets(
+          elements, namedSets, yanks,
+          v, currentPos,
+        ))
+
     case pos.name: default:
       return analyzeName(elements, yanks, namedSets, extract(name), evalNames, allowYanks)
   }

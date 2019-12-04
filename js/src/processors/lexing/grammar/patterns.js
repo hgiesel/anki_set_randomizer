@@ -1,10 +1,9 @@
-
 export const namePatternRaw = '_?[a-zA-Z][a-zA-Z0-9_\\-]*'
 export const namePattern = `(${namePatternRaw})`
 
 const absoluteIdxPattern = `(\\d+)`
 const absoluteNegIdxPattern = `n(-\\d+)`
-const relativeIdxPattern = `((?:\\+|-)?\\d+)`
+const relativeIdxPattern = `((?:\\+|-)\\d+)`
 
 const allSetsPattern = `(\\*)`
 const absoluteYankPattern = `_(\\d+)`
@@ -46,6 +45,27 @@ export const posPattern = `(?:`
   + `${absoluteYankPattern}|`
   + `${allYanksPattern}|`
   + `(${namePatternRaw}(?::[0-9a-zA-Z_\\-]+)*)`
+  + `)`
+
+export const posRegex = new RegExp(`(?:`
+  + `${absoluteIdxPattern}|`
+  + `${absoluteNegIdxPattern}|`
+  + `${relativeIdxPattern}|`
+  + `${allSetsPattern}|`
+  + `${absoluteYankPattern}|`
+  + `${allYanksPattern}|`
+  + `(${namePatternRaw}(?::[0-9a-zA-Z_\\-]+)*)`
+  + `)`, 'u')
+
+export const posPatternPlus = `(?:`
+  + `${absoluteIdxPattern}|`
+  + `${absoluteNegIdxPattern}|`
+  + `${relativeIdxPattern}|`
+  + `${allSetsPattern}|`
+  + `${absoluteYankPattern}|`
+  + `${allYanksPattern}|`
+  + `(${namePatternRaw}(?::[0-9a-zA-Z_\\-]+)*)|`
+  + `\\[(.*)\\]`
   + `)`
 
 export const availableShapes = `(rect|ellipse|polygon|line|arrow|darrow)`

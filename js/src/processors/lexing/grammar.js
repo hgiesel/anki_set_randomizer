@@ -8,6 +8,7 @@ import {
   availableShapes,
   ruleName,
   posPattern,
+  posPatternPlus,
 } from './grammar/patterns.js'
 
 const left = Symbol('left')
@@ -60,13 +61,13 @@ export const stylePattern = new RegExp(wrapName(['style'], [
 export const namedSetPattern = new RegExp(wrapName(['name'], [
   wrapArg(ruleName, left, true),
   wrapArg(namePattern, center),
-  wrapArg(posPattern, right, true),
+  wrapArg(posPatternPlus, right, true),
 ]), 'u')
 
 export const orderPattern = new RegExp(wrapName(['order'], [
   wrapArg(ruleName, left, true),
   wrapArg(namePattern, center),
-  wrapArg(posPattern, right, true),
+  wrapArg(posPatternPlus, right, true),
 ]), 'u')
 
 export const availableCommands = `(copy|del|move|swap|repl)`
@@ -82,5 +83,5 @@ export const commandPattern = new RegExp(wrapName(['cmd'], [
 export const applyPattern = new RegExp(wrapName(['apply'], [
   wrapArg(ruleName, left, true),
   wrapArg(namePattern, center),
-  wrapArg(posPattern, right, true),
+  wrapArg(posPatternPlus, right, true),
 ]), 'u')

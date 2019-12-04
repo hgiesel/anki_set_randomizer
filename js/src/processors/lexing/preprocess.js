@@ -5,6 +5,7 @@ import {
 import {
   namePatternRaw,
   valueSetRegex,
+  posRegex,
 } from './grammar/patterns.js'
 
 import {
@@ -29,7 +30,7 @@ export const preprocessYank = function([
   ]
 }
 
-export const preprocessNamepos = function([abs, absNeg, rel, all, absYank, allYank, name]) {
+export const preprocessNamepos = function([abs, absNeg, rel, all, absYank, allYank, name, list]) {
   if (abs) {
     return tag(pos.abs, Number(abs))
   }
@@ -52,6 +53,16 @@ export const preprocessNamepos = function([abs, absNeg, rel, all, absYank, allYa
 
   else if (name) {
     return tag(pos.name, name.split(':'))
+  }
+
+  else if (list) {
+    return tag(pos.list, list
+      .split(',')
+      .map(v => v.trim())
+      .map(v => v.match(posRegex))
+      .filter(v => Boolean(v))
+      .map(v => preprocessNamepos(v.slice(1)))
+    )
   }
 
   else /* rel */ {
@@ -122,7 +133,6 @@ export const preprocessAmount = function(amountText, defaultAmount = 1) {
 const parseVsInCond = function(ast) {
   if (ast.length === 3 && (ast[1] === 'includes' || ast[1] === '!includes')) {
     const calculatedVs = preprocessVs(ast[2].match(valueSetRegex).slice(1), false)
-    console.log([ast[0], ast[1], calculatedVs])
     return [ast[0], ast[1], calculatedVs]
   }
 

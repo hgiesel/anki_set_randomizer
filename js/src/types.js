@@ -22,6 +22,7 @@ export const pos = {
   allYank: 'posAllYank',
 
   name: 'posName',
+  list: 'posList',
 }
 
 export const amount = {

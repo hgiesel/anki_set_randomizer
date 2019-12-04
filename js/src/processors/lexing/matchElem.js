@@ -111,7 +111,7 @@ export const elementMatcher = function(styleSetter) {
         elemIndex,
         preprocessRule(patternResult.slice(1, 5), true),
         patternResult[5] /* name */,
-        preprocessNamepos(patternResult.slice(6, 13)),
+        preprocessNamepos(patternResult.slice(6, 14)),
       ])
     }
 
@@ -122,7 +122,7 @@ export const elementMatcher = function(styleSetter) {
         elemIndex,
         preprocessRule(patternResult.slice(1, 5), true),
         patternResult[5] /* name */,
-        preprocessNamepos(patternResult.slice(6, 13)),
+        preprocessNamepos(patternResult.slice(6, 14)),
       ])
     }
 
@@ -142,7 +142,7 @@ export const elementMatcher = function(styleSetter) {
         elemIndex,
         preprocessRule(patternResult.slice(1, 5), true),
         patternResult[5] /* style name */,
-        preprocessNamepos(patternResult.slice(6, 13)),
+        preprocessNamepos(patternResult.slice(6, 14)),
       ])
     }
 
