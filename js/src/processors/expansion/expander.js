@@ -21,28 +21,17 @@ export const expander = function(pregenManager) {
         return pg.expandValueSet(content.name, content.sub)
 
       case elemPick: default:
-        switch (content.pick.type) {
-          case pickInt:
-            return pg.expandPickNumber(
-              content.pick.amount,
-              content.pick.pick,
-              content.pick.uniq,
-            )
+        const picker = content.pick.type === pickInt
+          ? pg.expandPickInt
+          : content.pick.type === pickReal
+          ? pg.expandPickReal
+          : pg.expandPickValueSet
 
-          case pickReal:
-            return pg.expandPickNumber(
-              content.pick.amount,
-              content.pick.pick,
-              content.pick.uniq,
-            )
-
-          default /* from vs */:
-            return pg.expandPickValueSet(
-              content.pick.amount,
-              content.pick.pick,
-              content.pick.uniq,
-            )
-        }
+        return picker(
+          content.pick.amount,
+          content.pick.pick,
+          content.pick.uniq,
+        )
     }
   }
 

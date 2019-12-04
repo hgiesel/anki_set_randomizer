@@ -33,7 +33,7 @@ import {
 } from './preprocess.js'
 
 import {
-  elemText,
+  tag, elem,
 } from '../types.js'
 
 export const elementMatcher = function(styleSetter) {
@@ -57,10 +57,7 @@ export const elementMatcher = function(styleSetter) {
     let patternResult = null
 
     if (!content.startsWith('$')) {
-      return [[iterName, setIndex, elemIndex, {
-        type: elemText,
-        content: content,
-      }, mode]]
+      return [[iterName, setIndex, elemIndex, tag(elem.text, content), mode]]
     }
 
     else if (content === '$meta()' || content === '$inject()') {

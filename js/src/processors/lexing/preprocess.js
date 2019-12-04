@@ -1,11 +1,6 @@
 import {
-  vsNone, vsSome, vsStar, vsSelf,
-  pickInt, pickReal,
-  posRel, posAbs, posAbsNeg, posAll,
-  posAbsYank, posAllYank, posName,
-  amountCount, amountStar, amountPlus, amountQuestion,
-  uniqSome, uniqCond, uniqNone,
-} from '../util.js'
+  vs, pick, pos, amount, uniq, rule, tag,
+} from '../../types.js'
 
 import {
   namePatternRaw,
@@ -13,7 +8,6 @@ import {
 
 import {
   simpleStringToList,
-  getBool,
 } from './kwargs.js'
 
 export const preprocessYank = function([
@@ -36,79 +30,45 @@ export const preprocessYank = function([
 
 export const preprocessNamepos = function([abs, absNeg, rel, all, absYank, allYank, name]) {
   if (abs) {
-    return {
-      'type': posAbs,
+    return tag(pos.abs, {
       'values': Number(abs),
-    }
+    })
   }
 
   else if (absNeg) {
-    return {
-      'type': posAbsNeg,
+    return tag(pos.absNeg, {
       'values': Number(absNeg),
-    }
+    })
   }
 
   else if (all) {
-    return {
-      'type': posAll,
+    return tag(pos.all, {
       'values': null,
-    }
+    })
   }
 
   else if (absYank) {
-    return {
-      'type': posAbsYank,
+    return tag(pos.absYank, {
       'values': Number(absYank),
-    }
+    })
   }
 
   else if (allYank) {
-    return {
-      'type': posAllYank,
+    return tag(pos.allYank, {
       'values': null,
-    }
+    })
   }
 
   else if (name) {
-    return {
-      'type': posName,
+    return tag(pos.name, {
       'values': name.split(':'),
-    }
+    })
   }
 
   else /* rel */ {
-    return {
-      'type': posRel,
+    return tag(pos.rel, {
       'values': Number(rel) || 0,
-    }
-  }
-}
-
-export const preprocessForce = function(options) {
-  if (options.hasOwnProperty('force')) {
-    switch (typeof options.force) {
-      case 'string':
-        const maybeBool = getBool(options.force)
-        if (maybeBool !== null) {
-          return {
-            force: maybeBool,
-          }
-        }
-        break
-
-      case 'bool':
-        return {
-          force: options.force
-        }
-
-      default:
-        // fallthrough
-    }
-  }
-
-  return {
-    force: false
+    })
   }
 }
 
@@ -123,82 +83,74 @@ export const preprocessVs = function(
     const maybeVsPos = Number(vsPosIndex)
 
     if (vsName === '$') {
-      return {
-        'type': vsSome,
-        'name': vsSelf,
-        'sub': vsSelf,
-        'pos': vsSelf,
-      }
+      return tag(vs.some, {
+        'name': vs.self,
+        'sub': vs.self,
+        'pos': vs.self,
+      })
     }
 
-    return {
-      'type': vsSome,
+    return tag(vs.some, {
       'name': vsName === '*'
-        ? vsStar
+        ? vs.star
         : vsName === '_'
-        ? vsSelf
+        ? vs.self
         : vsName,
       'sub': !Number.isNaN(maybeVsSub)
         ? maybeVsSub
         : vsSubIndex === '_'
-        ? vsSelf
-        : vsStar /* default */,
+        ? vs.self
+        : vs.star /* default */,
       'pos': !Number.isNaN(maybeVsPos)
         ? maybeVsPos
         : vsPosIndex === '_'
-        ? vsSelf
-        : vsStar /* default */,
-    }
+        ? vs.self
+        : vs.star /* default */,
+    })
   }
 
-  return {
-    'type': vsNone,
+  return tag(vs.none, {
     'name': null,
     'sub': null,
     'pos': null,
-  }
+  })
 }
 
 export const preprocessAmount = function(amountText, defaultAmount = 1) {
-  if (amountText === '*' || (!amountText && defaultAmount === amountStar)) {
-    return {
-      'type': amountStar,
+  if (amountText === '*' || (!amountText && defaultAmount === amount.star)) {
+    return tag(amount.star, {
       'value': null,
-    }
+    })
   }
 
-  else if (amountText === '+' || (!amountText && defaultAmount === amountPlus)) {
-    return {
-      'type': amountPlus,
+  else if (amountText === '+' || (!amountText && defaultAmount === amount.plus)) {
+    return tag(amount.plus, {
       'value': null,
-    }
+    })
   }
 
-  else if (amountText === '?' || (!amountText && defaultAmount === amountQuestion)) {
-    return {
-      'type': amountQuestion,
+  else if (amountText === '?' || (!amountText && defaultAmount === amount.question)) {
+    return tag(amount.question, {
       'value': null,
-    }
+    })
   }
 
   const amountNumber = Number(amountText)
-  return {
-    'type': amountCount,
+  return tag(amount.count, {
     'value': Number.isNaN(amountNumber) ? defaultAmount : amountNumber,
-  }
+  })
 }
 
-const parseUniqConditions = function(cond, add, fail, uniq) {
+const parseUniqConditions = function(cond, add, fail, uniqVal) {
   let condResult = null
   if (cond) {
     try {
       condResult = JSON.parse(cond)
     }
     catch (e) {
-      return {
-        'type': uniqNone,
+      return tag(uniq.none, {
         'name': null,
-      }
+      })
     }
   }
   else {
@@ -213,13 +165,12 @@ const parseUniqConditions = function(cond, add, fail, uniq) {
     ? simpleStringToList(fail)
     : []
 
-  return {
-    'type': uniqCond,
+  return tag(uniq.cond, {
     'cond': condResult,
     'add': addResult,
     'fail': failResult,
-    'name': uniq ? uniq : null,
-  }
+    'name': uniqVal ? uniqVal : null,
+  })
 }
 
 const parseUniqName = function(name) {
@@ -228,66 +179,46 @@ const parseUniqName = function(name) {
     : `_anonymous${String(Math.random()).slice(2)}`
 }
 
-export const preprocessUniq = function(options, shortcut = false) {
+export const preprocessUniq = function(options) {
   if (options.hasOwnProperty('cond')
     || options.hasOwnProperty('add')
     || options.hasOwnProperty('fail')
   ) {
-    if (shortcut) {
-      const result = {
-        'type': uniqCond,
-        'cond': options.cond || [],
-        'add': options.add || [],
-        'fail': options.fail || [],
-      }
-
-      if (options.hasOwnProperty('uniq')) {
-        result.name = parseUniqName(options.uniq)
-      }
-
-      return result
-    }
-    else {
-      return parseUniqConditions(
-        options.cond,
-        options.add,
-        options.fail,
-        options.uniq,
-      )
-    }
+    return parseUniqConditions(
+      options.cond,
+      options.add,
+      options.fail,
+      options.uniq,
+    )
   }
 
   else if (options.hasOwnProperty('uniq')) {
-    return {
-      'type': uniqSome,
+    return tag(uniq.some, {
       'name': parseUniqName(options.uniq),
-    }
+    })
   }
 
   else {
-    return {
-      'type': uniqNone,
+    return tag(uniq.none, {
       'name': null,
-    }
+    })
   }
 }
 
 export const preprocessPickInt = function([minValue, maxValue, extraValue]) {
-  return {
-    'type': pickInt,
+  return tag(pick.int, {
     'min': Number(minValue),
     'max': Number(maxValue),
     'extra': Number(extraValue) || 1,
-  }
+  })
 }
 
 export const preprocessPickReal = function([minValue, maxValue, extraValue]) {
-  return {
-    'type': pickReal,
+  return tag(pick.real, {
     'min': Number(minValue),
     'max': Number(maxValue),
     'extra': Number(extraValue) || 2,
-  }
+  })
 }
 
 export const preprocessPickNumber = function([minValue, maxValue, extraValue]) {
@@ -301,18 +232,22 @@ export const preprocessPick = function([minValue, maxValue, extraValue, ...vsArg
     return preprocessPickNumber([minValue, maxValue, extraValue])
   }
 
-  return preprocessVs(vsArgs, true)
+  return tag(pick.vs, preprocessVs(vsArgs, true))
 }
 
-export const preprocessRule = function(
-  [vsName, vsSubIndex, vsPosIndex, ucName],
-) {
+export const preprocessRule = function([
+  vsName,
+  vsSubIndex,
+  vsPosIndex,
+  ucName,
+]) {
   if (ucName) {
-    return preprocessUniq({
+    return tag(rule.uniq, preprocessUniq({
       uniq: ucName,
-    })
+    }))
   }
+
   else {
-    return preprocessVs([vsName, vsSubIndex, vsPosIndex], false)
+    return tag(rule.vs, preprocessVs([vsName, vsSubIndex, vsPosIndex], false))
   }
 }

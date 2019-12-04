@@ -1,31 +1,58 @@
-export const vsSome = 'vsSome'
-export const vsNone = 'vsNone'
-export const vsStar = 'vsStar'
-export const vsSelf = 'vsSelf'
+export const elem = {
+  text: 'elemText',
+  vs: 'elemVs',
+  pick: 'elemPick',
+  value: 'elemValue',
+}
 
-export const posAbs = 'posAbs'
-export const posAbsNeg = 'posAbsNeg'
-export const posAbsYank = 'posAbsYank'
-export const posRel = 'posReal'
+export const vs = {
+  some: 'vsSome',
+  none: 'vsNone',
+  star: 'vsStar',
+  self: 'vsSelf',
+}
 
-export const posAll = 'posAll'
-export const posAllYank = 'posAllYank'
+export const pos = {
+  abs: 'posAbs',
+  absNeg: 'posAbsNeg',
+  absYank: 'posAbsYank',
+  rel: 'posReal',
 
-export const posName = 'posName'
+  all: 'posAll',
+  allYank: 'posAllYank',
 
-export const amountCount = 'amountCount'
-export const amountStar = 'amountStar'
-export const amountPlus = 'amountPlus'
-export const amountQuestion = 'amountQuestion'
+  name: 'posName',
+}
 
-export const uniqSome = 'uniqSome'
-export const uniqCond = 'uniqCond'
-export const uniqNone = 'uniqNone'
+export const amount = {
+  count: 'amountCount',
+  star: 'amountStar',
+  plus: 'amountPlus',
+  question: 'amountQuestion',
+}
 
-export const pickInt = 'pickInt'
-export const pickReal = 'pickReal'
+export const uniq = {
+  some: 'uniqSome',
+  cond: 'uniqCond',
+  none: 'uniqNone',
+}
 
-export const elemText = 'elemText'
-export const elemVs = 'elemVs'
-export const elemPick = 'elemPick'
-export const elemValue = 'elemValue'
+export const pick = {
+  int: 'pickInt',
+  real: 'pickReal',
+  vs: 'pickVs',
+}
+
+export const rule = {
+  vs: 'ruleVs',
+  uniq: 'ruleUniq',
+}
+
+export const tag = function(typeName, data) {
+  return {
+    type: typeName,
+    data: data,
+  }
+}
+
+export const extract = data => data.data

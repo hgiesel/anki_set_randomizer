@@ -1,9 +1,8 @@
 import {
   catchPattern,
-} from './util.js'
-
-const singleQuotePattern = /\\\\'/u
-const doubleQuotePattern = /\\\\"/u
+  singleQuotePattern,
+  doubleQuotePattern,
+} from './grammar/patterns.js'
 
 const evalKwargComponents = function(comp) {
   if (comp) {

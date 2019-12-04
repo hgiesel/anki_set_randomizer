@@ -1,17 +1,16 @@
 import {
-  elemVs,
-  elemPick,
-} from '../util.js'
+  tag, elem,
+} from '../types.js'
 
 import {
   newLinePattern,
   catchPattern,
-} from './util.js'
+} from './grammar/patterns.js'
 
-const unescapeSeparator = function(token, dropFirst = true) {
+const unescapeSeparator = function(token) {
   return token
     .split('%%')
-    .slice(dropFirst ? 3 : 2, -1)
+    .slice(3, -1)
 }
 
 const escapeSeparator = function(components) {
@@ -41,20 +40,16 @@ export const processValueSet = function(
     values: values,
   }) - 1
 
-  return {
-    type: elemVs,
+  return tag(elem.vs, {
     name: vsName,
     sub: vsSub,
-  }
+  })
 }
 
 export const processPick = function(amount, pick, uniq) {
-  return {
-    type: elemPick,
-    content: {
-      amount: amount,
-      pick: pick,
-      uniq: uniq,
-    }
-  }
+  return tag(elem.pick, {
+    amount: amount,
+    pick: pick,
+    uniq: uniq,
+  })
 }
