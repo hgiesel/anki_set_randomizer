@@ -1,280 +1,367 @@
 {
-   "description" : "",
-   "enabled" : true,
-   "injections" : [
-      {
-         "conditions" : [
-            "&",
-            [
-               "tag",
-               "endsWith",
-               "::mc"
+    "description": "",
+    "enabled": true,
+    "injections": [
+        {
+            "conditions": [
+                "&",
+                [
+                    "tag",
+                    "endsWith",
+                    "::mc"
+                ],
+                [
+                    "iter",
+                    "startsWith",
+                    "-"
+                ]
             ],
-            [
-               "iter",
-               "startsWith",
-               "-"
+            "description": "",
+            "enabled": true,
+            "name": "mc::front",
+            "statements": [
+                "$eval(+, $answer, uniq=ans)",
+                "$eval($wrong:0)"
             ]
-         ],
-         "description" : "",
-         "enabled" : true,
-         "name" : "mc::front",
-         "statements" : [
-            "$eval(+, $answer, uniq=ans)",
-            "$eval($wrong:0)"
-         ]
-      },
-      {
-         "conditions" : [
-            "&",
-            [
-               "tag",
-               "endsWith",
-               "::mc"
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "tag",
+                    "endsWith",
+                    "::mc"
+                ],
+                [
+                    "iter",
+                    "startsWith",
+                    "+"
+                ]
             ],
-            [
-               "iter",
-               "startsWith",
-               "+"
+            "description": "",
+            "enabled": true,
+            "name": "mc::back",
+            "statements": [
+                "$style(answer, colorRules=[$answer, lime], colors=red)",
+                "$apply($answer, answer)",
+                "$eval(+, $answer, uniq=ans)",
+                "$style(wrong, colors=red)",
+                "$apply($wrong, wrong)",
+                "$eval($wrong:0)",
+                "$eval($wrong:1)"
             ]
-         ],
-         "description" : "",
-         "enabled" : true,
-         "name" : "mc::back",
-         "statements" : [
-            "$eval(+, $answer, uniq=ans)",
-            "$style(answer, colorRules=[$answer, lime], colors=red)",
-            "$apply($answer, answer)",
-            "$eval($wrong:1)"
-         ]
-      },
-      {
-         "conditions" : [
-            "&",
-            [
-               "tag",
-               "endsWith",
-               "zh::context"
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "tag",
+                    "endsWith",
+                    "zh::context"
+                ],
+                [
+                    "iter",
+                    "startsWith",
+                    "-"
+                ]
             ],
-            [
-               "iter",
-               "startsWith",
-               "-"
+            "description": "",
+            "enabled": true,
+            "name": "zh::tone::front",
+            "statements": [
+                "$style(toneDeaf, filterTags=yes, colors=pink)",
+                "$apply($tone, toneDeaf)",
+                "$eval($tone)"
             ]
-         ],
-         "description" : "",
-         "enabled" : true,
-         "name" : "zh::tone::front",
-         "statements" : [
-            "$style(toneDeaf, filterTags=yes, colors=pink)",
-            "$apply($tone, toneDeaf)",
-            "$eval($tone)"
-         ]
-      },
-      {
-         "conditions" : [
-            "&",
-            [
-               "tag",
-               "endsWith",
-               "zh::context"
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "tag",
+                    "endsWith",
+                    "zh::context"
+                ],
+                [
+                    "iter",
+                    "startsWith",
+                    "+"
+                ]
             ],
-            [
-               "iter",
-               "startsWith",
-               "+"
+            "description": "",
+            "enabled": true,
+            "name": "zh::tone::back",
+            "statements": [
+                "$style(toneLive, colors=pink)",
+                "$apply($tone, toneLive)",
+                "$eval($tone)"
             ]
-         ],
-         "description" : "",
-         "enabled" : true,
-         "name" : "zh::tone::back",
-         "statements" : [
-            "$style(toneLive, colors=pink)",
-            "$apply($tone, toneLive)",
-            "$eval($tone)"
-         ]
-      }
-   ],
-   "insertAnkiPersistence" : false,
-   "iterations" : [
-      {
-         "defaultStyle" : {
-            "classes" : {
-               "collectiveIndexing" : true,
-               "delim" : "",
-               "randomStartIndex" : false,
-               "values" : [
-                  ""
-               ]
+        },
+        {
+            "conditions": [
+                "iter",
+                "=",
+                "post_main"
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "jp::separator",
+            "statements": [
+                "$style(default, fieldSeparator=\"\u30fb\")"
+            ]
+        },
+        {
+            "conditions": [
+                "|",
+                [
+                    "tag",
+                    "startsWith",
+                    "jp"
+                ],
+                [
+                    "tag",
+                    "startsWith",
+                    "zh"
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "asian::symbols",
+            "statements": [
+                "$style(default, emptySet=\"\u2026\")"
+            ]
+        },
+        {
+            "conditions": [
+                "&",
+                [
+                    "tag",
+                    "endsWith",
+                    "::context"
+                ],
+                [
+                    "iter",
+                    "startsWith",
+                    "+"
+                ]
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "context::back",
+            "statements": [
+                "$eval($con)",
+                "$apply($con, raw)"
+            ]
+        },
+        {
+            "conditions": [
+                "iter",
+                "startsWith",
+                "-"
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "switch::front",
+            "statements": [
+                "$eval($sw:0)",
+                "$apply($sw, raw)"
+            ]
+        },
+        {
+            "conditions": [
+                "iter",
+                "startsWith",
+                "+"
+            ],
+            "description": "",
+            "enabled": true,
+            "name": "switch::back",
+            "statements": [
+                "$eval($sw:1)",
+                "$apply($sw, raw)"
+            ]
+        }
+    ],
+    "insertAnkiPersistence": false,
+    "iterations": [
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": true,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "\u3015",
+                "colors": {
+                    "collectiveIndexing": true,
+                    "delim": "aqua",
+                    "randomStartIndex": false,
+                    "values": [
+                        "orange",
+                        "olive",
+                        "maroon",
+                        "aqua",
+                        "fuchsia"
+                    ]
+                },
+                "emptySet": "\u2026",
+                "fieldPadding": 2,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "\u3014",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
             },
-            "closeDelim" : "〕",
-            "colors" : {
-               "collectiveIndexing" : true,
-               "delim" : "aqua",
-               "randomStartIndex" : false,
-               "values" : [
-                  "orange",
-                  "olive",
-                  "maroon",
-                  "aqua",
-                  "fuchsia"
-               ]
+            "description": "",
+            "enabled": true,
+            "inputSyntax": {
+                "closeDelim": "\\]\\]",
+                "cssSelector": "div#content",
+                "fieldSeparator": "::",
+                "isRegex": true,
+                "openDelim": "\\[f?\\["
             },
-            "emptySet" : "…",
-            "fieldPadding" : 2,
-            "fieldSeparator" : " ",
-            "fill" : "beige",
-            "fillOpacity" : 1,
-            "openDelim" : "〔",
-            "stroke" : "skyblue",
-            "strokeOpacity" : 1,
-            "strokeWidth" : 3
-         },
-         "description" : "",
-         "enabled" : true,
-         "inputSyntax" : {
-            "closeDelim" : "\\]\\]",
-            "cssSelector" : "div#content",
-            "fieldSeparator" : "::",
-            "isRegex" : true,
-            "openDelim" : "\\[f?\\["
-         },
-         "name" : "-main"
-      },
-      {
-         "defaultStyle" : {
-            "classes" : {
-               "collectiveIndexing" : true,
-               "delim" : "",
-               "randomStartIndex" : false,
-               "values" : [
-                  ""
-               ]
+            "name": "-main"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": true,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "\u3015",
+                "colors": {
+                    "collectiveIndexing": true,
+                    "delim": "aqua",
+                    "randomStartIndex": false,
+                    "values": [
+                        "orange",
+                        "olive",
+                        "maroon",
+                        "aqua",
+                        "fuchsia"
+                    ]
+                },
+                "emptySet": "\u2026",
+                "fieldPadding": 2,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "\u3014",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
             },
-            "closeDelim" : "〕",
-            "colors" : {
-               "collectiveIndexing" : true,
-               "delim" : "aqua",
-               "randomStartIndex" : false,
-               "values" : [
-                  "orange",
-                  "olive",
-                  "maroon",
-                  "aqua",
-                  "fuchsia"
-               ]
+            "description": "",
+            "enabled": true,
+            "inputSyntax": {
+                "closeDelim": "\\]\\]",
+                "cssSelector": "div#content",
+                "fieldSeparator": "::",
+                "isRegex": true,
+                "openDelim": "\\[b?\\["
             },
-            "emptySet" : "…",
-            "fieldPadding" : 2,
-            "fieldSeparator" : " ",
-            "fill" : "beige",
-            "fillOpacity" : 1,
-            "openDelim" : "〔",
-            "stroke" : "skyblue",
-            "strokeOpacity" : 1,
-            "strokeWidth" : 3
-         },
-         "description" : "",
-         "enabled" : true,
-         "inputSyntax" : {
-            "closeDelim" : "\\]\\]",
-            "cssSelector" : "div#content",
-            "fieldSeparator" : "::",
-            "isRegex" : true,
-            "openDelim" : "\\[b?\\["
-         },
-         "name" : "+main"
-      },
-      {
-         "defaultStyle" : {
-            "classes" : {
-               "collectiveIndexing" : true,
-               "delim" : "",
-               "randomStartIndex" : false,
-               "values" : [
-                  ""
-               ]
+            "name": "+main"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": true,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": true,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "\u2026",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
             },
-            "closeDelim" : "",
-            "colors" : {
-               "collectiveIndexing" : true,
-               "delim" : "",
-               "randomStartIndex" : false,
-               "values" : [
-                  ""
-               ]
+            "description": "",
+            "enabled": true,
+            "inputSyntax": {
+                "closeDelim": "#\\]",
+                "cssSelector": "div#content",
+                "fieldSeparator": "::",
+                "isRegex": true,
+                "openDelim": "\\[f?#"
             },
-            "emptySet" : "…",
-            "fieldPadding" : 0,
-            "fieldSeparator" : " ",
-            "fill" : "beige",
-            "fillOpacity" : 1,
-            "openDelim" : "",
-            "stroke" : "skyblue",
-            "strokeOpacity" : 1,
-            "strokeWidth" : 3
-         },
-         "description" : "",
-         "enabled" : true,
-         "inputSyntax" : {
-            "closeDelim" : "#\\]",
-            "cssSelector" : "div#content",
-            "fieldSeparator" : "::",
-            "isRegex" : true,
-            "openDelim" : "\\[f?#"
-         },
-         "name" : "-post_main"
-      },
-      {
-         "defaultStyle" : {
-            "classes" : {
-               "collectiveIndexing" : true,
-               "delim" : "",
-               "randomStartIndex" : false,
-               "values" : [
-                  ""
-               ]
+            "name": "-post_main"
+        },
+        {
+            "defaultStyle": {
+                "classes": {
+                    "collectiveIndexing": true,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "closeDelim": "",
+                "colors": {
+                    "collectiveIndexing": true,
+                    "delim": "",
+                    "randomStartIndex": false,
+                    "values": [
+                        ""
+                    ]
+                },
+                "emptySet": "\u2026",
+                "fieldPadding": 0,
+                "fieldSeparator": " ",
+                "fill": "beige",
+                "fillOpacity": 1.0,
+                "openDelim": "",
+                "stroke": "skyblue",
+                "strokeOpacity": 1.0,
+                "strokeWidth": 3
             },
-            "closeDelim" : "",
-            "colors" : {
-               "collectiveIndexing" : true,
-               "delim" : "",
-               "randomStartIndex" : false,
-               "values" : [
-                  ""
-               ]
+            "description": "",
+            "enabled": true,
+            "inputSyntax": {
+                "closeDelim": "#\\]",
+                "cssSelector": "div#content",
+                "fieldSeparator": "::",
+                "isRegex": true,
+                "openDelim": "\\[b?#"
             },
-            "emptySet" : "…",
-            "fieldPadding" : 0,
-            "fieldSeparator" : " ",
-            "fill" : "beige",
-            "fillOpacity" : 1,
-            "openDelim" : "",
-            "stroke" : "skyblue",
-            "strokeOpacity" : 1,
-            "strokeWidth" : 3
-         },
-         "description" : "",
-         "enabled" : true,
-         "inputSyntax" : {
-            "closeDelim" : "#\\]",
-            "cssSelector" : "div#content",
-            "fieldSeparator" : "::",
-            "isRegex" : true,
-            "openDelim" : "\\[b?#"
-         },
-         "name" : "+post_main"
-      }
-   ],
-   "modelName" : "Standard",
-   "pasteIntoTemplate" : true,
-   "sourceMode" : {
-      "clozeOptions" : {
-         "closeDelim" : "]]",
-         "openDelim" : "[[",
-         "shortcutsEnabled" : false,
-         "vsPrefix" : "c"
-      },
-      "occlusionOptions" : {}
-   }
+            "name": "+post_main"
+        }
+    ],
+    "modelName": "Standard",
+    "pasteIntoTemplate": true,
+    "sourceMode": {
+        "clozeOptions": {
+            "closeDelim": "]]",
+            "openDelim": "[[",
+            "shortcutsEnabled": false,
+            "vsPrefix": "c"
+        },
+        "occlusionOptions": {}
+    }
 }

@@ -37,13 +37,26 @@ const blockStyle = initStyle('block')
 blockStyle.stylings.openDelim = ''
 blockStyle.stylings.closeDelim = ''
 blockStyle.stylings.fieldPadding = 0
+blockStyle.stylings.fieldSeparator = 0
 blockStyle.stylings.display = 'block'
+
+const rawStyle = initStyle('raw')
+rawStyle.stylings.openDelim = ''
+rawStyle.stylings.closeDelim = ''
+rawStyle.stylings.fieldPadding = 0
+rawStyle.stylings.fieldSeparator = ', '
+
+rawStyle.stylings.colors.values = []
+rawStyle.stylings.colors.delim = ''
+rawStyle.stylings.classes.values = []
+rawStyle.stylings.classes.delim = ''
 
 const defaultStyleDefinitions = [
   noneStyle,
   metaStyle,
   emptyStyle,
   blockStyle,
+  rawStyle,
 ]
 
 export default function styleSetter(defaultStyle) {
