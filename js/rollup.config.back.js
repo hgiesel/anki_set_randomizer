@@ -18,7 +18,7 @@ const production = !process.env.ROLLUP_WATCH
 export default {
   input: 'src/back.js',
   output: {
-    file: 'dist/back.js',
+    file: 'dist/Back.js',
     format: 'iife', // immediately-invoked function expression — suitable for <script> tags
     name: 'SetRandomizer',
     // sourcemap: true

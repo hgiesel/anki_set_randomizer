@@ -2,10 +2,10 @@ import re
 
 from aqt import Qt
 
-from .lib.config import get_settings
+from .lib.config import get_setting
 
 def get_sm_config(model_name):
-    settings = get_settings(model_name)
+    settings = get_setting(model_name)
 
     try:
         return settings.source_mode.cloze_options

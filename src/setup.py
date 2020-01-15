@@ -9,17 +9,24 @@ from .gui_config.custom.sr_config import SRConfigDialog
 def setup_editor():
     Editor.onCloze = wrap(Editor.onCloze, on_cloze, "around")
 
-def invoke_options():
-    dialog = SRConfigDialog(mw)
-    dialog.setupUi(get_settings())
+def setup_invoke(sm_installed):
+    def invoke_options():
+        dialog = SRConfigDialog(mw, sm_installed)
+        settings = get_settings()
 
-    return dialog.exec_()
+        dialog.setupUi(settings)
+        return dialog.exec_()
 
-def setup_addon_manager():
-    mw.addonManager.setConfigAction(__name__, invoke_options)
+    return invoke_options
 
-def setup_menu_option():
-    action = QAction('Set Randomizer Settings...', mw)
-    action.triggered.connect(invoke_options)
-    mw.form.menuTools.addAction(action)
-    # debugOpenWindow()
+def setup_config_dialog(sm_installed):
+    def setup_menu_option():
+        action = QAction('Set Randomizer Settings...', mw)
+        action.triggered.connect(setup_invoke(sm_installed))
+        mw.form.menuTools.addAction(action)
+
+    def setup_addon_manager():
+        mw.addonManager.setConfigAction(__name__, setup_invoke(sm_installed))
+
+    addHook('profileLoaded', setup_menu_option)
+    addHook('profileLoaded', setup_addon_manager)

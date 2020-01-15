@@ -4,7 +4,6 @@ from ..sr_config_tabwidget_ui import Ui_SRConfigTabwidget
 from ...lib.config import deserialize_setting
 
 class SRConfigTabwidget(QTabWidget):
-
     def __init__(self, parent):
         super().__init__(parent=parent)
 
@@ -41,7 +40,7 @@ class SRConfigTabwidget(QTabWidget):
             'description': description,
             'enabled': enabled,
             'insertAnkiPersistence': insertAnkiPersistence,
-            'parseIntoTemplate': pasteIntoTemplate,
+            'pasteIntoTemplate': pasteIntoTemplate,
             'iterations': self.ui.iterationTab.exportData(),
             'injections': self.ui.injectionTab.exportData(),
             'sourceMode': self.ui.sourceModeTab.exportData(),

@@ -1,6 +1,8 @@
 import json
 import os.path as path
 
+from typing import List, Optional
+
 from collections import namedtuple
 from aqt import mw
 
@@ -16,6 +18,7 @@ from .config_types import (
     SRSourceMode, SRClozeOptions, SROcclusionOptions,
 )
 
+CONFIG = mw.addonManager.getConfig(__name__)
 SCRIPTNAME = path.dirname(path.realpath(__file__))
 
 # initialize default type
@@ -176,10 +179,10 @@ def deserialize_source_mode(source_mode_data, access_func = safenav_source_mode)
 def deserialize_setting(model_name, model_setting, access_func = safenav_setting) -> SRSetting:
     return model_setting if type(model_setting) == SRSetting else SRSetting(
         model_name,
-        access_func([model_setting], ['description']),
-        access_func([model_setting], ['enabled']),
-        access_func([model_setting], ['insertAnkiPersistence']),
-        access_func([model_setting], ['pasteIntoTemplate']),
+        access_func([model_setting], ['description'], default = ''),
+        access_func([model_setting], ['enabled'], default = False),
+        access_func([model_setting], ['insertAnkiPersistence'], default = False),
+        access_func([model_setting], ['pasteIntoTemplate'], default = False),
         [deserialize_iteration(iter) for iter in access_func([model_setting], ['iterations'])],
         [deserialize_injection(inj) for inj in access_func([model_setting], ['injections'])],
         deserialize_source_mode(access_func([model_setting], ['sourceMode'])),
@@ -196,24 +199,27 @@ def deserialize_setting_with_default(model_name, settings):
 
     return model_deserialized
 
-def get_settings(model_name=None):
-    CONFIG = mw.addonManager.getConfig(__name__)
+def get_setting(model_name='Default') -> Optional[SRSetting]:
+    return deserialize_setting_with_default(model_name, safenav([CONFIG], ['settings'], default=None))
 
-    if model_name:
-        return deserialize_setting_with_default(model_name, safenav([CONFIG], ['settings'], default=None))
+def get_settings() -> List[SRSetting]:
+    model_settings = []
 
-    else:
-        model_settings = []
+    for model in mw.col.models.models.values():
+        model_name = (model['name'])
+        model_deserialized = get_setting(model_name)
+        model_settings.append(model_deserialized)
 
-        for model in mw.col.models.models.values():
-            model_name = (model['name'])
-            model_deserialized = deserialize_setting_with_default(model_name, safenav([CONFIG], ['settings'], default=[]))
-            model_settings.append(model_deserialized)
-
-        return model_settings
+    return model_settings
 
 # write config data to config.json
-def write_settings(settings):
+def write_settings(settings: List[SRSetting]) -> None:
+    serializedSettings = [
+        serialize_setting(setting)
+        for setting
+        in settings
+    ]
+
     mw.addonManager.writeConfig(__name__, {
-        'settings': [serialize_setting(setting) for setting in settings],
+        'settings': serializedSettings,
     })

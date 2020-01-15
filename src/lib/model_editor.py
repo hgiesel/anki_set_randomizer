@@ -2,54 +2,72 @@ import os
 import io
 import re
 import base64
+
 from json import dumps
 from functools import reduce
 from string import Template
 
-from anki import media
 from aqt import mw
-from aqt.utils import showInfo
 
-from .config import serialize_setting
+from .config import serialize_iteration, serialize_injection
 from .utils import version_string
 
 class BetterTemplate(Template):
     delimiter = '$$'
 
 def setup_models(settings):
-    for st in [serialize_setting(setting) for setting in settings]:
-        model = mw.col.models.byName(st['modelName'])
+    for st in settings:
+        model = mw.col.models.byName(st.model_name)
 
-        remove_model_template(model)
+        for tmpl in model['tmpls']:
+            cardtype_name = tmpl['name']
 
-        if st['enabled']:
-            update_model_template(model, st)
+            for fmt in ['qfmt', 'afmt']:
+                if st.enabled:
+                    code = get_sr_code(st, cardtype_name, fmt)
+                    file_name = get_filename(model, cardtype_name, fmt)
 
-def gen_data_attributes(side):
-    return f'data-name="Set Randomizer {side} Template" data-version="{version_string}"'
+                    paste_method = (
+                        paste_sr_into_template
+                        if st.paste_into_template
+                        else create_sr_file
+                    )
 
-def remove_model_template(model):
-    front_name = f'_front{model["id"]}.js'
-    back_name = f'_back{model["id"]}.js'
+                    code_wrapped = wrap_code_segment(
+                        paste_method(code, file_name, st.insert_anki_persistence),
+                        gen_data_attributes(fmt),
+                    )
 
-    mw.col.media.syncDelete(front_name)
-    mw.col.media.syncDelete(back_name)
+                    update_model_template(tmpl, fmt, code_wrapped)
 
-    for template in model['tmpls']:
+                else:
+                    update_model_template(tmpl, fmt, '')
 
-        template['qfmt'] = re.sub(
-            '\n?<script[^>]*Set Randomizer[^>]*>.*</script>',
-            '',
-            template['qfmt'],
-            flags=re.MULTILINE | re.DOTALL,
-        ).strip()
 
-        template['afmt'] = re.sub(
-            '\n?<script[^>]*Set Randomizer[^>]*>.*</script>',
-            '',
-            template['afmt'],
-            flags=re.MULTILINE | re.DOTALL,
-        ).strip()
+        # notify anki that models changed (for synchronization e.g.)
+        mw.col.models.save(model)
+
+def get_filename(model, cardtype_name, fmt):
+    return f'_{fmt_to_frontback(fmt)}{model["id"]}_{cardtype_name}.js'
+
+def fmt_to_frontback(fmt):
+    side = 'Front' if fmt == 'qfmt' else 'Back'
+    return side
+
+def gen_data_attributes(fmt):
+    return f'data-name="Set Randomizer {fmt_to_frontback(fmt)} Template" data-version="{version_string}"'
+
+def update_model_template(tmpl, fmt, new_code: str):
+    pattern = re.compile(r'\n?<script[^>]*Set Randomizer[^>]*?>.*?</script>', re.DOTALL)
+    span = re.search(pattern, tmpl[fmt])
+
+    replacement = (
+        new_code.join([tmpl[fmt][:span.start()], tmpl[fmt][span.end():]])
+        if bool(span)
+        else tmpl[fmt] + new_code
+    )
+
+    tmpl[fmt] = replacement
 
 def get_injection_condition_parser(card, iterations):
     is_true = lambda v: type(v) == bool and v == True
@@ -129,7 +147,7 @@ def get_injection_condition_parser(card, iterations):
             return val, val
 
         elif inj[0] == 'iter':
-            iterNames = [iter['name'] for iter in iterations]
+            iterNames = [iter.name for iter in iterations]
 
             if inj[1] == '=':
                 truth_values = [x == inj[2] for x in iterNames]
@@ -171,99 +189,69 @@ def get_injection_condition_parser(card, iterations):
 
     return parse_injection
 
-def update_model_template(model, settings):
-    js_path = f'{os.path.dirname(os.path.realpath(__file__))}/../../js/dist'
+js_path = f'{os.path.dirname(os.path.realpath(__file__))}/../../js/dist'
+
+def get_anki_persistence_code() -> str:
+    with io.open(f'{js_path}/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:
+        anki_persistence = template_anki_persistence.read()
+
+    return anki_persistence
+
+def get_sr_code(settings, cardtype_name, fmt) -> str:
     minimal_sep = (',', ':')
+    is_front = fmt == 'qfmt' # else 'afmt'
 
-    for template in model['tmpls']:
-        cardtype_name = template['name']
+    the_iterations = [iter for iter in settings.iterations if iter.enabled and iter.name.startswith('-' if is_front else '+')]
+    injection_parser = get_injection_condition_parser(cardtype_name, the_iterations)
+    the_injections = []
 
-        front_iterations = [iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('-')]
-        back_iterations = [iter for iter in settings['iterations'] if iter['enabled'] and iter['name'].startswith('+')]
+    for inj in [inj for inj in settings.injections if inj.enabled]:
+        needs_inject, simplified_conditions = injection_parser(inj.conditions)
 
-        front_injection_parser = get_injection_condition_parser(cardtype_name, front_iterations)
-        back_injection_parser = get_injection_condition_parser(cardtype_name, back_iterations)
+        if needs_inject:
+            the_injections.append({
+                'statements': inj.statements,
+                'conditions': simplified_conditions,
+            })
 
-        front_injections = []
-        back_injections = []
+    js_file_name = fmt_to_frontback(fmt)
 
-        for inj in [inj for inj in settings['injections'] if inj['enabled']]:
-            needs_front_inject, simplified_conditions_front = front_injection_parser(inj['conditions'])
+    with io.open(f'{js_path}/{js_file_name}.js', mode='r', encoding='utf-8') as template_text:
+        js_text = BetterTemplate(template_text.read()).safe_substitute(
+            iterations=dumps([serialize_iteration(iter) for iter in the_iterations], separators=minimal_sep),
+            injections=dumps([serialize_injection(inj) for inj in the_injections], separators=minimal_sep),
+        )
 
-            if needs_front_inject:
-                front_injections.append({
-                    'statements': inj['statements'],
-                    'conditions': simplified_conditions_front,
-                })
+    return js_text
 
-            needs_back_inject, simplified_conditions_back = back_injection_parser(inj['conditions'])
+def wrap_code_segment(code, attributes):
+    return (
+        '\n\n' +
+        f'<script {attributes}>\n' +
+        code +
+        '</script>'
+    )
 
-            if needs_back_inject:
-                back_injections.append({
-                    'statements': inj['statements'],
-                    'conditions': simplified_conditions_back,
-                })
+def paste_sr_into_template(js_text, file_name, insert_anki_persistence) -> str:
+    mw.col.media.syncDelete(file_name)
 
-        with io.open(f'{js_path}/front.js', mode='r', encoding='utf-8') as template_front:
-            js_front = BetterTemplate(template_front.read()).safe_substitute(
-                iterations=dumps(front_iterations, separators=minimal_sep),
-                injections=dumps(front_injections, separators=minimal_sep),
-            )
+    anki_persistence_code = f'{get_anki_persistence_code()}\n' if insert_anki_persistence else ''
+    addition = anki_persistence_code + js_text
 
-        with io.open(f'{js_path}/back.js', mode='r', encoding='utf-8') as template_back:
-            js_back =  BetterTemplate(template_back.read()).safe_substitute(
-                iterations=dumps(back_iterations, separators=minimal_sep),
-                injections=dumps(back_injections, separators=minimal_sep),
-            )
+    return addition
 
-        with io.open(f'{js_path}/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:
-            anki_persistence = template_anki_persistence.read() + '\n'
+def create_sr_file(js_text, file_name, insert_anki_persistence) -> str:
+    anki_persistence_code = f'{get_anki_persistence_code()}\n' if insert_anki_persistence else ''
 
-        if settings['pasteIntoTemplate']:
-            template['qfmt'] = (
-                f'{template["qfmt"]}\n\n<script {gen_data_attributes("Front")}>\n'
-                f'{anki_persistence if settings["insertAnkiPersistence"] else ""}{js_front}'
-                f'</script>'
-            )
+    mw.col.media.writeData(
+        file_name,
+        (anki_persistence_code + js_text).encode('ascii'),
+    )
 
-            template['afmt'] = (
-                f'{template["afmt"]}\n\n<script {gen_data_attributes("Back")}>\n'
-                f'{anki_persistence if settings["insertAnkiPersistence"] else ""}{js_back}'
-                f'</script>'
-            )
+    addition = (
+        'var script = document.createElement("script")' +
+        f'script.src = "{file_name}"' +
+        'document.getElementsByTagName(\'head\')[0].appendChild(script)'
+    )
 
-        else:
-            front_name = f'_front{model["id"]}_{cardtype_name}.js'
-            back_name = f'_back{model["id"]}_{cardtype_name}.js'
-
-            front_template = f"""\n
-<script {gen_data_attributes("Front")}>
-  var script = document.createElement("script")
-  script.src = "{front_name}"
-  document.getElementsByTagName('head')[0].appendChild(script)
-</script>
-"""
-
-            back_template = f"""\n
-<script {gen_data_attributes("Back")}>
-  var script = document.createElement("script")
-  script.src = "{back_name}"
-  document.getElementsByTagName('head')[0].appendChild(script)
-</script>
-"""
-
-            mw.col.media.writeData(front_name, ((
-                anki_persistence
-                if settings['insertAnkiPersistence']
-                else '') + js_front).encode('ascii'))
-
-            mw.col.media.writeData(back_name, ((
-                anki_persistence
-                if settings['insertAnkiPersistence']
-                else '') + js_back).encode('ascii'))
-
-            template['qfmt'] = template["qfmt"] + front_template
-            template['afmt'] = template["afmt"] + back_template
-
-    # notify anki that models changed (for synchronization e.g.)
-    mw.col.models.save(model)
+    return addition

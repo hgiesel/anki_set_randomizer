@@ -3,7 +3,8 @@ from aqt.qt import QDialog, QWidget, QAction
 from anki.hooks import addHook
 
 from .lib import config
-from .setup import setup_editor, setup_menu_option, setup_addon_manager
+from .setup import setup_config_dialog, setup_editor
+from .lib.script_manager import activate_script_manager
 
 # from .occluder.custom.sr_occluder import SROccluder
 
@@ -13,8 +14,8 @@ from .setup import setup_editor, setup_menu_option, setup_addon_manager
 #     return dialog.exec_()
 
 def init():
-    addHook('profileLoaded', setup_menu_option)
-    addHook('profileLoaded', setup_addon_manager)
+    sm_installed = activate_script_manager
+    setup_config_dialog(sm_installed)
     setup_editor()
 
 init()

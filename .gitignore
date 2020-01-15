@@ -18,6 +18,6 @@ meta.json
 /src/gui_occluder/*.py
 
 # Compiled js output
-/js/dist/front.js
-/js/dist/back.js
+/js/dist/Front.js
+/js/dist/Back.js
 /build/*

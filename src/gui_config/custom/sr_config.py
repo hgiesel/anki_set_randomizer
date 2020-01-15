@@ -7,7 +7,6 @@ from jsonschema import validate, RefResolver, Draft7Validator
 
 from aqt import mw
 from aqt.qt import QDialog, QWidget, QAction
-from aqt.utils import getText, showWarning, showInfo
 
 from ...lib.config import write_settings, deserialize_setting, serialize_setting
 from ...lib.model_editor import setup_models
@@ -20,18 +19,19 @@ from .sr_config_tabwidget import SRConfigTabwidget
 def sort_negative_first(v):
     return abs(int(v.name)) * 2 if int(v.name) < 0 else abs(int(v.name)) * 2 + 1
 
-def write_back(settings):
-    write_settings(settings)
-    setup_models(settings)
-
 class SRConfigDialog(QDialog):
-    def __init__(self, parent):
+    def __init__(self, parent, activate_wb_button):
         super().__init__(parent=parent)
 
         self.ui = Ui_SRConfig()
         self.ui.setupUi(self)
 
         self.ui.cancelButton.clicked.connect(self.reject)
+
+        if not activate_wb_button:
+            self.ui.wbButton.hide()
+            self.ui.saveButton.setDefault(True)
+            self.ui.saveButton.setAutoDefault(True)
 
     def setupUi(self, settings, startId=0):
         self.settings = settings
@@ -44,10 +44,24 @@ class SRConfigDialog(QDialog):
             oldSid = self.ui.modelChooser.findText(setting_data.model_name)
             settings[oldSid] = setting_data
 
-            write_back(settings)
+            write_settings(settings)
+            self.accept()
+
+        def wbCurrentSetting(isClicked):
+            nonlocal self
+            nonlocal settings
+
+            setting_data = self.ui.tabWidget.exportData()
+            oldSid = self.ui.modelChooser.findText(setting_data.model_name)
+            settings[oldSid] = setting_data
+
+            write_settings(settings)
+            setup_models(settings)
             self.accept()
 
         self.ui.saveButton.clicked.connect(saveCurrentSetting)
+        self.ui.wbButton.clicked.connect(wbCurrentSetting)
+
         self.ui.helpButton.clicked.connect(self.showHelp)
         self.ui.aboutButton.clicked.connect(self.showAbout)
         self.ui.importButton.clicked.connect(self.importDialog)
