@@ -14,6 +14,7 @@
           "enum": [
             "card",
             "tag",
+            "tagFull",
             "iter"
           ]
         },
@@ -29,6 +30,36 @@
         },
         {
           "type": "string"
+        }
+      ]
+    },
+
+    "sideCondition": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": [
+        {
+          "type": "string",
+          "enum": [
+            "side"
+          ]
+        },
+        {
+          "type": "string",
+          "enum": [
+            "=",
+            "!="
+          ]
+        },
+        {
+          "type": "string",
+          "enum": [
+            "front",
+            "quest",
+            "back",
+            "answer"
+          ]
         }
       ]
     },
@@ -52,6 +83,9 @@
           },
           {
             "$ref": "#/definitions/condition"
+          },
+          {
+            "$ref": "#/definitions/sideCondition"
           },
           {
             "$ref": "#/definitions/negation"
@@ -83,6 +117,9 @@
             "$ref": "#/definitions/condition"
           },
           {
+            "$ref": "#/definitions/sideCondition"
+          },
+          {
             "$ref": "#/definitions/negation"
           },
           {
@@ -92,13 +129,16 @@
       }
     },
 
-    "injection_condition": {
+    "full_condition": {
       "oneOf": [
         {
           "$ref": "#/definitions/truthValue"
         },
         {
           "$ref": "#/definitions/condition"
+        },
+        {
+          "$ref": "#/definitions/sideCondition"
         },
         {
           "$ref": "#/definitions/negation"
@@ -110,5 +150,5 @@
     }
   },
 
-  "$ref": "#/definitions/injection_condition"
+  "$ref": "#/definitions/full_condition"
 }

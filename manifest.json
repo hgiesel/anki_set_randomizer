@@ -1,5 +1,6 @@
 {
     "name": "Set Randomizer",
-    "package": "set_randomizer",
-    "conflicts": []
+    "package": "anki_set_randomizer",
+    "conflicts": [],
+    "mod": 1164532380
 }

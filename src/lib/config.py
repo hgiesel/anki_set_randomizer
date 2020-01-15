@@ -217,8 +217,3 @@ def write_settings(settings):
     mw.addonManager.writeConfig(__name__, {
         'settings': [serialize_setting(setting) for setting in settings],
     })
-
-    mw.addonManager.writeAddonMeta(__name__, {
-        'name': 'Set Randomizer',
-        'conflicts': [],
-    })

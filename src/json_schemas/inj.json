@@ -16,7 +16,7 @@
         },
 
         "conditions": {
-          "$ref": "injection_cond.json#/definitions/injection_condition"
+          "$ref": "injection_cond.json#/definitions/full_condition"
         },
 
         "statements": {
