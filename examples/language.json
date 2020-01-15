@@ -1,0 +1,280 @@
+{
+   "description" : "",
+   "enabled" : true,
+   "injections" : [
+      {
+         "conditions" : [
+            "&",
+            [
+               "tag",
+               "endsWith",
+               "::mc"
+            ],
+            [
+               "iter",
+               "startsWith",
+               "-"
+            ]
+         ],
+         "description" : "",
+         "enabled" : true,
+         "name" : "mc::front",
+         "statements" : [
+            "$eval(+, $answer, uniq=ans)",
+            "$eval($wrong:0)"
+         ]
+      },
+      {
+         "conditions" : [
+            "&",
+            [
+               "tag",
+               "endsWith",
+               "::mc"
+            ],
+            [
+               "iter",
+               "startsWith",
+               "+"
+            ]
+         ],
+         "description" : "",
+         "enabled" : true,
+         "name" : "mc::back",
+         "statements" : [
+            "$eval(+, $answer, uniq=ans)",
+            "$style(answer, colorRules=[$answer, lime], colors=red)",
+            "$apply($answer, answer)",
+            "$eval($wrong:1)"
+         ]
+      },
+      {
+         "conditions" : [
+            "&",
+            [
+               "tag",
+               "endsWith",
+               "zh::context"
+            ],
+            [
+               "iter",
+               "startsWith",
+               "-"
+            ]
+         ],
+         "description" : "",
+         "enabled" : true,
+         "name" : "zh::tone::front",
+         "statements" : [
+            "$style(toneDeaf, filterTags=yes, colors=pink)",
+            "$apply($tone, toneDeaf)",
+            "$eval($tone)"
+         ]
+      },
+      {
+         "conditions" : [
+            "&",
+            [
+               "tag",
+               "endsWith",
+               "zh::context"
+            ],
+            [
+               "iter",
+               "startsWith",
+               "+"
+            ]
+         ],
+         "description" : "",
+         "enabled" : true,
+         "name" : "zh::tone::back",
+         "statements" : [
+            "$style(toneLive, colors=pink)",
+            "$apply($tone, toneLive)",
+            "$eval($tone)"
+         ]
+      }
+   ],
+   "insertAnkiPersistence" : false,
+   "iterations" : [
+      {
+         "defaultStyle" : {
+            "classes" : {
+               "collectiveIndexing" : true,
+               "delim" : "",
+               "randomStartIndex" : false,
+               "values" : [
+                  ""
+               ]
+            },
+            "closeDelim" : "〕",
+            "colors" : {
+               "collectiveIndexing" : true,
+               "delim" : "aqua",
+               "randomStartIndex" : false,
+               "values" : [
+                  "orange",
+                  "olive",
+                  "maroon",
+                  "aqua",
+                  "fuchsia"
+               ]
+            },
+            "emptySet" : "…",
+            "fieldPadding" : 2,
+            "fieldSeparator" : " ",
+            "fill" : "beige",
+            "fillOpacity" : 1,
+            "openDelim" : "〔",
+            "stroke" : "skyblue",
+            "strokeOpacity" : 1,
+            "strokeWidth" : 3
+         },
+         "description" : "",
+         "enabled" : true,
+         "inputSyntax" : {
+            "closeDelim" : "\\]\\]",
+            "cssSelector" : "div#content",
+            "fieldSeparator" : "::",
+            "isRegex" : true,
+            "openDelim" : "\\[f?\\["
+         },
+         "name" : "-main"
+      },
+      {
+         "defaultStyle" : {
+            "classes" : {
+               "collectiveIndexing" : true,
+               "delim" : "",
+               "randomStartIndex" : false,
+               "values" : [
+                  ""
+               ]
+            },
+            "closeDelim" : "〕",
+            "colors" : {
+               "collectiveIndexing" : true,
+               "delim" : "aqua",
+               "randomStartIndex" : false,
+               "values" : [
+                  "orange",
+                  "olive",
+                  "maroon",
+                  "aqua",
+                  "fuchsia"
+               ]
+            },
+            "emptySet" : "…",
+            "fieldPadding" : 2,
+            "fieldSeparator" : " ",
+            "fill" : "beige",
+            "fillOpacity" : 1,
+            "openDelim" : "〔",
+            "stroke" : "skyblue",
+            "strokeOpacity" : 1,
+            "strokeWidth" : 3
+         },
+         "description" : "",
+         "enabled" : true,
+         "inputSyntax" : {
+            "closeDelim" : "\\]\\]",
+            "cssSelector" : "div#content",
+            "fieldSeparator" : "::",
+            "isRegex" : true,
+            "openDelim" : "\\[b?\\["
+         },
+         "name" : "+main"
+      },
+      {
+         "defaultStyle" : {
+            "classes" : {
+               "collectiveIndexing" : true,
+               "delim" : "",
+               "randomStartIndex" : false,
+               "values" : [
+                  ""
+               ]
+            },
+            "closeDelim" : "",
+            "colors" : {
+               "collectiveIndexing" : true,
+               "delim" : "",
+               "randomStartIndex" : false,
+               "values" : [
+                  ""
+               ]
+            },
+            "emptySet" : "…",
+            "fieldPadding" : 0,
+            "fieldSeparator" : " ",
+            "fill" : "beige",
+            "fillOpacity" : 1,
+            "openDelim" : "",
+            "stroke" : "skyblue",
+            "strokeOpacity" : 1,
+            "strokeWidth" : 3
+         },
+         "description" : "",
+         "enabled" : true,
+         "inputSyntax" : {
+            "closeDelim" : "#\\]",
+            "cssSelector" : "div#content",
+            "fieldSeparator" : "::",
+            "isRegex" : true,
+            "openDelim" : "\\[f?#"
+         },
+         "name" : "-post_main"
+      },
+      {
+         "defaultStyle" : {
+            "classes" : {
+               "collectiveIndexing" : true,
+               "delim" : "",
+               "randomStartIndex" : false,
+               "values" : [
+                  ""
+               ]
+            },
+            "closeDelim" : "",
+            "colors" : {
+               "collectiveIndexing" : true,
+               "delim" : "",
+               "randomStartIndex" : false,
+               "values" : [
+                  ""
+               ]
+            },
+            "emptySet" : "…",
+            "fieldPadding" : 0,
+            "fieldSeparator" : " ",
+            "fill" : "beige",
+            "fillOpacity" : 1,
+            "openDelim" : "",
+            "stroke" : "skyblue",
+            "strokeOpacity" : 1,
+            "strokeWidth" : 3
+         },
+         "description" : "",
+         "enabled" : true,
+         "inputSyntax" : {
+            "closeDelim" : "#\\]",
+            "cssSelector" : "div#content",
+            "fieldSeparator" : "::",
+            "isRegex" : true,
+            "openDelim" : "\\[b?#"
+         },
+         "name" : "+post_main"
+      }
+   ],
+   "modelName" : "Standard",
+   "pasteIntoTemplate" : true,
+   "sourceMode" : {
+      "clozeOptions" : {
+         "closeDelim" : "]]",
+         "openDelim" : "[[",
+         "shortcutsEnabled" : false,
+         "vsPrefix" : "c"
+      },
+      "occlusionOptions" : {}
+   }
+}
