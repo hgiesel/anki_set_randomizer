@@ -11,6 +11,7 @@ from aqt import mw
 
 from .config import serialize_iteration, serialize_injection
 from .utils import version_string
+from .config_types import SRIteration, SRInjection
 
 class BetterTemplate(Template):
     delimiter = '$$'
@@ -58,7 +59,7 @@ def gen_data_attributes(fmt):
     return f'data-name="Set Randomizer {fmt_to_frontback(fmt)} Template" data-version="{version_string}"'
 
 def update_model_template(tmpl, fmt, new_code: str):
-    pattern = re.compile(r'\n?<script[^>]*Set Randomizer[^>]*?>.*?</script>', re.DOTALL)
+    pattern = re.compile(r'\n?\n?<script[^>]*Set Randomizer (Front|Back) Template[^>]*?>.*?</script>', re.DOTALL)
     span = re.search(pattern, tmpl[fmt])
 
     replacement = (
@@ -193,19 +194,19 @@ js_path = f'{os.path.dirname(os.path.realpath(__file__))}/../../js/dist'
 
 def get_anki_persistence_code() -> str:
     with io.open(f'{js_path}/anki-persistence.js', mode='r', encoding='utf-8') as template_anki_persistence:
-        anki_persistence = template_anki_persistence.read()
+        anki_persistence = template_anki_persistence.read().strip()
 
     return anki_persistence
 
-def get_sr_code(settings, cardtype_name, fmt) -> str:
+def get_sr_code(setting, cardtype_name, fmt) -> str:
     minimal_sep = (',', ':')
     is_front = fmt == 'qfmt' # else 'afmt'
 
-    the_iterations = [iter for iter in settings.iterations if iter.enabled and iter.name.startswith('-' if is_front else '+')]
+    the_iterations = [iter for iter in setting.iterations if iter.enabled and iter.name.startswith('-' if is_front else '+')]
     injection_parser = get_injection_condition_parser(cardtype_name, the_iterations)
     the_injections = []
 
-    for inj in [inj for inj in settings.injections if inj.enabled]:
+    for inj in [inj for inj in setting.injections if inj.enabled]:
         needs_inject, simplified_conditions = injection_parser(inj.conditions)
 
         if needs_inject:
@@ -218,9 +219,9 @@ def get_sr_code(settings, cardtype_name, fmt) -> str:
 
     with io.open(f'{js_path}/{js_file_name}.js', mode='r', encoding='utf-8') as template_text:
         js_text = BetterTemplate(template_text.read()).safe_substitute(
-            iterations=dumps([serialize_iteration(iter) for iter in the_iterations], separators=minimal_sep),
-            injections=dumps([serialize_injection(inj) for inj in the_injections], separators=minimal_sep),
-        )
+            iterations=dumps([serialize_iteration(iter) if isinstance(iter, SRIteration) else iter for iter in the_iterations], separators=minimal_sep),
+            injections=dumps([serialize_injection(inj) if isinstance(inj, SRInjection) else inj for inj in the_injections], separators=minimal_sep),
+        ).strip()
 
     return js_text
 
@@ -229,7 +230,7 @@ def wrap_code_segment(code, attributes):
         '\n\n' +
         f'<script {attributes}>\n' +
         code +
-        '</script>'
+        '\n</script>'
     )
 
 def paste_sr_into_template(js_text, file_name, insert_anki_persistence) -> str:

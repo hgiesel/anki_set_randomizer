@@ -28,7 +28,7 @@ class SRConfigDialog(QDialog):
 
         self.ui.cancelButton.clicked.connect(self.reject)
 
-        if not activate_wb_button:
+        if activate_wb_button:
             self.ui.wbButton.hide()
             self.ui.saveButton.setDefault(True)
             self.ui.saveButton.setAutoDefault(True)
@@ -43,6 +43,9 @@ class SRConfigDialog(QDialog):
             setting_data = self.ui.tabWidget.exportData()
             oldSid = self.ui.modelChooser.findText(setting_data.model_name)
             settings[oldSid] = setting_data
+
+            from aqt.utils import showInfo
+            showInfo('srconfig: ' + str(setting_data))
 
             write_settings(settings)
             self.accept()

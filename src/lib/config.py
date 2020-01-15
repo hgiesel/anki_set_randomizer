@@ -220,6 +220,9 @@ def write_settings(settings: List[SRSetting]) -> None:
         in settings
     ]
 
+    from aqt.utils import showInfo
+    showInfo(str(serializedSettings[0]))
+
     mw.addonManager.writeConfig(__name__, {
         'settings': serializedSettings,
     })

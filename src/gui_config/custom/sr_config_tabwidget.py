@@ -46,4 +46,7 @@ class SRConfigTabwidget(QTabWidget):
             'sourceMode': self.ui.sourceModeTab.exportData(),
         })
 
+        from aqt.utils import showInfo
+        showInfo('srtw: ' + str(result))
+
         return result

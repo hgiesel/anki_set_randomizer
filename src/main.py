@@ -14,7 +14,8 @@ from .lib.script_manager import activate_script_manager
 #     return dialog.exec_()
 
 def init():
-    sm_installed = activate_script_manager
+    sm_installed = activate_script_manager()
+
     setup_config_dialog(sm_installed)
     setup_editor()
 
