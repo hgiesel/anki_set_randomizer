@@ -42,3 +42,10 @@ def safenav(records, props=[], preds=[], default=None):
 
     result = reduce(find_record, records, nothing)
     return default if result is nothing else result
+
+def find_my_addon(addon_name):
+    import mw
+
+    for name in (mw.addonManager.allAddons()):
+        if mw.addonManager.addonName(name) == addon_name:
+            return name
