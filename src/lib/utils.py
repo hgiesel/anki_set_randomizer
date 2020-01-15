@@ -5,11 +5,15 @@ version_string = '2.2'
 def safenav_preset(preset):
     ensure_value = lambda v: v is not None
 
-    def safenav_mod(records, props=[], preds=[ensure_value], default=None):
+    def safenav_mod(records, props=[], preds=[], default=None):
         nonlocal preset
-        records.extend(preset)
 
-        return safenav(records, props, preds, default)
+        return safenav(
+            records + [preset],
+            props,
+            preds + [ensure_value],
+            default,
+        )
 
     return safenav_mod
 
