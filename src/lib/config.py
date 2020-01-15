@@ -18,7 +18,6 @@ from .config_types import (
     SRSourceMode, SRClozeOptions, SROcclusionOptions,
 )
 
-CONFIG = mw.addonManager.getConfig(__name__)
 SCRIPTNAME = path.dirname(path.realpath(__file__))
 
 # initialize default type
@@ -199,16 +198,17 @@ def deserialize_setting_with_default(model_name, settings):
 
     return model_deserialized
 
-def get_setting(model_name='Default') -> Optional[SRSetting]:
-    return deserialize_setting_with_default(model_name, safenav([CONFIG], ['settings'], default=None))
+def get_setting(model_name='Default', current_config = mw.addonManager.getConfig(__name__)) -> Optional[SRSetting]:
+    return deserialize_setting_with_default(model_name, safenav([current_config], ['settings'], default=None))
 
 def get_settings() -> List[SRSetting]:
-    model_settings = []
+    current_config = mw.addonManager.getConfig(__name__)
 
-    for model in mw.col.models.models.values():
-        model_name = (model['name'])
-        model_deserialized = get_setting(model_name)
-        model_settings.append(model_deserialized)
+    model_settings = [
+        get_setting(model['name'], current_config)
+        for model
+        in mw.col.models.models.values()
+    ]
 
     return model_settings
 
@@ -219,9 +219,6 @@ def write_settings(settings: List[SRSetting]) -> None:
         for setting
         in settings
     ]
-
-    from aqt.utils import showInfo
-    showInfo(str(serializedSettings[0]))
 
     mw.addonManager.writeConfig(__name__, {
         'settings': serializedSettings,

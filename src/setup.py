@@ -3,8 +3,8 @@ from aqt.editor import Editor
 from anki.hooks import wrap, addHook
 
 from .wrapper import on_cloze
-from .lib.config import get_settings
 from .gui_config.custom.sr_config import SRConfigDialog
+from .lib.config import get_settings
 
 def setup_editor():
     Editor.onCloze = wrap(Editor.onCloze, on_cloze, "around")
@@ -12,9 +12,8 @@ def setup_editor():
 def setup_invoke(sm_installed):
     def invoke_options():
         dialog = SRConfigDialog(mw, sm_installed)
-        settings = get_settings()
+        dialog.setupUi(get_settings())
 
-        dialog.setupUi(settings)
         return dialog.exec_()
 
     return invoke_options

@@ -8,7 +8,7 @@ from jsonschema import validate, RefResolver, Draft7Validator
 from aqt import mw
 from aqt.qt import QDialog, QWidget, QAction
 
-from ...lib.config import write_settings, deserialize_setting, serialize_setting
+from ...lib.config import get_settings, write_settings, deserialize_setting, serialize_setting
 from ...lib.model_editor import setup_models
 
 from ..sr_config_ui import Ui_SRConfig
@@ -33,33 +33,28 @@ class SRConfigDialog(QDialog):
             self.ui.saveButton.setDefault(True)
             self.ui.saveButton.setAutoDefault(True)
 
-    def setupUi(self, settings, startId=0):
-        self.settings = settings
+    def setupUi(self, sts, startId=0):
+        self.settings = sts
 
         def saveCurrentSetting(isClicked):
             nonlocal self
-            nonlocal settings
 
             setting_data = self.ui.tabWidget.exportData()
             oldSid = self.ui.modelChooser.findText(setting_data.model_name)
-            settings[oldSid] = setting_data
+            self.settings[oldSid] = setting_data
 
-            from aqt.utils import showInfo
-            showInfo('srconfig: ' + str(setting_data))
-
-            write_settings(settings)
+            write_settings(self.settings)
             self.accept()
 
         def wbCurrentSetting(isClicked):
             nonlocal self
-            nonlocal settings
 
             setting_data = self.ui.tabWidget.exportData()
             oldSid = self.ui.modelChooser.findText(setting_data.model_name)
-            settings[oldSid] = setting_data
+            self.settings[oldSid] = setting_data
 
-            write_settings(settings)
-            setup_models(settings)
+            write_settings(self.settings)
+            setup_models(self.settings)
             self.accept()
 
         self.ui.saveButton.clicked.connect(saveCurrentSetting)
@@ -71,23 +66,22 @@ class SRConfigDialog(QDialog):
 
         def updateTabWidgetFromModelchooser(newSid):
             nonlocal self
-            nonlocal settings
 
             setting_data = self.ui.tabWidget.exportData()
             oldSid = self.ui.modelChooser.findText(setting_data.model_name)
-            settings[oldSid] = setting_data
+            self.settings[oldSid] = setting_data
 
-            self.updateTabWidget(settings[newSid])
+            self.updateTabWidget(self.settings[newSid])
 
         self.ui.modelChooser.setupUi(
             list(map(
                 lambda v: v.model_name,
-                settings,
+                self.settings,
             )),
             updateTabWidgetFromModelchooser,
         )
 
-        self.updateTabWidget(settings[startId])
+        self.updateTabWidget(self.settings[startId])
 
     def updateTabWidget(self, setting):
         self.ui.tabWidget.setupUi(setting)
